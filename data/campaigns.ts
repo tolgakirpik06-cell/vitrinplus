@@ -1,0 +1,58 @@
+import type { Campaign } from "@/types";
+
+export const campaigns: Campaign[] = [
+  {
+    id: "super-firsatlar",
+    title: "Süper Fırsatlar Başladı",
+    subtitle: "Elektronik ve modada %70'e varan indirim",
+    badge: "Sınırlı Süre",
+    ctaLabel: "Fırsatları Keşfet",
+    href: "/kampanyalar",
+    tone: "brand",
+  },
+  {
+    id: "satici-ol",
+    title: "%0 Komisyonla Mağazanı Aç",
+    subtitle: "Kurucu 500 kampanyası sürüyor",
+    badge: "Satıcılara Özel",
+    ctaLabel: "Hemen Başvur",
+    href: "/satici-basvuru",
+    tone: "navy",
+  },
+  {
+    id: "yeni-sezon",
+    title: "Yeni Sezon Trendleri",
+    subtitle: "Kadın & erkek giyimde yeni gelenler",
+    badge: "Yeni",
+    ctaLabel: "Keşfet",
+    href: "/kategori/kadin",
+    tone: "navy",
+  },
+  {
+    id: "hizli-teslimat",
+    title: "Aynı Gün Kargoda",
+    subtitle: "Seçili ürünlerde hızlı teslimat avantajı",
+    badge: "Hızlı",
+    ctaLabel: "İncele",
+    href: "/kategori/elektronik",
+    tone: "navy",
+  },
+  {
+    id: "supermarket-firsat",
+    title: "Markette Bu Hafta",
+    subtitle: "150 TL üzeri alışverişte kargo bedava",
+    badge: "Market",
+    ctaLabel: "Markete Git",
+    href: "/kategori/supermarket",
+    tone: "navy",
+  },
+  {
+    id: "kozmetik-firsat",
+    title: "Cilt Bakımı Günleri",
+    subtitle: "Seçili kozmetik ürünlerinde 2. ürün %50",
+    badge: "Bakım",
+    ctaLabel: "Alışverişe Başla",
+    href: "/kategori/kozmetik",
+    tone: "brand",
+  },
+];
