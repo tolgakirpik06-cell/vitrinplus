@@ -8,8 +8,8 @@ export function StoreIllustration() {
     >
       <defs>
         <linearGradient id="storeRoof" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#ff8a3d" />
-          <stop offset="100%" stopColor="#ff6a12" />
+          <stop offset="0%" stopColor="#a78bfa" />
+          <stop offset="100%" stopColor="#7c3aed" />
         </linearGradient>
       </defs>
 
@@ -41,17 +41,17 @@ export function StoreIllustration() {
       ))}
 
       {/* sign */}
-      <rect x="118" y="60" width="84" height="28" rx="8" fill="#ffffff" />
+      <rect x="104" y="60" width="112" height="28" rx="8" fill="#ffffff" />
       <text
         x="160"
         y="79"
         textAnchor="middle"
         fontSize="13"
         fontWeight="700"
-        fill="#ff6a12"
+        fill="#7c3aed"
         fontFamily="inherit"
       >
-        PazarBuy
+        VitrinPlus
       </text>
     </svg>
   );

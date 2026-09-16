@@ -13,19 +13,19 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0d111d",
+          background: "linear-gradient(135deg, #7c3aed, #4c1d95)",
           borderRadius: 8,
         }}
       >
         <span
           style={{
-            fontSize: 20,
+            fontSize: 15,
             fontWeight: 800,
-            color: "#ff6a12",
+            color: "#ffffff",
             fontFamily: "sans-serif",
           }}
         >
-          P
+          VP+
         </span>
       </div>
     ),

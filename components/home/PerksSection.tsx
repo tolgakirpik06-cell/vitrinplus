@@ -12,7 +12,7 @@ const toneClasses: Record<Perk["tone"], string> = {
 export function PerksSection() {
   return (
     <div className="flex h-full flex-col rounded-3xl border border-navy-100/70 bg-white p-6 shadow-card sm:p-7">
-      <h2 className="mb-5 text-lg font-bold text-navy-900">PazarBuy Ayrıcalıkları</h2>
+      <h2 className="mb-5 text-lg font-bold text-navy-900">Güven Avantajları</h2>
 
       <div className="flex flex-1 flex-col gap-2.5">
         {perks.map((perk) => (

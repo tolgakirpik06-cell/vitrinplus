@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  /* PazarBuy turuncusu */
-  --color-brand-50: #fff4ec;
-  --color-brand-100: #ffe4d1;
-  --color-brand-200: #ffc7a3;
-  --color-brand-300: #ffa066;
-  --color-brand-400: #ff7f33;
-  --color-brand-500: #ff6a12;
-  --color-brand-600: #f25a05;
-  --color-brand-700: #c94604;
-  --color-brand-800: #9e380a;
-  --color-brand-900: #7f300d;
+  /* VitrinPlus premium moru */
+  --color-brand-50: #f6f2ff;
+  --color-brand-100: #ede4ff;
+  --color-brand-200: #dbc9ff;
+  --color-brand-300: #bb9dff;
+  --color-brand-400: #9d6fff;
+  --color-brand-500: #7c3aed;
+  --color-brand-600: #6d28d9;
+  --color-brand-700: #5b21b6;
+  --color-brand-800: #4c1d95;
+  --color-brand-900: #3b1370;
 
   /* Koyu lacivert / siyaha yakın ton */
   --color-navy-50: #eef1f8;
@@ -35,7 +35,7 @@
 
   --shadow-card: 0 1px 2px rgba(13, 17, 29, 0.04), 0 8px 24px -12px rgba(13, 17, 29, 0.12);
   --shadow-card-hover: 0 4px 10px rgba(13, 17, 29, 0.06), 0 16px 32px -12px rgba(13, 17, 29, 0.18);
-  --shadow-glow: 0 20px 60px -20px rgba(255, 106, 18, 0.45);
+  --shadow-glow: 0 20px 60px -20px rgba(124, 58, 237, 0.45);
   --shadow-premium: 0 2px 4px rgba(13, 17, 29, 0.03), 0 24px 48px -16px rgba(13, 17, 29, 0.16);
 
   --animate-float: float 6s ease-in-out infinite;

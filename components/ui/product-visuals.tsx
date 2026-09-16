@@ -25,9 +25,9 @@ function GamingPcVisual() {
           <stop offset="100%" stopColor="#12162a" stopOpacity="0.95" />
         </linearGradient>
         <radialGradient id="pc-fan" cx="50%" cy="50%" r="55%">
-          <stop offset="0%" stopColor="#ff9a4d" />
-          <stop offset="55%" stopColor="#ff6a12" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#ff6a12" stopOpacity="0" />
+          <stop offset="0%" stopColor="#b98cff" />
+          <stop offset="55%" stopColor="#7c3aed" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="pc-fan-blue" cx="50%" cy="50%" r="55%">
           <stop offset="0%" stopColor="#7fd9ff" />
@@ -84,7 +84,7 @@ function PhoneVisual() {
         </linearGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="210" rx="40" ry="8" />
+      <GroundShadow cx={120} cy={210} rx={40} ry={8} />
 
       <rect x="86" y="10" width="68" height="196" rx="20" fill="url(#phone-body)" />
       <rect x="89" y="13" width="62" height="190" rx="17" fill="url(#phone-screen)" />
@@ -137,7 +137,7 @@ function HeadphonesVisual() {
         </radialGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="200" rx="55" ry="9" />
+      <GroundShadow cx={120} cy={200} rx={55} ry={9} />
 
       <path
         d="M62 130 C62 74 92 40 120 40 C148 40 178 74 178 130"
@@ -159,8 +159,8 @@ function HeadphonesVisual() {
       </g>
 
       {/* brand accent dots */}
-      <circle cx="62" cy="150" r="4" fill="#ff6a12" />
-      <circle cx="178" cy="150" r="4" fill="#ff6a12" />
+      <circle cx="62" cy="150" r="4" fill="#7c3aed" />
+      <circle cx="178" cy="150" r="4" fill="#7c3aed" />
     </svg>
   );
 }
@@ -179,7 +179,7 @@ function SneakerVisual() {
         </linearGradient>
       </defs>
 
-      <GroundShadow cx="126" cy="176" rx="72" ry="10" />
+      <GroundShadow cx={126} cy={176} rx={72} ry={10} />
 
       {/* sole */}
       <path
@@ -200,7 +200,7 @@ function SneakerVisual() {
       {/* diagonal side panel (generic, not a real logo) */}
       <path
         d="M88 138 C104 118 128 108 156 112 C142 128 122 138 96 142 Z"
-        fill="#ff6a12"
+        fill="#7c3aed"
         opacity="0.9"
       />
 
@@ -235,7 +235,7 @@ function VacuumVisual() {
         </radialGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="188" rx="66" ry="11" />
+      <GroundShadow cx={120} cy={188} rx={66} ry={11} />
 
       <ellipse cx="120" cy="150" rx="76" ry="76" fill="url(#vac-body)" />
       <ellipse cx="120" cy="150" rx="76" ry="76" fill="none" stroke="#d3d7e0" strokeWidth="1.5" />
@@ -249,7 +249,7 @@ function VacuumVisual() {
       <circle cx="116" cy="116" r="2.4" fill="#ffffff" opacity="0.8" />
 
       {/* buttons */}
-      <circle cx="150" cy="150" r="5" fill="#ff6a12" />
+      <circle cx="150" cy="150" r="5" fill="#7c3aed" />
       <circle cx="164" cy="150" r="5" fill="#aab3cf" />
 
       {/* highlight sheen */}
@@ -276,7 +276,7 @@ function WatchVisual() {
         </linearGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="206" rx="46" ry="8" />
+      <GroundShadow cx={120} cy={206} rx={46} ry={8} />
 
       {/* bands */}
       <rect x="98" y="14" width="44" height="46" rx="12" fill="url(#watch-band)" />
@@ -293,7 +293,7 @@ function WatchVisual() {
       <rect x="88" y="70" width="64" height="80" rx="18" fill="url(#watch-screen)" />
       <circle cx="120" cy="110" r="20" fill="none" stroke="#3fa9ff" strokeWidth="3" opacity="0.8" />
       <path d="M120 98 L120 110 L130 116" stroke="#7fd9ff" strokeWidth="3" strokeLinecap="round" fill="none" />
-      <rect x="104" y="128" width="32" height="6" rx="3" fill="#ff6a12" opacity="0.85" />
+      <rect x="104" y="128" width="32" height="6" rx="3" fill="#7c3aed" opacity="0.85" />
 
       {/* highlight */}
       <path d="M92 74 C98 70 108 68 116 68" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.3" fill="none" />
@@ -316,7 +316,7 @@ function TabletVisual() {
         </linearGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="196" rx="66" ry="9" />
+      <GroundShadow cx={120} cy={196} rx={66} ry={9} />
 
       <rect x="46" y="26" width="148" height="166" rx="18" fill="url(#tablet-body)" />
       <rect x="58" y="38" width="124" height="142" rx="6" fill="url(#tablet-screen)" />
@@ -363,7 +363,7 @@ function LaptopVisual() {
         </linearGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="188" rx="82" ry="10" />
+      <GroundShadow cx={120} cy={188} rx={82} ry={10} />
 
       {/* screen */}
       <rect x="58" y="34" width="124" height="86" rx="8" fill="#c7cbd8" />
@@ -371,7 +371,7 @@ function LaptopVisual() {
       <rect x="76" y="52" width="52" height="6" rx="3" fill="#3fa9ff" opacity="0.6" />
       <rect x="76" y="64" width="80" height="5" rx="2.5" fill="#ffffff" opacity="0.14" />
       <rect x="76" y="74" width="64" height="5" rx="2.5" fill="#ffffff" opacity="0.14" />
-      <circle cx="150" cy="96" r="10" fill="#ff6a12" opacity="0.85" />
+      <circle cx="150" cy="96" r="10" fill="#7c3aed" opacity="0.85" />
 
       {/* base */}
       <path d="M40 120 L200 120 L214 148 C216 152 213 156 208 156 L32 156 C27 156 24 152 26 148 Z" fill="url(#laptop-base)" />
@@ -399,12 +399,12 @@ function PerfumeVisual() {
           <stop offset="100%" stopColor="#1c2233" />
         </linearGradient>
         <radialGradient id="perfume-liquid" cx="35%" cy="20%" r="90%">
-          <stop offset="0%" stopColor="#ffb27a" />
-          <stop offset="100%" stopColor="#ff6a12" />
+          <stop offset="0%" stopColor="#c9a6ff" />
+          <stop offset="100%" stopColor="#7c3aed" />
         </radialGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="200" rx="52" ry="9" />
+      <GroundShadow cx={120} cy={200} rx={52} ry={9} />
 
       {/* cap */}
       <rect x="100" y="18" width="40" height="26" rx="8" fill="url(#perfume-cap)" />
@@ -430,8 +430,8 @@ function PerfumeVisual() {
 
       {/* label */}
       <rect x="94" y="128" width="52" height="30" rx="4" fill="#ffffff" opacity="0.85" />
-      <rect x="102" y="136" width="36" height="4" rx="2" fill="#c94604" opacity="0.7" />
-      <rect x="102" y="146" width="24" height="3" rx="1.5" fill="#c94604" opacity="0.45" />
+      <rect x="102" y="136" width="36" height="4" rx="2" fill="#5b21b6" opacity="0.7" />
+      <rect x="102" y="146" width="24" height="3" rx="1.5" fill="#5b21b6" opacity="0.45" />
 
       {/* glossy highlight */}
       <path d="M88 68 C82 90 80 120 84 150" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" opacity="0.45" fill="none" />
@@ -453,12 +453,12 @@ function AirfryerVisual() {
           <stop offset="100%" stopColor="#b9bfcc" />
         </linearGradient>
         <radialGradient id="fryer-dial" cx="40%" cy="35%" r="70%">
-          <stop offset="0%" stopColor="#ff9a4d" />
-          <stop offset="100%" stopColor="#ff6a12" />
+          <stop offset="0%" stopColor="#b98cff" />
+          <stop offset="100%" stopColor="#7c3aed" />
         </radialGradient>
       </defs>
 
-      <GroundShadow cx="120" cy="198" rx="70" ry="10" />
+      <GroundShadow cx={120} cy={198} rx={70} ry={10} />
 
       {/* main body */}
       <path
@@ -473,7 +473,7 @@ function AirfryerVisual() {
 
       {/* control panel */}
       <circle cx="120" cy="100" r="22" fill="url(#fryer-dial)" />
-      <circle cx="120" cy="100" r="22" fill="none" stroke="#c94604" strokeWidth="1.5" opacity="0.6" />
+      <circle cx="120" cy="100" r="22" fill="none" stroke="#5b21b6" strokeWidth="1.5" opacity="0.6" />
       <rect x="110" y="98" width="20" height="4" rx="2" fill="#ffffff" opacity="0.8" />
       <rect x="90" y="130" width="60" height="6" rx="3" fill="#4b5678" />
 

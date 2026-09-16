@@ -71,7 +71,7 @@ export const products: Product[] = [
       { type: "hafiza", label: "Hafıza", options: ["128GB", "256GB", "512GB"] },
       { type: "renk", label: "Renk", options: ["Doğal Titanyum", "Mavi Titanyum", "Beyaz Titanyum"] },
     ],
-    tags: ["en-cok-satanlar", "hizli-teslimat", "yeni-gelenler"],
+    tags: ["en-cok-satanlar", "hizli-teslimat", "yeni-gelenler", "ai-onerileri"],
   },
   {
     id: "sony-wh1000xm5",
@@ -297,7 +297,7 @@ export const products: Product[] = [
       { type: "hafiza", label: "Hafıza", options: ["256GB", "512GB"] },
       { type: "renk", label: "Renk", options: ["Titanyum Siyah", "Titanyum Gri", "Titanyum Menekşe"] },
     ],
-    tags: ["gunun-firsatlari", "hizli-teslimat", "super-firsatlar", "en-iyi-fiyat"],
+    tags: ["gunun-firsatlari", "hizli-teslimat", "super-firsatlar", "en-iyi-fiyat", "ai-onerileri"],
   },
   {
     id: "adidas-ultraboost",

@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PazarBuy | Ne istediğini söyle, ürün seni bulsun.",
+  title: "VitrinPlus | Vitrin senin. Seçim senin.",
   description:
-    "PazarBuy, Türkiye'nin yeni nesil AI destekli pazaryeri. Binlerce satıcının ürünlerini karşılaştırır, sana en uygun seçimi bulur. Satıcılara %0 komisyon.",
+    "VitrinPlus, moda, teknoloji ve güzellikte editoryal bir alışveriş deneyimi sunan yeni nesil pazaryeri. Binlerce satıcının ürünlerini karşılaştırır, sana en uygun seçimi bulur. Satıcılara %0 komisyon.",
 };
 
 export default function RootLayout({

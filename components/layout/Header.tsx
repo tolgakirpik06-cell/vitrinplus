@@ -33,24 +33,18 @@ export function Header() {
               <ShoppingCart size={20} />
               <CartBadge className="-right-2 -top-2" />
             </span>
-            <span className="text-[11px] font-medium">Sepet</span>
+            <span className="text-[11px] font-medium">Sepetim</span>
           </Link>
 
           <span className="mx-2.5 h-7 w-px bg-navy-100" aria-hidden />
 
-          <Link
-            href="/satici-basvuru"
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-navy-600 transition-colors hover:text-brand-600"
-          >
-            <Store size={16} />
-            Satıcı Ol
-          </Link>
           <Button href="/giris" variant="outline" size="sm" className="whitespace-nowrap">
             <LogIn size={15} />
             Giriş Yap
           </Button>
-          <Button href="/kayit" variant="primary" size="sm" className="whitespace-nowrap">
-            Üye Ol
+          <Button href="/satici-basvuru" variant="primary" size="sm" className="whitespace-nowrap">
+            <Store size={15} />
+            Mağaza Aç
           </Button>
         </div>
 

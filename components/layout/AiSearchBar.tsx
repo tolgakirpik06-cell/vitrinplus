@@ -21,7 +21,7 @@ export function AiSearchBar({
       className="flex w-full items-center gap-2.5"
       onSubmit={(event) => event.preventDefault()}
       role="search"
-      aria-label="PazarBuy AI ürün araması"
+      aria-label="VitrinPlus AI ürün araması"
     >
       <div
         className={cn(

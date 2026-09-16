@@ -38,7 +38,7 @@ export const productRows: ProductRowConfig[] = [
   {
     id: "sana-ozel",
     tag: "sana-ozel",
-    title: "Sana Özel",
+    title: "Sana Özel Seçimler",
     subtitle: "Alışveriş geçmişine göre seçildi",
     icon: Wand2,
     accent: "violet",
@@ -62,8 +62,7 @@ export const productRows: ProductRowConfig[] = [
   {
     id: "ai-onerileri",
     tag: "ai-onerileri",
-    title: "AI Önerileri",
-    subtitle: "PazarBuy AI sana özel seçti",
+    title: "Günün Öne Çıkanları",
     icon: Sparkles,
     accent: "brand",
   },

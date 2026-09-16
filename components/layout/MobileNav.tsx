@@ -8,7 +8,6 @@ import {
   Heart,
   ShoppingCart,
   LogIn,
-  UserPlus,
   Store,
   LayoutGrid,
 } from "lucide-react";
@@ -39,7 +38,7 @@ export function MobileNav() {
           <div className="absolute inset-y-0 right-0 flex w-[86%] max-w-sm flex-col overflow-y-auto bg-white p-5 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-lg font-extrabold text-navy-900">
-                Pazar<span className="text-brand-500">Buy</span>
+                Vitrin<span className="text-brand-500">Plus</span>
               </span>
               <button
                 type="button"
@@ -94,13 +93,6 @@ export function MobileNav() {
 
             <div className="mt-auto flex flex-col gap-2 pt-2">
               <Link
-                href="/satici-basvuru"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-full border border-navy-100 px-4 py-2.5 text-sm font-semibold text-navy-700"
-              >
-                <Store size={16} /> Satıcı Ol
-              </Link>
-              <Link
                 href="/giris"
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center gap-2 rounded-full border border-navy-100 px-4 py-2.5 text-sm font-semibold text-navy-700"
@@ -108,11 +100,11 @@ export function MobileNav() {
                 <LogIn size={16} /> Giriş Yap
               </Link>
               <Link
-                href="/kayit"
+                href="/satici-basvuru"
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white"
               >
-                <UserPlus size={16} /> Üye Ol
+                <Store size={16} /> Mağaza Aç
               </Link>
             </div>
           </div>
