@@ -115,29 +115,34 @@ export function HeroSection() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col justify-center gap-3">
+        {/* Kompakt, yatay kart: fotoğraf küçük bir thumbnail, metin alanı
+            sıkılaştırılmış — hero'nun genel oranını/dengeyi bozmadan bu iki
+            kartın dikey yer kaplamasını belirgin şekilde azaltır. */}
         <Link
           href="/satici-basvuru"
-          className="group relative flex flex-1 flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 shadow-premium"
+          className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 p-3 shadow-premium sm:p-3.5"
         >
           <div
-            className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"
+            className="pointer-events-none absolute -top-8 -right-8 h-28 w-28 rounded-full bg-white/10 blur-2xl"
             aria-hidden
           />
-          <div className="relative flex-1 p-6 pb-4">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
-              <Percent size={18} />
-            </span>
-            <h2 className="mt-4 text-balance text-lg font-extrabold leading-snug text-white sm:text-xl">
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
+            <Percent size={16} />
+          </span>
+          <div className="relative min-w-0 flex-1">
+            <h2 className="truncate text-sm font-extrabold leading-tight text-white sm:text-[0.925rem]">
               Mağazanı aç, kazancın sende kalsın.
             </h2>
-            <p className="mt-2 text-2xl font-extrabold text-lime-300">%0 KOMİSYON</p>
-            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
-              Mağaza Aç
-              <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-            </span>
+            <p className="mt-0.5 flex items-center gap-1.5 text-xs">
+              <span className="font-extrabold text-lime-300">%0 KOMİSYON</span>
+              <span className="inline-flex items-center gap-1 font-semibold text-white/80">
+                Mağaza Aç
+                <ArrowRight size={12} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+              </span>
+            </p>
           </div>
-          <div className="relative h-24 w-full shrink-0 overflow-hidden">
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl sm:h-16 sm:w-16">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={SELLER_PHOTO}
@@ -145,45 +150,36 @@ export function HeroSection() {
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-brand-600/70 to-transparent"
-              aria-hidden
-            />
           </div>
         </Link>
 
         <Link
           href="/kategori/kadin"
-          className="group relative flex flex-1 flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-lime-100 via-lime-50 to-amber-50 shadow-premium ring-1 ring-lime-200/60"
+          className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-lime-100 via-lime-50 to-amber-50 p-3 shadow-premium ring-1 ring-lime-200/60 sm:p-3.5"
         >
           <div
-            className="pointer-events-none absolute -top-10 -left-10 h-40 w-40 rounded-full bg-lime-300/30 blur-2xl"
+            className="pointer-events-none absolute -top-8 -left-8 h-28 w-28 rounded-full bg-lime-300/30 blur-2xl"
             aria-hidden
           />
-          <div className="relative flex-1 p-6 pb-4">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime-500/15 text-lime-700">
-              <Sparkles size={18} />
-            </span>
-            <h2 className="mt-4 text-balance text-lg font-extrabold leading-snug text-navy-900 sm:text-xl">
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-500/15 text-lime-700">
+            <Sparkles size={16} />
+          </span>
+          <div className="relative min-w-0 flex-1">
+            <h2 className="truncate text-sm font-extrabold leading-tight text-navy-900 sm:text-[0.925rem]">
               AI ile Üstümde Gör
             </h2>
-            <p className="mt-2 text-sm text-navy-500">Beğendiğin kıyafetleri kendi üzerinde gör.</p>
-            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-navy-900">
+            <p className="mt-0.5 flex items-center gap-1 truncate text-xs font-semibold text-navy-500">
               Ücretsiz Dene
-              <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-            </span>
+              <ArrowRight size={12} className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </p>
           </div>
-          <div className="relative h-24 w-full shrink-0 overflow-hidden">
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl sm:h-16 sm:w-16">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={TRY_ON_PHOTO}
               alt="Kıyafet kombinini deneyen bir moda modeli"
               className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
-            />
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-lime-50/70 to-transparent"
-              aria-hidden
             />
           </div>
         </Link>
