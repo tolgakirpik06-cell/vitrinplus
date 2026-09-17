@@ -37,7 +37,7 @@ export function ProductCard({ product, rank }: { product: Product; rank?: number
           ) : null}
         </div>
 
-        <FavoriteButton className="absolute right-3 top-3 z-10" />
+        <FavoriteButton slug={product.slug} className="absolute right-3 top-3 z-10" />
 
         <div className="flex h-full w-full items-center justify-center p-6 transition-transform duration-500 ease-out group-hover:scale-[1.06]">
           {product.visual === "generic" ? (
@@ -59,9 +59,9 @@ export function ProductCard({ product, rank }: { product: Product; rank?: number
           {product.name}
         </h3>
 
-        <div className="flex items-center justify-between gap-2">
-          <span className="flex items-baseline gap-1.5">
-            <span className="text-xl font-extrabold tracking-tight text-navy-900">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+          <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <span className="text-lg font-extrabold tracking-tight text-navy-900 sm:text-xl">
               {formatPrice(product.price)}
             </span>
             {product.oldPrice ? (
@@ -75,17 +75,17 @@ export function ProductCard({ product, rank }: { product: Product; rank?: number
 
         <p className="text-xs text-navy-400">{product.reviewCount} değerlendirme</p>
 
-        <div className="mt-1 flex items-center justify-between gap-2 border-t border-navy-50 pt-2.5 text-xs">
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-navy-50 pt-2.5 text-xs">
           <span
             className={cn(
-              "inline-flex items-center gap-1 font-medium",
+              "inline-flex min-w-0 shrink items-center gap-1 truncate font-medium",
               product.shipping.variant === "fast" ? "text-brand-600" : "text-emerald-600"
             )}
           >
-            <ShippingIcon size={13} />
-            {product.shipping.label}
+            <ShippingIcon size={13} className="shrink-0" />
+            <span className="truncate">{product.shipping.label}</span>
           </span>
-          <span className="inline-flex min-w-0 items-center gap-1 text-navy-400">
+          <span className="inline-flex min-w-0 shrink items-center gap-1 text-navy-400">
             <Store size={13} className="shrink-0" />
             <span className="truncate">{product.seller}</span>
           </span>

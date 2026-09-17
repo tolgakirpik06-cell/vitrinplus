@@ -4,17 +4,19 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, ShieldCheck, Truck, Package, Minus, Plus, Trash2, Heart, Tag } from "lucide-react";
 import { useCart } from "@/components/cart/CartProvider";
+import { useFavorites } from "@/components/favorites/FavoritesProvider";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
 import { getProductBySlug } from "@/lib/mock-catalog";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/types";
 
 const FREE_SHIPPING_THRESHOLD = 250;
-const COUPON_CODE = "PAZARBUY10";
+const COUPON_CODE = "VITRINPLUS10";
 const COUPON_RATE = 0.1;
 
 export function CartPageClient() {
   const { lines, updateQuantity, removeItem } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
@@ -131,7 +133,10 @@ export function CartPageClient() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => removeItem(line.lineId)}
+                  onClick={() => {
+                    if (!isFavorite(product.slug)) toggleFavorite(product.slug);
+                    removeItem(line.lineId);
+                  }}
                   className="inline-flex items-center gap-1 transition-colors hover:text-brand-600"
                 >
                   <Heart size={12} /> Favorilere Taşı
@@ -167,7 +172,7 @@ export function CartPageClient() {
             <input
               value={couponInput}
               onChange={(event) => setCouponInput(event.target.value)}
-              placeholder="Örn: PAZARBUY10"
+              placeholder="Örn: VITRINPLUS10"
               className="h-9 min-w-0 flex-1 rounded-lg border border-navy-100 px-3 text-xs text-navy-700 outline-none transition-colors focus:border-brand-400"
             />
             <button

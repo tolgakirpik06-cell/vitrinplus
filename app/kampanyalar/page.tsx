@@ -6,7 +6,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { CampaignCard } from "@/components/ui/CampaignCard";
 import { campaigns } from "@/data/campaigns";
 
-export const metadata: Metadata = { title: "Kampanyalar | PazarBuy" };
+export const metadata: Metadata = { title: "Kampanyalar | VitrinPlus" };
 
 export default function KampanyalarPage() {
   return (

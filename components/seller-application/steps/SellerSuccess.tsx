@@ -19,7 +19,7 @@ export function SellerSuccess({
       <div>
         <h2 className="text-xl font-extrabold text-navy-900 sm:text-2xl">Başvurunuz Alındı</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-navy-500">
-          PazarBuy satıcı başvurunuz başarıyla oluşturuldu. Bilgileriniz
+          VitrinPlus satıcı başvurunuz başarıyla oluşturuldu. Bilgileriniz
           doğrulandıktan sonra mağazanızı kullanmaya başlayabilirsiniz.
         </p>
       </div>
@@ -51,7 +51,7 @@ export function SellerSuccess({
           className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
         >
           <Home size={16} />
-          PazarBuy Ana Sayfasına Dön
+          VitrinPlus Ana Sayfasına Dön
         </Link>
       </div>
     </div>

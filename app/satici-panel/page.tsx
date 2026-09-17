@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { SellerPanel } from "@/components/seller/SellerPanel";
 
-export const metadata: Metadata = { title: "Satıcı Paneli | PazarBuy" };
+export const metadata: Metadata = { title: "Satıcı Paneli | VitrinPlus" };
 
 export default function SaticiPanelPage() {
   return (
@@ -26,7 +26,7 @@ export default function SaticiPanelPage() {
             </div>
           </div>
           <p className="rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-semibold text-emerald-700">
-            Bu bir demo panel önizlemesidir
+            Ürün, stok ve kâr yönetimi gerçek zamanlı çalışır · satış/sipariş verileri örnektir
           </p>
         </div>
 

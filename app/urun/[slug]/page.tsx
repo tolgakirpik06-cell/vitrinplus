@@ -26,7 +26,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const product = getProductBySlug(slug);
-  return { title: product ? `${product.name} | PazarBuy` : "Ürün | PazarBuy" };
+  return { title: product ? `${product.name} | VitrinPlus` : "Ürün | VitrinPlus" };
 }
 
 export default async function ProductPage({
@@ -136,7 +136,7 @@ export default async function ProductPage({
                 </p>
                 <p className="flex items-start gap-2.5">
                   <ShieldCheck size={16} className="mt-0.5 shrink-0 text-emerald-600" />
-                  Tüm siparişler PazarBuy Alıcı Güvencesi kapsamında korunur.
+                  Tüm siparişler VitrinPlus Alıcı Güvencesi kapsamında korunur.
                 </p>
               </div>
             </section>

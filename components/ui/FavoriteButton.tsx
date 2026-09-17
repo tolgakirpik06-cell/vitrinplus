@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useFavorites } from "@/components/favorites/FavoritesProvider";
 
-export function FavoriteButton({ className }: { className?: string }) {
-  const [active, setActive] = useState(false);
+export function FavoriteButton({ slug, className }: { slug: string; className?: string }) {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const active = isFavorite(slug);
 
   return (
     <button
@@ -13,7 +14,7 @@ export function FavoriteButton({ className }: { className?: string }) {
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
-        setActive((value) => !value);
+        toggleFavorite(slug);
       }}
       aria-pressed={active}
       aria-label={active ? "Favorilerden çıkar" : "Favorilere ekle"}

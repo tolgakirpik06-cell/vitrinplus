@@ -98,7 +98,7 @@ export function CheckoutPageClient() {
 
   function handleSubmit() {
     if (!canSubmit) return;
-    const generatedOrderNumber = `PZB-${Date.now().toString().slice(-8)}`;
+    const generatedOrderNumber = `VP-${Date.now().toString().slice(-8)}`;
     setOrderNumber(generatedOrderNumber);
     setSubmitted(true);
     clear();

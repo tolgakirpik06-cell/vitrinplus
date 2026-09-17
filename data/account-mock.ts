@@ -10,7 +10,7 @@ import type { Coupon, Order } from "@/types/account";
 export const mockOrders: Order[] = [
   {
     id: "ord-1",
-    orderNumber: "PZB-20260828-01",
+    orderNumber: "VP-20260828-01",
     date: "2026-08-28",
     seller: "AppleStore Türkiye",
     items: [{ slug: "macbook-air-m3", quantity: 1, priceAtPurchase: 47999 }],
@@ -19,7 +19,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord-2",
-    orderNumber: "PZB-20260822-01",
+    orderNumber: "VP-20260822-01",
     date: "2026-08-22",
     seller: "TeknoMarket",
     items: [{ slug: "galaxy-s24-ultra", quantity: 1, priceAtPurchase: 52999 }],
@@ -28,7 +28,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord-3",
-    orderNumber: "PZB-20260815-02",
+    orderNumber: "VP-20260815-02",
     date: "2026-08-15",
     seller: "SporPoint",
     items: [{ slug: "nike-air-force-1", quantity: 2, priceAtPurchase: 2699 }],
@@ -37,7 +37,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord-4",
-    orderNumber: "PZB-20260810-01",
+    orderNumber: "VP-20260810-01",
     date: "2026-08-10",
     seller: "AppleStore Türkiye",
     items: [{ slug: "apple-watch-s9", quantity: 1, priceAtPurchase: 12999 }],
@@ -46,7 +46,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord-5",
-    orderNumber: "PZB-20260728-01",
+    orderNumber: "VP-20260728-01",
     date: "2026-07-28",
     seller: "L'Oréal Türkiye",
     items: [{ slug: "loreal-elixir-parfum", quantity: 2, priceAtPurchase: 1899 }],
@@ -55,7 +55,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord-6",
-    orderNumber: "PZB-20260705-03",
+    orderNumber: "VP-20260705-03",
     date: "2026-07-05",
     seller: "EvKeyfi",
     items: [{ slug: "philips-airfryer-xxl", quantity: 1, priceAtPurchase: 6499 }],
@@ -64,7 +64,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: "ord-7",
-    orderNumber: "PZB-20260618-01",
+    orderNumber: "VP-20260618-01",
     date: "2026-06-18",
     seller: "AppleStore Türkiye",
     items: [{ slug: "iphone-15-pro-max", quantity: 1, priceAtPurchase: 61999 }],
@@ -76,7 +76,7 @@ export const mockOrders: Order[] = [
 export const mockCoupons: Coupon[] = [
   {
     id: "cpn-1",
-    code: "PAZARBUY10",
+    code: "VITRINPLUS10",
     discountLabel: "%10 İndirim",
     minCartLabel: "250 TL ve üzeri sepetlerde",
     validUntil: "2026-12-31",

@@ -179,7 +179,7 @@ export function ProductPurchasePanel({
         <Button variant="primary" size="lg" className="flex-1" disabled={outOfStock} onClick={handleBuyNow}>
           Hemen Al
         </Button>
-        <FavoriteButton />
+        <FavoriteButton slug={slug} />
       </div>
 
       <div className="flex flex-col gap-2 rounded-2xl border border-navy-100/80 bg-navy-50/50 p-4 text-xs text-navy-600">
@@ -196,7 +196,7 @@ export function ProductPurchasePanel({
         </span>
         <span className="inline-flex items-center gap-2">
           <ShieldCheck size={14} className="text-navy-500" />
-          PazarBuy Alıcı Güvencesi ile korumalı alışveriş
+          VitrinPlus Alıcı Güvencesi ile korumalı alışveriş
         </span>
       </div>
     </div>

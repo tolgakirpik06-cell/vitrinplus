@@ -3,7 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ApplicationStatusClient } from "@/components/seller-application/ApplicationStatusClient";
 
-export const metadata: Metadata = { title: "Başvuru Durumu | PazarBuy" };
+export const metadata: Metadata = { title: "Başvuru Durumu | VitrinPlus" };
 
 export default function BasvuruDurumPage() {
   return (

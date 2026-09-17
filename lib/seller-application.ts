@@ -77,7 +77,6 @@ export function isValidTaxNumber(value: string): boolean {
 }
 
 export const sellerTypeLabels: Record<SellerType, string> = {
-  bireysel: "Bireysel Satıcı",
   sahis: "Şahıs İşletmesi",
   "limited-as": "Limited / Anonim Şirket",
 };
@@ -117,7 +116,7 @@ export const sellerDocumentConfig: {
     key: "kimlik",
     label: "Kimlik Belgesi",
     description: "T.C. kimlik kartı veya nüfus cüzdanı (ön-arka)",
-    sellerTypes: ["bireysel", "sahis", "limited-as"],
+    sellerTypes: ["sahis", "limited-as"],
   },
   {
     key: "vergiLevhasi",

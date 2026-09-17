@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Camera, Shirt, Sparkles } from "lucide-react";
 
-/** Ana sayfanın alt kısmındaki büyük "AI ile Üstümde Gör" tanıtım bannerı. */
+/** Ana sayfanın alt kısmındaki büyük "AI ile Üzerimde Gör" tanıtım bannerı. */
 export function TryOnBanner() {
   return (
     <Link
@@ -24,7 +24,7 @@ export function TryOnBanner() {
         </span>
 
         <h2 className="mt-4 max-w-lg text-balance text-2xl font-extrabold leading-tight text-white sm:text-3xl">
-          AI ile Üstümde Gör
+          AI ile Üzerimde Gör
         </h2>
         <p className="mt-3 max-w-md text-sm text-white/70 sm:text-base">
           Beğendiğin kıyafetleri satın almadan önce kendi üzerinde gör; VitrinPlus AI

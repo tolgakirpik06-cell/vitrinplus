@@ -12,21 +12,26 @@ const accentClasses: Record<ProductRowAccent, string> = {
   violet: "bg-violet-50 text-violet-600",
 };
 
-const MAX_ITEMS = 6;
-
+/**
+ * `items`, çağıran sayfa tarafından `lib/product-rows.ts`'teki
+ * `selectRowProducts()` ile ÖNCEDEN seçilmiş ürün listesidir — böylece
+ * art arda gelen satırlar arasında hangi ürünlerin zaten gösterildiği
+ * takip edilebilir (bkz. madde 11: "aynı ürün art arda tekrar etmesin").
+ */
 export function ProductRow({
   config,
-  products,
+  items,
 }: {
   config: ProductRowConfig;
-  products: Product[];
+  items: Product[];
 }) {
-  const items = products.filter((product) => product.tags.includes(config.tag)).slice(0, MAX_ITEMS);
-
   if (items.length === 0) return null;
 
   return (
-    <section aria-labelledby={`${config.id}-baslik`}>
+    // scroll-mt: kampanya/anchor linkleriyle bu bölüme atlandığında (örn.
+    // "Süper Fırsatlar" kampanya kartı) başlık, sticky header + kategori
+    // barının arkasında kalmasın (madde 18).
+    <section id={config.id} className="scroll-mt-32" aria-labelledby={`${config.id}-baslik`}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2
           id={`${config.id}-baslik`}

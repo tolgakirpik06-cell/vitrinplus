@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -9,26 +10,37 @@ type Size = "md" | "lg";
 export function AiSearchBar({
   compact = false,
   size = "md",
+  defaultValue = "",
 }: {
   compact?: boolean;
   size?: Size;
+  /** /arama sayfasında mevcut sorguyu göstermek için (server component'ten prop olarak gelir). */
+  defaultValue?: string;
 }) {
-  const [query, setQuery] = useState("");
+  const router = useRouter();
+  const [query, setQuery] = useState(defaultValue);
   const isLg = size === "lg";
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    router.push(`/arama?q=${encodeURIComponent(trimmed)}`);
+  }
 
   return (
     <form
       className="flex w-full items-center gap-2.5"
-      onSubmit={(event) => event.preventDefault()}
+      onSubmit={handleSubmit}
       role="search"
-      aria-label="VitrinPlus AI ürün araması"
+      aria-label="VitrinPlus ürün araması"
     >
       <div
         className={cn(
           "flex flex-1 items-center gap-2.5 rounded-full pl-5 pr-2 transition-all duration-200",
           isLg
             ? "h-14 border-2 border-transparent bg-white shadow-lg shadow-navy-950/20 focus-within:border-brand-300 sm:h-16 sm:pl-6"
-            : "h-12 border border-navy-100 bg-white shadow-card focus-within:border-brand-300 focus-within:shadow-[0_0_0_4px_rgba(255,106,18,0.1)] lg:h-[3.25rem]"
+            : "h-12 border border-navy-100 bg-white shadow-card focus-within:border-brand-300 focus-within:shadow-[0_0_0_4px_rgba(124,58,237,0.12)] lg:h-[3.25rem]"
         )}
       >
         <Search size={isLg ? 20 : 18} className="shrink-0 text-navy-300" aria-hidden />
@@ -36,7 +48,8 @@ export function AiSearchBar({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           type="text"
-          placeholder="Ne istediğini söyle..."
+          placeholder="Ürün, kategori veya mağaza ara..."
+          aria-label="Ürün, kategori veya mağaza ara"
           className={cn(
             "h-full flex-1 min-w-0 bg-transparent text-navy-800 placeholder:text-navy-400 focus:outline-none",
             isLg ? "text-sm sm:text-base" : "text-sm"
@@ -57,7 +70,7 @@ export function AiSearchBar({
                 isLg ? "sm:block text-xs sm:text-sm" : "xl:block text-xs"
               )}
             >
-              Örn: 15 bin TL&apos;ye oyun bilgisayarı
+              Örn: kablosuz kulaklık, TeknoMarket
             </span>
           </>
         ) : null}
@@ -72,7 +85,7 @@ export function AiSearchBar({
         )}
       >
         <Sparkles size={isLg ? 18 : 16} />
-        <span className="hidden sm:inline">AI&apos;ye Sor</span>
+        <span className="hidden sm:inline">Ara</span>
       </button>
     </form>
   );

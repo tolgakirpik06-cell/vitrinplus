@@ -9,12 +9,12 @@ import type { FieldErrors } from "@/lib/seller-application-validation";
 
 const agreementCopy = {
   sozlesme: {
-    title: "PazarBuy Satıcı Sözleşmesi",
+    title: "VitrinPlus Satıcı Sözleşmesi",
     body: [
-      "Bu sözleşme, PazarBuy pazaryerinde mağaza açan satıcılar ile PazarBuy arasındaki hak ve yükümlülükleri düzenler.",
+      "Bu sözleşme, VitrinPlus pazaryerinde mağaza açan satıcılar ile VitrinPlus arasındaki hak ve yükümlülükleri düzenler.",
       "Satıcı, sattığı ürünlerin mevzuata uygunluğundan, ürün açıklamalarının doğruluğundan ve sipariş süreçlerinin zamanında yönetilmesinden sorumludur.",
-      "PazarBuy, satış komisyonu almaz; satıcıdan yalnızca seçilen pakete göre sabit bir aylık mağaza ücreti tahsil eder.",
-      "Bu metin bir taslak/demo sözleşme örneğidir; gerçek hukuki metin PazarBuy hukuk ekibi tarafından yayınlanacaktır.",
+      "VitrinPlus, satış komisyonu almaz; satıcıdan yalnızca seçilen pakete göre sabit bir aylık mağaza ücreti tahsil eder.",
+      "Bu metin bir taslak/demo sözleşme örneğidir; gerçek hukuki metin VitrinPlus hukuk ekibi tarafından yayınlanacaktır.",
     ],
   },
   kvkk: {
@@ -22,7 +22,7 @@ const agreementCopy = {
     body: [
       "Başvuru sırasında paylaştığınız kimlik, iletişim, vergi ve banka bilgileri, satıcı başvurunuzun değerlendirilmesi amacıyla işlenir.",
       "Bilgileriniz, yalnızca mağaza açma ve doğrulama süreçleri için gerekli süre boyunca saklanır ve üçüncü taraflarla yalnızca yasal zorunluluklar çerçevesinde paylaşılır.",
-      "Bu metin bir taslak/demo aydınlatma metnidir; gerçek KVKK metni PazarBuy hukuk ekibi tarafından yayınlanacaktır.",
+      "Bu metin bir taslak/demo aydınlatma metnidir; gerçek KVKK metni VitrinPlus hukuk ekibi tarafından yayınlanacaktır.",
     ],
   },
 };

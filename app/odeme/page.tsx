@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { CheckoutPageClient } from "@/components/checkout/CheckoutPageClient";
 
-export const metadata: Metadata = { title: "Ödeme | PazarBuy" };
+export const metadata: Metadata = { title: "Ödeme | VitrinPlus" };
 
 export default function OdemePage() {
   return (

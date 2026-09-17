@@ -6,7 +6,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { StoreCard } from "@/components/ui/StoreCard";
 import { stores } from "@/data/stores";
 
-export const metadata: Metadata = { title: "Mağazalar | PazarBuy" };
+export const metadata: Metadata = { title: "Mağazalar | VitrinPlus" };
 
 export default function MagazalarPage() {
   return (
@@ -22,7 +22,7 @@ export default function MagazalarPage() {
           </span>
           <div>
             <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Mağazalar</h1>
-            <p className="mt-1 text-sm text-navy-400">{stores.length} satıcı mağazası PazarBuy&apos;da</p>
+            <p className="mt-1 text-sm text-navy-400">{stores.length} satıcı mağazası VitrinPlus&apos;ta</p>
           </div>
         </div>
 

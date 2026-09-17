@@ -6,15 +6,16 @@ import { MobileNav } from "./MobileNav";
 import { CategoryNav } from "./CategoryNav";
 import { Button } from "@/components/ui/Button";
 import { CartBadge } from "@/components/cart/CartBadge";
+import { FavoriteBadge } from "@/components/favorites/FavoriteBadge";
 
-export function Header() {
+export function Header({ searchQuery = "" }: { searchQuery?: string }) {
   return (
     <header className="sticky top-0 z-40 border-b border-navy-100/70 bg-white/90 backdrop-blur">
       <div className="section-container flex items-center gap-4 py-3 lg:py-4">
         <Logo />
 
         <div className="hidden flex-1 md:block">
-          <AiSearchBar />
+          <AiSearchBar defaultValue={searchQuery} />
         </div>
 
         <div className="ml-auto hidden items-center gap-1.5 lg:flex">
@@ -22,7 +23,10 @@ export function Header() {
             href="/favoriler"
             className="flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-navy-600 transition-colors hover:bg-navy-50 hover:text-brand-600"
           >
-            <Heart size={20} />
+            <span className="relative">
+              <Heart size={20} />
+              <FavoriteBadge className="-right-2 -top-2" />
+            </span>
             <span className="text-[11px] font-medium">Favoriler</span>
           </Link>
           <Link
@@ -62,7 +66,7 @@ export function Header() {
       </div>
 
       <div className="border-t border-navy-100/70 px-4 pb-3 pt-3 md:hidden">
-        <AiSearchBar compact />
+        <AiSearchBar compact defaultValue={searchQuery} />
       </div>
 
       <CategoryNav />

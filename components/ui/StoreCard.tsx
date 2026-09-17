@@ -26,7 +26,7 @@ export function StoreCard({ store, id }: { store: Store; id?: string }) {
   return (
     <Link
       id={id}
-      href={`/magazalar#${store.slug}`}
+      href={`/magaza/${store.slug}`}
       className="group flex flex-col gap-3 rounded-2xl border border-navy-100/80 bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-navy-200 hover:shadow-card-hover sm:p-5"
     >
       <div className="flex items-center gap-3">
@@ -39,15 +39,22 @@ export function StoreCard({ store, id }: { store: Store; id?: string }) {
           {initials(store.name)}
         </span>
         <span className="min-w-0">
-          <span className="flex items-center gap-1.5">
-            <span className="truncate text-sm font-bold text-navy-900">{store.name}</span>
+          <span className="flex items-start gap-1.5">
+            <span
+              title={store.name}
+              className="line-clamp-2 text-sm font-bold leading-snug text-navy-900"
+            >
+              {store.name}
+            </span>
             {store.badge === "founder" ? (
-              <Crown size={14} className="shrink-0 text-amber-500" aria-label="Kurucu Mağaza" />
+              <Crown size={14} className="mt-0.5 shrink-0 text-amber-500" aria-label="Kurucu Mağaza" />
             ) : store.badge === "verified" ? (
-              <BadgeCheck size={14} className="shrink-0 text-brand-500" aria-label="Onaylı Mağaza" />
+              <BadgeCheck size={14} className="mt-0.5 shrink-0 text-brand-500" aria-label="Onaylı Mağaza" />
             ) : null}
           </span>
-          <span className="block truncate text-xs text-navy-400">{store.categoryLabel}</span>
+          <span className="block truncate text-xs text-navy-400" title={store.categoryLabel}>
+            {store.categoryLabel}
+          </span>
         </span>
       </div>
 

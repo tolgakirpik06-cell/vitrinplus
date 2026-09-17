@@ -74,7 +74,7 @@ export function SellerStoreStep({
             setSlugTouched(true);
             updateStore("magazaSlug", slugifyStoreName(e.target.value));
           }}
-          hint={store.magazaSlug ? `pazarbuy.com/magaza/${store.magazaSlug}` : undefined}
+          hint={store.magazaSlug ? `vitrinplus.com/magaza/${store.magazaSlug}` : undefined}
         />
         <TextareaField
           id="aciklama"

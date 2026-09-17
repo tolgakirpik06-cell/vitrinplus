@@ -13,7 +13,11 @@ export function AiTagBadge({ type, label }: { type: AiTagType; label: string }) 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset",
+        // Dar ürün kartlarında (320px genişlik, 2 sütunlu grid) "En Mantıklı
+        // Seçim" gibi uzun etiketler kartın dışına taşabiliyordu (madde 17) —
+        // rozet metni/sistemi (madde 21) korunuyor, sadece gerektiğinde 2
+        // satıra sarabiliyor ki kart genişliğini asla aşmasın.
+        "inline-flex max-w-[7.5rem] items-center whitespace-normal rounded-full px-2.5 py-1 text-center text-[10px] font-semibold leading-tight ring-1 ring-inset sm:max-w-none sm:whitespace-nowrap sm:text-[11px]",
         toneClasses[type]
       )}
     >

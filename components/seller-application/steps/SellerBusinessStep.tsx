@@ -21,46 +21,6 @@ export function SellerBusinessStep({
     setData((prev) => ({ ...prev, business: { ...prev.business, [key]: value } }));
   }
 
-  if (sellerType === "bireysel") {
-    return (
-      <StepShell
-        title="İşletme Bilgileri"
-        subtitle="Bireysel satıcı olarak sadece adres bilgilerinizi paylaşmanız yeterli."
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextField
-            id="isletmeAdresi"
-            label="Adres"
-            required
-            className="sm:col-span-2"
-            value={business.isletmeAdresi}
-            error={errors.isletmeAdresi}
-            onChange={(e) => update("isletmeAdresi", e.target.value)}
-            placeholder="Mahalle, cadde, sokak, no"
-          />
-          <TextField
-            id="il"
-            label="İl"
-            required
-            value={business.il}
-            error={errors.il}
-            onChange={(e) => update("il", e.target.value)}
-            placeholder="Örn. İstanbul"
-          />
-          <TextField
-            id="ilce"
-            label="İlçe"
-            required
-            value={business.ilce}
-            error={errors.ilce}
-            onChange={(e) => update("ilce", e.target.value)}
-            placeholder="Örn. Kadıköy"
-          />
-        </div>
-      </StepShell>
-    );
-  }
-
   if (sellerType === "sahis") {
     return (
       <StepShell

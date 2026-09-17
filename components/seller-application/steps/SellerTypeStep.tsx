@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import { Building2, Landmark, User } from "lucide-react";
+import { Building2, Landmark } from "lucide-react";
 import { StepShell } from "@/components/seller-application/StepShell";
 import { cn } from "@/lib/utils";
 import type { SellerApplicationData, SellerType } from "@/types/seller-application";
@@ -9,16 +9,10 @@ import type { FieldErrors } from "@/lib/seller-application-validation";
 
 const options: {
   type: SellerType;
-  icon: typeof User;
+  icon: typeof Building2;
   title: string;
   description: string;
 }[] = [
-  {
-    type: "bireysel",
-    icon: User,
-    title: "Bireysel Satıcı",
-    description: "Şahsınız adına, düşük hacimli satış yapmak isteyenler için.",
-  },
   {
     type: "sahis",
     icon: Building2,
@@ -45,9 +39,9 @@ export function SellerTypeStep({
   return (
     <StepShell
       title="Nasıl satış yapmak istersiniz?"
-      subtitle="Başvurunuzu buna göre yönlendireceğiz. Bu seçim, hangi belgelerin isteneceğini belirler."
+      subtitle="VitrinPlus'ta yalnızca vergi mükellefi/kurumsal satıcılar mağaza açabilir. Bu seçim, hangi belgelerin isteneceğini belirler."
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {options.map((option) => {
           const isActive = data.sellerType === option.type;
           return (
@@ -81,14 +75,6 @@ export function SellerTypeStep({
 
       {errors.sellerType ? (
         <p className="text-xs font-medium text-rose-600">{errors.sellerType}</p>
-      ) : null}
-
-      {data.sellerType === "bireysel" ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
-          Bireysel satıcı olarak başvurabilirsiniz; ancak satışa başlamadan önce
-          gerekli yasal ve vergisel doğrulamaların tamamlanması gerekir. PazarBuy,
-          bu doğrulamalar tamamlanana kadar mağazanızı yayına almaz.
-        </p>
       ) : null}
     </StepShell>
   );

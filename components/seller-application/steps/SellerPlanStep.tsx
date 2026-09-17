@@ -20,7 +20,7 @@ export function SellerPlanStep({
   return (
     <StepShell
       title="Mağaza Paketi"
-      subtitle="PazarBuy'da satış komisyonu %0'dır — sadece seçtiğiniz pakete göre sabit bir aylık mağaza ücreti ödersiniz."
+      subtitle="VitrinPlus'ta satış komisyonu %0'dır — sadece seçtiğiniz pakete göre sabit bir aylık mağaza ücreti ödersiniz."
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {sellerPlans.map((plan) => {

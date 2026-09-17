@@ -44,14 +44,6 @@ export function validateBusiness(data: SellerApplicationData): FieldErrors {
   const { business, sellerType } = data;
   const errors: FieldErrors = {};
 
-  if (sellerType === "bireysel") {
-    // Bireysel satıcıda ek işletme belgesi istenmez; sadece adres bilgisi alınır.
-    if (!business.isletmeAdresi.trim()) errors.isletmeAdresi = REQUIRED;
-    if (!business.il.trim()) errors.il = REQUIRED;
-    if (!business.ilce.trim()) errors.ilce = REQUIRED;
-    return errors;
-  }
-
   if (sellerType === "sahis") {
     if (!business.ticariUnvan.trim()) errors.ticariUnvan = REQUIRED;
     if (!business.vergiDairesi.trim()) errors.vergiDairesi = REQUIRED;

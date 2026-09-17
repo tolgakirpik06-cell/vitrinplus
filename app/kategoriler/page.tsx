@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { mainCategories, extraCategories, categoryHref } from "@/data/categories";
 
-export const metadata: Metadata = { title: "Tüm Kategoriler | PazarBuy" };
+export const metadata: Metadata = { title: "Tüm Kategoriler | VitrinPlus" };
 
 export default function KategorilerPage() {
   return (
@@ -18,7 +18,7 @@ export default function KategorilerPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Tüm Kategoriler</h1>
           <p className="mt-1.5 text-sm text-navy-400">
-            PazarBuy&apos;daki binlerce satıcının ürünlerini kategoriye göre keşfet.
+            VitrinPlus&apos;taki binlerce satıcının ürünlerini kategoriye göre keşfet.
           </p>
         </div>
 

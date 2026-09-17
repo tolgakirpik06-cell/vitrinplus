@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/Button";
 import { PricingCard } from "@/components/home/PricingCard";
 import { pricingPlans } from "@/data/pricing-plans";
 
-export const metadata: Metadata = { title: "Satıcı Ol | PazarBuy" };
+export const metadata: Metadata = { title: "Satıcı Ol | VitrinPlus" };
 
 const FOUNDER_TOTAL = 500;
 const FOUNDER_TAKEN = 173;
@@ -55,7 +55,7 @@ export default function SaticiPage() {
           <div className="section-container relative flex flex-col items-center text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-brand-300 ring-1 ring-white/10">
               <Store size={14} />
-              PazarBuy Satıcı Programı
+              VitrinPlus Satıcı Programı
             </span>
 
             <h1 className="mt-5 text-balance text-4xl font-extrabold leading-[1.05] text-white sm:text-6xl">
@@ -140,9 +140,9 @@ export default function SaticiPage() {
         {/* Neden PazarBuy */}
         <section className="section-container py-14 sm:py-20">
           <div className="mb-9 text-center">
-            <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Neden PazarBuy?</h2>
+            <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Neden VitrinPlus?</h2>
             <p className="mx-auto mt-2.5 max-w-xl text-sm text-navy-400 sm:text-base">
-              Satmaya odaklan, gerisini PazarBuy&apos;un AI destekli araçlarına bırak.
+              Satmaya odaklan, gerisini VitrinPlus&apos;ın AI destekli araçlarına bırak.
             </p>
           </div>
 

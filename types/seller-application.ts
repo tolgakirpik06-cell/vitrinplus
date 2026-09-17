@@ -5,7 +5,7 @@
  * localStorage'a yazılır (gerçek belge içerikleri HARİÇ).
  */
 
-export type SellerType = "bireysel" | "sahis" | "limited-as";
+export type SellerType = "sahis" | "limited-as";
 
 /**
  * Satıcı başvurusunun yaşam döngüsü. Gerçek bir admin/inceleme sistemi

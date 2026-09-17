@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SellerApplicationWizard } from "@/components/seller-application/SellerApplicationWizard";
 
-export const metadata: Metadata = { title: "Satıcı Başvurusu | PazarBuy" };
+export const metadata: Metadata = { title: "Satıcı Başvurusu | VitrinPlus" };
 
 export default function SaticiBasvuruPage() {
   return (
@@ -19,7 +19,7 @@ export default function SaticiBasvuruPage() {
               Satıcı Başvurusu
             </span>
             <h1 className="mt-4 text-balance text-2xl font-extrabold text-navy-900 sm:text-4xl">
-              PazarBuy&apos;da Satışa Başla
+              VitrinPlus&apos;ta Satışa Başla
             </h1>
             <p className="mt-3 max-w-xl text-balance text-sm text-navy-500 sm:text-base">
               %0 pazaryeri komisyonu ile mağazanı aç.

@@ -111,7 +111,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const found = findCategoryBySlug(slug);
-  return { title: found ? `${found.category.name} | PazarBuy` : "Kategori | PazarBuy" };
+  return { title: found ? `${found.category.name} | VitrinPlus` : "Kategori | VitrinPlus" };
 }
 
 export default async function CategoryPage({

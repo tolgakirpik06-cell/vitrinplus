@@ -7,6 +7,7 @@ import { DiscoverStyle } from "@/components/home/DiscoverStyle";
 import { TryOnBanner } from "@/components/home/TryOnBanner";
 import { PromoBanners } from "@/components/home/PromoBanners";
 import { ProductRow } from "@/components/home/ProductRow";
+import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
 import { PopularStores } from "@/components/home/PopularStores";
 import { CampaignsSection } from "@/components/home/CampaignsSection";
 import { StatsBar } from "@/components/home/StatsBar";
@@ -15,6 +16,7 @@ import { PricingSection } from "@/components/home/PricingSection";
 import { PerksSection } from "@/components/home/PerksSection";
 import { productRows } from "@/data/product-sections";
 import { products } from "@/data/products";
+import { selectRowProducts } from "@/lib/product-rows";
 
 export default function HomePage() {
   const featuredRow = productRows.find((row) => row.id === "ai-onerileri");
@@ -22,6 +24,20 @@ export default function HomePage() {
   const otherRows = productRows.filter(
     (row) => row.id !== "ai-onerileri" && row.id !== "sana-ozel"
   );
+
+  // Satırlar sırayla işlenir ve her satırdan sonra kullanılan ürün id'leri
+  // bir sonraki satırın "hariç tut" listesine eklenir — böylece art arda
+  // gelen bölümler mümkün olduğunca aynı ürünleri tekrar etmez (madde 11).
+  const shownIds = new Set<string>();
+  function pickRowItems(row: (typeof productRows)[number]) {
+    const items = selectRowProducts(products, row, shownIds);
+    items.forEach((product) => shownIds.add(product.id));
+    return items;
+  }
+
+  const featuredItems = featuredRow ? pickRowItems(featuredRow) : [];
+  const otherRowsWithItems = otherRows.map((row) => ({ row, items: pickRowItems(row) }));
+  const personalItems = personalRow ? pickRowItems(personalRow) : [];
 
   return (
     <>
@@ -34,11 +50,11 @@ export default function HomePage() {
 
         <CategoryChips />
 
-        {featuredRow ? <ProductRow config={featuredRow} products={products} /> : null}
+        {featuredRow ? <FeaturedCarousel config={featuredRow} items={featuredItems} /> : null}
 
         <div className="flex flex-col gap-7 sm:gap-8">
-          {otherRows.map((row) => (
-            <ProductRow key={row.id} config={row} products={products} />
+          {otherRowsWithItems.map(({ row, items }) => (
+            <ProductRow key={row.id} config={row} items={items} />
           ))}
         </div>
 
@@ -46,7 +62,7 @@ export default function HomePage() {
 
         <DiscoverStyle />
 
-        {personalRow ? <ProductRow config={personalRow} products={products} /> : null}
+        {personalRow ? <ProductRow config={personalRow} items={personalItems} /> : null}
 
         <PopularStores />
         <CampaignsSection />

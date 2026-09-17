@@ -7,7 +7,10 @@ export const campaigns: Campaign[] = [
     subtitle: "Elektronik ve modada %70'e varan indirim",
     badge: "Sınırlı Süre",
     ctaLabel: "Fırsatları Keşfet",
-    href: "/kampanyalar",
+    // Kampanya listesine değil, doğrudan ana sayfadaki "Süper Fırsatlar"
+    // ürün satırına yönlendirir — tıklanan kampanya ile gösterilen ürünler
+    // artık gerçekten eşleşiyor (madde 12).
+    href: "/#super-firsatlar",
     tone: "brand",
   },
   {

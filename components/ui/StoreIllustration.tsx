@@ -4,7 +4,7 @@ export function StoreIllustration() {
       viewBox="0 0 320 240"
       className="mx-auto h-auto w-full max-w-[280px]"
       role="img"
-      aria-label="PazarBuy mağaza illüstrasyonu"
+      aria-label="VitrinPlus mağaza illüstrasyonu"
     >
       <defs>
         <linearGradient id="storeRoof" x1="0" y1="0" x2="1" y2="0">

@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { CartPageClient } from "@/components/cart/CartPageClient";
 
-export const metadata: Metadata = { title: "Sepetim | PazarBuy" };
+export const metadata: Metadata = { title: "Sepetim | VitrinPlus" };
 
 export default function SepetPage() {
   return (
