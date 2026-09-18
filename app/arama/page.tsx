@@ -6,50 +6,13 @@ import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ProductCard } from "@/components/home/ProductCard";
 import { StoreCard } from "@/components/ui/StoreCard";
-import { products } from "@/data/products";
-import { stores } from "@/data/stores";
-import { mainCategories, extraCategories, categoryHref } from "@/data/categories";
-import type { Product, Store } from "@/types";
+import { searchCatalog } from "@/lib/search";
+import { categoryHref } from "@/data/categories";
 
 type SearchParamsShape = { q?: string | string[] };
 
-function norm(value: string): string {
-  return value.toLocaleLowerCase("tr-TR").trim();
-}
-
 function firstValue(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value) ?? "";
-}
-
-function searchProducts(query: string): Product[] {
-  const needle = norm(query);
-  return products.filter((product) =>
-    [product.name, product.brand, product.category, product.seller].some((field) =>
-      norm(field).includes(needle)
-    )
-  );
-}
-
-function searchStores(query: string): Store[] {
-  const needle = norm(query);
-  return stores.filter(
-    (store) => norm(store.name).includes(needle) || norm(store.categoryLabel).includes(needle)
-  );
-}
-
-function searchCategories(query: string) {
-  const needle = norm(query);
-  const all = [
-    ...mainCategories.map((c) => ({ id: c.id, slug: c.slug, name: c.name })),
-    ...extraCategories.map((c) => ({ id: c.id, slug: c.slug, name: c.name })),
-  ];
-  return all.filter(
-    (c) =>
-      norm(c.name).includes(needle) ||
-      mainCategories
-        .find((m) => m.id === c.id)
-        ?.subcategories.some((sub) => norm(sub).includes(needle))
-  );
 }
 
 export async function generateMetadata({
@@ -70,9 +33,7 @@ export default async function SearchPage({
   const sp = await searchParams;
   const q = firstValue(sp.q).trim();
 
-  const matchedCategories = q ? searchCategories(q) : [];
-  const matchedStores = q ? searchStores(q) : [];
-  const matchedProducts = q ? searchProducts(q) : [];
+  const { categories: matchedCategories, stores: matchedStores, products: matchedProducts } = searchCatalog(q);
   const hasAnyResult = matchedCategories.length > 0 || matchedStores.length > 0 || matchedProducts.length > 0;
 
   return (

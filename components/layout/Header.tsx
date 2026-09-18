@@ -15,7 +15,7 @@ export function Header({ searchQuery = "" }: { searchQuery?: string }) {
         <Logo />
 
         <div className="hidden flex-1 md:block">
-          <AiSearchBar defaultValue={searchQuery} />
+          <AiSearchBar key={searchQuery} defaultValue={searchQuery} />
         </div>
 
         <div className="ml-auto hidden items-center gap-1.5 lg:flex">
@@ -61,12 +61,12 @@ export function Header({ searchQuery = "" }: { searchQuery?: string }) {
             <ShoppingCart size={18} />
             <CartBadge className="-right-1.5 -top-1.5" />
           </Link>
-          <MobileNav />
+          <MobileNav searchQuery={searchQuery} />
         </div>
       </div>
 
       <div className="border-t border-navy-100/70 px-4 pb-3 pt-3 md:hidden">
-        <AiSearchBar compact defaultValue={searchQuery} />
+        <AiSearchBar key={searchQuery} compact defaultValue={searchQuery} />
       </div>
 
       <CategoryNav />

@@ -16,7 +16,7 @@ import { navCategories } from "@/data/categories";
 import { useCart } from "@/components/cart/CartProvider";
 import { AiSearchBar } from "./AiSearchBar";
 
-export function MobileNav() {
+export function MobileNav({ searchQuery = "" }: { searchQuery?: string }) {
   const [open, setOpen] = useState(false);
   // Header'ın kendisi `backdrop-blur` kullanıyor; bu, CSS'te fixed-position
   // elemanlar için yeni bir "containing block" oluşturur ve menü Header'ın
@@ -54,7 +54,7 @@ export function MobileNav() {
         </div>
 
         <div className="mb-5">
-          <AiSearchBar compact />
+          <AiSearchBar key={searchQuery} compact defaultValue={searchQuery} onNavigate={() => setOpen(false)} />
         </div>
 
         <div className="mb-5 grid grid-cols-2 gap-2">
