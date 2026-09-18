@@ -1,28 +1,3 @@
-import {
-  Shirt,
-  Footprints,
-  Baby,
-  Home,
-  Sparkles,
-  Dumbbell,
-  ShoppingBasket,
-  BookOpen,
-  Car,
-  Smartphone,
-  Laptop,
-  Watch,
-  PawPrint,
-  Hammer,
-  Gamepad2,
-  Tv,
-  Bike,
-  ShoppingBag,
-  Lamp,
-  UtensilsCrossed,
-  Droplet,
-  Coffee,
-  type LucideIcon,
-} from "lucide-react";
 import type {
   AiTagType,
   Product,
@@ -30,9 +5,16 @@ import type {
   ProductVariantGroup,
   ProductVisualKey,
 } from "@/types";
+import type { IconName } from "@/lib/icon-map";
 import { products as curatedProducts } from "@/data/products";
 
-type Variant = { template: string; visual: ProductVisualKey; icon?: LucideIcon };
+// NOT: icon alanı artık gerçek ikon component referansı değil,
+// serileştirilebilir bir isim (IconName) tutuyor — bu ürün verisi Server
+// Component'lerden "use client" bileşenlere (ör. FeaturedCarousel) prop
+// olarak geçebiliyor ve React fonksiyon değerlerini bu şekilde
+// serileştiremiyor. Gerçek ikon, yalnızca render anında lib/icon-map.ts
+// üzerinden çözülüyor.
+type Variant = { template: string; visual: ProductVisualKey; icon?: IconName };
 type CategoryCatalog = {
   name: string;
   brands: string[];
@@ -51,14 +33,14 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Koton", "LC Waikiki", "Mavi", "DeFacto", "Vakko", "Network"],
     priceRange: [150, 1200],
     variants: [
-      { template: "{brand} Kadın Örme Elbise", visual: "generic", icon: Shirt }, // Elbise
-      { template: "{brand} Kadın Blazer Ceket", visual: "generic", icon: Shirt }, // Ceket & Mont
-      { template: "{brand} Kadın Saten Gömlek", visual: "generic", icon: Shirt }, // Bluz & Gömlek
-      { template: "{brand} Kadın Yüksek Bel Kot Pantolon", visual: "generic", icon: Shirt }, // Pantolon & Jean
-      { template: "{brand} Kadın Midi Etek", visual: "generic", icon: Shirt }, // Etek
+      { template: "{brand} Kadın Örme Elbise", visual: "generic", icon: "shirt" }, // Elbise
+      { template: "{brand} Kadın Blazer Ceket", visual: "generic", icon: "shirt" }, // Ceket & Mont
+      { template: "{brand} Kadın Saten Gömlek", visual: "generic", icon: "shirt" }, // Bluz & Gömlek
+      { template: "{brand} Kadın Yüksek Bel Kot Pantolon", visual: "generic", icon: "shirt" }, // Pantolon & Jean
+      { template: "{brand} Kadın Midi Etek", visual: "generic", icon: "shirt" }, // Etek
       { template: "{brand} Kadın Topuklu Ayakkabı", visual: "sneaker" }, // Ayakkabı
-      { template: "{brand} Kadın Omuz Çantası", visual: "generic", icon: ShoppingBag }, // Çanta
-      { template: "{brand} Kadın İç Giyim Seti", visual: "generic", icon: Shirt }, // İç Giyim
+      { template: "{brand} Kadın Omuz Çantası", visual: "generic", icon: "shopping-bag" }, // Çanta
+      { template: "{brand} Kadın İç Giyim Seti", visual: "generic", icon: "shirt" }, // İç Giyim
     ],
     variantGroups: [
       { type: "beden", label: "Beden", options: ["XS", "S", "M", "L", "XL"] },
@@ -74,14 +56,14 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Koton", "LC Waikiki", "Mavi", "DeFacto", "Kigili", "Network"],
     priceRange: [150, 1500],
     variants: [
-      { template: "{brand} Erkek Basic Tişört", visual: "generic", icon: Shirt }, // Tişört
-      { template: "{brand} Erkek Slim Fit Gömlek", visual: "generic", icon: Shirt }, // Gömlek
-      { template: "{brand} Erkek Şık Ceket", visual: "generic", icon: Shirt }, // Ceket & Mont
-      { template: "{brand} Erkek Chino Pantolon", visual: "generic", icon: Shirt }, // Pantolon
+      { template: "{brand} Erkek Basic Tişört", visual: "generic", icon: "shirt" }, // Tişört
+      { template: "{brand} Erkek Slim Fit Gömlek", visual: "generic", icon: "shirt" }, // Gömlek
+      { template: "{brand} Erkek Şık Ceket", visual: "generic", icon: "shirt" }, // Ceket & Mont
+      { template: "{brand} Erkek Chino Pantolon", visual: "generic", icon: "shirt" }, // Pantolon
       { template: "{brand} Erkek Spor Ayakkabı", visual: "sneaker" }, // Ayakkabı
-      { template: "{brand} Erkek Deri Kemer Aksesuar Seti", visual: "generic", icon: ShoppingBag }, // Aksesuar
-      { template: "{brand} Erkek İç Giyim Seti", visual: "generic", icon: Shirt }, // İç Giyim
-      { template: "{brand} Erkek Spor Giyim Eşofman Takımı", visual: "generic", icon: Dumbbell }, // Spor Giyim
+      { template: "{brand} Erkek Deri Kemer Aksesuar Seti", visual: "generic", icon: "shopping-bag" }, // Aksesuar
+      { template: "{brand} Erkek İç Giyim Seti", visual: "generic", icon: "shirt" }, // İç Giyim
+      { template: "{brand} Erkek Spor Giyim Eşofman Takımı", visual: "generic", icon: "dumbbell" }, // Spor Giyim
     ],
     variantGroups: [
       { type: "beden", label: "Beden", options: ["S", "M", "L", "XL", "XXL"] },
@@ -97,12 +79,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Chicco", "Sütaş Bebe", "Prima", "LC Waikiki Baby", "Mothercare", "Zeynep Kids"],
     priceRange: [80, 900],
     variants: [
-      { template: "{brand} Bebek Bezi Paketi", visual: "generic", icon: Baby }, // Bebek Bezi & Islak Mendil
-      { template: "{brand} Bebek Giyim Seti", visual: "generic", icon: Baby }, // Bebek Giyim
-      { template: "{brand} Eğitici Oyuncak Seti", visual: "generic", icon: Gamepad2 }, // Oyuncak
-      { template: "{brand} Mama Beslenme Seti", visual: "generic", icon: Baby }, // Mama & Beslenme
-      { template: "{brand} Puset Ana Kucağı Aksesuarı", visual: "generic", icon: Baby }, // Puset & Ana Kucağı
-      { template: "{brand} Çocuk Giyim Seti", visual: "generic", icon: Shirt }, // Çocuk Giyim
+      { template: "{brand} Bebek Bezi Paketi", visual: "generic", icon: "baby" }, // Bebek Bezi & Islak Mendil
+      { template: "{brand} Bebek Giyim Seti", visual: "generic", icon: "baby" }, // Bebek Giyim
+      { template: "{brand} Eğitici Oyuncak Seti", visual: "generic", icon: "gamepad2" }, // Oyuncak
+      { template: "{brand} Mama Beslenme Seti", visual: "generic", icon: "baby" }, // Mama & Beslenme
+      { template: "{brand} Puset Ana Kucağı Aksesuarı", visual: "generic", icon: "baby" }, // Puset & Ana Kucağı
+      { template: "{brand} Çocuk Giyim Seti", visual: "generic", icon: "shirt" }, // Çocuk Giyim
     ],
     variantGroups: [
       { type: "beden", label: "Yaş / Beden", options: ["0-3 Ay", "3-6 Ay", "1-2 Yaş", "3-4 Yaş", "5-6 Yaş"] },
@@ -117,12 +99,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Bosch", "Arçelik", "English Home", "Madame Coco", "Karaca", "Tefal"],
     priceRange: [100, 6000],
     variants: [
-      { template: "{brand} Oturma Odası Mobilyası", visual: "generic", icon: Home }, // Mobilya
-      { template: "{brand} Dekorasyon Ürünü", visual: "generic", icon: Home }, // Dekorasyon
-      { template: "{brand} Mutfak Gereçleri Seti", visual: "generic", icon: UtensilsCrossed }, // Mutfak Gereçleri
-      { template: "{brand} Nevresim Takımı", visual: "generic", icon: Home }, // Nevresim Takımı
-      { template: "{brand} Aydınlatma Ürünü", visual: "generic", icon: Lamp }, // Aydınlatma
-      { template: "{brand} Banyo Tekstili Seti", visual: "generic", icon: Droplet }, // Banyo Tekstili
+      { template: "{brand} Oturma Odası Mobilyası", visual: "generic", icon: "home" }, // Mobilya
+      { template: "{brand} Dekorasyon Ürünü", visual: "generic", icon: "home" }, // Dekorasyon
+      { template: "{brand} Mutfak Gereçleri Seti", visual: "generic", icon: "utensils-crossed" }, // Mutfak Gereçleri
+      { template: "{brand} Nevresim Takımı", visual: "generic", icon: "home" }, // Nevresim Takımı
+      { template: "{brand} Aydınlatma Ürünü", visual: "generic", icon: "lamp" }, // Aydınlatma
+      { template: "{brand} Banyo Tekstili Seti", visual: "generic", icon: "droplet" }, // Banyo Tekstili
       { template: "{brand} Küçük Ev Aletleri Seti", visual: "vacuum" }, // Küçük Ev Aletleri
     ],
     extraSpecs: [{ label: "Malzeme", value: "Dayanıklı Ev Tipi Malzeme" }],
@@ -134,10 +116,10 @@ const CATALOG: Record<string, CategoryCatalog> = {
     variants: [
       { template: "{brand} Akıllı Telefon Pro", visual: "phone" }, // Telefon
       { template: "{brand} Tablet 128GB", visual: "tablet" }, // Bilgisayar & Tablet
-      { template: "{brand} 4K Televizyon", visual: "generic", icon: Tv }, // Televizyon
+      { template: "{brand} 4K Televizyon", visual: "generic", icon: "tv" }, // Televizyon
       { template: "{brand} Kablosuz Kulaklık", visual: "headphones" }, // Kulaklık & Ses
       { template: "{brand} Akıllı Saat", visual: "watch" }, // Akıllı Saat
-      { template: "{brand} Beyaz Eşya Ürünü", visual: "generic", icon: Sparkles }, // Beyaz Eşya
+      { template: "{brand} Beyaz Eşya Ürünü", visual: "generic", icon: "sparkles" }, // Beyaz Eşya
       { template: "{brand} Oyun Konsolu", visual: "gaming-pc" }, // Oyun & Konsol
     ],
     variantGroups: [
@@ -154,12 +136,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["L'Oréal", "Flormar", "The Ordinary", "Nivea", "Maybelline", "Golden Rose"],
     priceRange: [60, 900],
     variants: [
-      { template: "{brand} Cilt Bakımı Serumu", visual: "generic", icon: Droplet }, // Cilt Bakımı
-      { template: "{brand} Makyaj Seti", visual: "generic", icon: Sparkles }, // Makyaj
+      { template: "{brand} Cilt Bakımı Serumu", visual: "generic", icon: "droplet" }, // Cilt Bakımı
+      { template: "{brand} Makyaj Seti", visual: "generic", icon: "sparkles" }, // Makyaj
       { template: "{brand} Parfüm 100ml", visual: "perfume" }, // Parfüm
-      { template: "{brand} Saç Bakımı Seti", visual: "generic", icon: Droplet }, // Saç Bakımı
-      { template: "{brand} Kişisel Bakım Seti", visual: "generic", icon: Sparkles }, // Kişisel Bakım
-      { template: "{brand} Erkek Bakım Seti", visual: "generic", icon: Sparkles }, // Erkek Bakım
+      { template: "{brand} Saç Bakımı Seti", visual: "generic", icon: "droplet" }, // Saç Bakımı
+      { template: "{brand} Kişisel Bakım Seti", visual: "generic", icon: "sparkles" }, // Kişisel Bakım
+      { template: "{brand} Erkek Bakım Seti", visual: "generic", icon: "sparkles" }, // Erkek Bakım
     ],
     extraSpecs: [
       { label: "İçerik", value: "Dermatolojik Olarak Test Edilmiştir" },
@@ -172,10 +154,10 @@ const CATALOG: Record<string, CategoryCatalog> = {
     priceRange: [150, 2500],
     variants: [
       { template: "{brand} Koşu Ayakkabısı", visual: "sneaker" }, // Koşu
-      { template: "{brand} Fitness Ekipmanları Seti", visual: "generic", icon: Dumbbell }, // Fitness Ekipmanları
-      { template: "{brand} Outdoor Kamp Çadırı", visual: "generic", icon: Dumbbell }, // Outdoor & Kamp
-      { template: "{brand} Bisiklet", visual: "generic", icon: Bike }, // Bisiklet
-      { template: "{brand} Spor Giyim Eşofman Takımı", visual: "generic", icon: Dumbbell }, // Spor Giyim
+      { template: "{brand} Fitness Ekipmanları Seti", visual: "generic", icon: "dumbbell" }, // Fitness Ekipmanları
+      { template: "{brand} Outdoor Kamp Çadırı", visual: "generic", icon: "dumbbell" }, // Outdoor & Kamp
+      { template: "{brand} Bisiklet", visual: "generic", icon: "bike" }, // Bisiklet
+      { template: "{brand} Spor Giyim Eşofman Takımı", visual: "generic", icon: "dumbbell" }, // Spor Giyim
       { template: "{brand} Spor Ayakkabı Modeli", visual: "sneaker" }, // Spor Ayakkabı
     ],
     variantGroups: [
@@ -189,12 +171,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Ülker", "Eti", "Pınar", "Torku", "Sütaş", "Dardanel"],
     priceRange: [20, 350],
     variants: [
-      { template: "{brand} Temel Gıda Seti", visual: "generic", icon: ShoppingBasket }, // Temel Gıda
-      { template: "{brand} İçecek Paketi (6'lı)", visual: "generic", icon: Coffee }, // İçecek
-      { template: "{brand} Atıştırmalık Kutusu", visual: "generic", icon: ShoppingBasket }, // Atıştırmalık
-      { template: "{brand} Temizlik Ürünü Seti", visual: "generic", icon: Droplet }, // Temizlik
-      { template: "{brand} Kişisel Bakım Paketi", visual: "generic", icon: ShoppingBasket }, // Kişisel Bakım
-      { template: "{brand} Kahvaltılık Ürün Paketi", visual: "generic", icon: Coffee }, // Kahvaltılık
+      { template: "{brand} Temel Gıda Seti", visual: "generic", icon: "shopping-basket" }, // Temel Gıda
+      { template: "{brand} İçecek Paketi (6'lı)", visual: "generic", icon: "coffee" }, // İçecek
+      { template: "{brand} Atıştırmalık Kutusu", visual: "generic", icon: "shopping-basket" }, // Atıştırmalık
+      { template: "{brand} Temizlik Ürünü Seti", visual: "generic", icon: "droplet" }, // Temizlik
+      { template: "{brand} Kişisel Bakım Paketi", visual: "generic", icon: "shopping-basket" }, // Kişisel Bakım
+      { template: "{brand} Kahvaltılık Ürün Paketi", visual: "generic", icon: "coffee" }, // Kahvaltılık
     ],
     extraSpecs: [{ label: "Son Kullanma", value: "Üretimden İtibaren 12 Ay" }],
   },
@@ -203,12 +185,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["İş Bankası Kültür", "Can Yayınları", "Faber-Castell", "Pilot", "Doğan Kitap", "Morfoss"],
     priceRange: [40, 450],
     variants: [
-      { template: "{brand} Roman Seti", visual: "generic", icon: BookOpen }, // Roman
-      { template: "{brand} Kişisel Gelişim Kitabı", visual: "generic", icon: BookOpen }, // Kişisel Gelişim
-      { template: "{brand} Çocuk Kitapları Seti", visual: "generic", icon: BookOpen }, // Çocuk Kitapları
-      { template: "{brand} Okul Kırtasiye Seti", visual: "generic", icon: BookOpen }, // Okul & Ofis Kırtasiyesi
-      { template: "{brand} Not Defteri Seti", visual: "generic", icon: BookOpen }, // Defter & Not Defteri
-      { template: "{brand} Sanat Malzemeleri Seti", visual: "generic", icon: BookOpen }, // Sanat Malzemeleri
+      { template: "{brand} Roman Seti", visual: "generic", icon: "book-open" }, // Roman
+      { template: "{brand} Kişisel Gelişim Kitabı", visual: "generic", icon: "book-open" }, // Kişisel Gelişim
+      { template: "{brand} Çocuk Kitapları Seti", visual: "generic", icon: "book-open" }, // Çocuk Kitapları
+      { template: "{brand} Okul Kırtasiye Seti", visual: "generic", icon: "book-open" }, // Okul & Ofis Kırtasiyesi
+      { template: "{brand} Not Defteri Seti", visual: "generic", icon: "book-open" }, // Defter & Not Defteri
+      { template: "{brand} Sanat Malzemeleri Seti", visual: "generic", icon: "book-open" }, // Sanat Malzemeleri
     ],
     extraSpecs: [{ label: "Kağıt Türü", value: "1. Hamur Kağıt" }],
   },
@@ -217,12 +199,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Bosch", "Michelin", "Castrol", "Mannol", "Osram", "Petlas"],
     priceRange: [80, 2500],
     variants: [
-      { template: "{brand} Oto Aksesuar Seti", visual: "generic", icon: Car }, // Oto Aksesuar
-      { template: "{brand} Oto Bakım Kimyasalı", visual: "generic", icon: Droplet }, // Oto Bakım & Kimyasal
-      { template: "{brand} Lastik ve Jant Seti", visual: "generic", icon: Car }, // Lastik & Jant
-      { template: "{brand} Motosiklet Ekipmanları Seti", visual: "generic", icon: Bike }, // Motosiklet Ekipmanları
-      { template: "{brand} Oto Elektroniği Ürünü", visual: "generic", icon: Car }, // Oto Elektroniği
-      { template: "{brand} Yedek Parça Seti", visual: "generic", icon: Hammer }, // Yedek Parça
+      { template: "{brand} Oto Aksesuar Seti", visual: "generic", icon: "car" }, // Oto Aksesuar
+      { template: "{brand} Oto Bakım Kimyasalı", visual: "generic", icon: "droplet" }, // Oto Bakım & Kimyasal
+      { template: "{brand} Lastik ve Jant Seti", visual: "generic", icon: "car" }, // Lastik & Jant
+      { template: "{brand} Motosiklet Ekipmanları Seti", visual: "generic", icon: "bike" }, // Motosiklet Ekipmanları
+      { template: "{brand} Oto Elektroniği Ürünü", visual: "generic", icon: "car" }, // Oto Elektroniği
+      { template: "{brand} Yedek Parça Seti", visual: "generic", icon: "hammer" }, // Yedek Parça
     ],
     extraSpecs: [{ label: "Uyumluluk", value: "Evrensel Uyumlu" }],
   },
@@ -231,12 +213,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Anker", "Baseus", "Spigen", "Ugreen", "Belkin", "Ttec"],
     priceRange: [50, 800],
     variants: [
-      { template: "{brand} Telefon Kılıfı", visual: "generic", icon: Smartphone },
-      { template: "{brand} Ekran Koruyucu Seti", visual: "generic", icon: Smartphone },
-      { template: "{brand} Hızlı Şarj Adaptörü", visual: "generic", icon: Smartphone },
-      { template: "{brand} Kablosuz Şarj Standı", visual: "generic", icon: Smartphone },
-      { template: "{brand} Powerbank 20000mAh", visual: "generic", icon: Smartphone },
-      { template: "{brand} USB-C Kablo Seti", visual: "generic", icon: Smartphone },
+      { template: "{brand} Telefon Kılıfı", visual: "generic", icon: "smartphone" },
+      { template: "{brand} Ekran Koruyucu Seti", visual: "generic", icon: "smartphone" },
+      { template: "{brand} Hızlı Şarj Adaptörü", visual: "generic", icon: "smartphone" },
+      { template: "{brand} Kablosuz Şarj Standı", visual: "generic", icon: "smartphone" },
+      { template: "{brand} Powerbank 20000mAh", visual: "generic", icon: "smartphone" },
+      { template: "{brand} USB-C Kablo Seti", visual: "generic", icon: "smartphone" },
     ],
     variantGroups: [{ type: "renk", label: "Renk", options: ["Siyah", "Şeffaf", "Mavi", "Kırmızı"] }],
     extraSpecs: [{ label: "Uyumluluk", value: "Çoklu Model Uyumlu" }],
@@ -250,8 +232,8 @@ const CATALOG: Record<string, CategoryCatalog> = {
       { template: "{brand} Oyuncu Dizüstü Bilgisayar", visual: "laptop" },
       { template: "{brand} Tablet 11\"", visual: "tablet" },
       { template: "{brand} 2'si 1 Arada Dizüstü", visual: "laptop" },
-      { template: "{brand} Kablosuz Klavye Mouse Seti", visual: "generic", icon: Laptop },
-      { template: "{brand} Monitör 27\"", visual: "generic", icon: Laptop },
+      { template: "{brand} Kablosuz Klavye Mouse Seti", visual: "generic", icon: "laptop" },
+      { template: "{brand} Monitör 27\"", visual: "generic", icon: "laptop" },
     ],
     variantGroups: [
       { type: "hafiza", label: "Depolama", options: ["256GB", "512GB", "1TB"] },
@@ -266,10 +248,10 @@ const CATALOG: Record<string, CategoryCatalog> = {
     variants: [
       { template: "{brand} Günlük Sneaker", visual: "sneaker" },
       { template: "{brand} Klasik Deri Ayakkabı", visual: "sneaker" },
-      { template: "{brand} Kadın El Çantası", visual: "generic", icon: Footprints },
-      { template: "{brand} Sırt Çantası", visual: "generic", icon: Footprints },
-      { template: "{brand} Spor Çanta", visual: "generic", icon: Footprints },
-      { template: "{brand} Cüzdan", visual: "generic", icon: Footprints },
+      { template: "{brand} Kadın El Çantası", visual: "generic", icon: "footprints" },
+      { template: "{brand} Sırt Çantası", visual: "generic", icon: "footprints" },
+      { template: "{brand} Spor Çanta", visual: "generic", icon: "footprints" },
+      { template: "{brand} Cüzdan", visual: "generic", icon: "footprints" },
     ],
     variantGroups: [
       { type: "beden", label: "Beden", options: ["36", "37", "38", "39", "40", "41", "42"] },
@@ -284,9 +266,9 @@ const CATALOG: Record<string, CategoryCatalog> = {
     variants: [
       { template: "{brand} Klasik Kol Saati", visual: "watch" },
       { template: "{brand} Akıllı Saat", visual: "watch" },
-      { template: "{brand} Gümüş Kolye", visual: "generic", icon: Watch },
-      { template: "{brand} Altın Kaplama Bileklik", visual: "generic", icon: Watch },
-      { template: "{brand} Küpe Seti", visual: "generic", icon: Watch },
+      { template: "{brand} Gümüş Kolye", visual: "generic", icon: "watch" },
+      { template: "{brand} Altın Kaplama Bileklik", visual: "generic", icon: "watch" },
+      { template: "{brand} Küpe Seti", visual: "generic", icon: "watch" },
       { template: "{brand} Erkek Spor Saat", visual: "watch" },
     ],
     variantGroups: [
@@ -300,12 +282,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Royal Canin", "Purina", "Pro Plan", "Whiskas", "Trixie", "Ferplast"],
     priceRange: [60, 700],
     variants: [
-      { template: "{brand} Kedi Maması 2kg", visual: "generic", icon: PawPrint },
-      { template: "{brand} Köpek Maması 3kg", visual: "generic", icon: PawPrint },
-      { template: "{brand} Evcil Hayvan Yatağı", visual: "generic", icon: PawPrint },
-      { template: "{brand} Tasma ve Kayış Seti", visual: "generic", icon: PawPrint },
-      { template: "{brand} Kedi Kumu 10L", visual: "generic", icon: PawPrint },
-      { template: "{brand} Evcil Hayvan Taşıma Çantası", visual: "generic", icon: PawPrint },
+      { template: "{brand} Kedi Maması 2kg", visual: "generic", icon: "paw-print" },
+      { template: "{brand} Köpek Maması 3kg", visual: "generic", icon: "paw-print" },
+      { template: "{brand} Evcil Hayvan Yatağı", visual: "generic", icon: "paw-print" },
+      { template: "{brand} Tasma ve Kayış Seti", visual: "generic", icon: "paw-print" },
+      { template: "{brand} Kedi Kumu 10L", visual: "generic", icon: "paw-print" },
+      { template: "{brand} Evcil Hayvan Taşıma Çantası", visual: "generic", icon: "paw-print" },
     ],
     extraSpecs: [{ label: "Uygun Tür", value: "Kedi & Köpek" }],
   },
@@ -314,12 +296,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Bosch", "Makita", "Dewalt", "Filli Boya", "Bostik", "Şahin"],
     priceRange: [80, 3500],
     variants: [
-      { template: "{brand} Akülü Matkap", visual: "generic", icon: Hammer },
-      { template: "{brand} El Aleti Seti", visual: "generic", icon: Hammer },
-      { template: "{brand} İç Cephe Boyası 15L", visual: "generic", icon: Hammer },
-      { template: "{brand} Merdiven 3 Basamak", visual: "generic", icon: Hammer },
-      { template: "{brand} Bahçe Hortumu Seti", visual: "generic", icon: Hammer },
-      { template: "{brand} Elektrikli Testere", visual: "generic", icon: Hammer },
+      { template: "{brand} Akülü Matkap", visual: "generic", icon: "hammer" },
+      { template: "{brand} El Aleti Seti", visual: "generic", icon: "hammer" },
+      { template: "{brand} İç Cephe Boyası 15L", visual: "generic", icon: "hammer" },
+      { template: "{brand} Merdiven 3 Basamak", visual: "generic", icon: "hammer" },
+      { template: "{brand} Bahçe Hortumu Seti", visual: "generic", icon: "hammer" },
+      { template: "{brand} Elektrikli Testere", visual: "generic", icon: "hammer" },
     ],
     extraSpecs: [{ label: "Kullanım Alanı", value: "İç ve Dış Mekan" }],
   },
@@ -328,12 +310,12 @@ const CATALOG: Record<string, CategoryCatalog> = {
     brands: ["Lego", "Hasbro", "Mattel", "Faber-Castell", "Nerf", "Play-Doh"],
     priceRange: [100, 1800],
     variants: [
-      { template: "{brand} Yapı Seti", visual: "generic", icon: Gamepad2 },
-      { template: "{brand} Kutu Oyunu", visual: "generic", icon: Gamepad2 },
-      { template: "{brand} Uzaktan Kumandalı Araç", visual: "generic", icon: Gamepad2 },
-      { template: "{brand} Puzzle 1000 Parça", visual: "generic", icon: Gamepad2 },
-      { template: "{brand} Hobi Boyama Seti", visual: "generic", icon: Gamepad2 },
-      { template: "{brand} Aksiyon Figürü", visual: "generic", icon: Gamepad2 },
+      { template: "{brand} Yapı Seti", visual: "generic", icon: "gamepad2" },
+      { template: "{brand} Kutu Oyunu", visual: "generic", icon: "gamepad2" },
+      { template: "{brand} Uzaktan Kumandalı Araç", visual: "generic", icon: "gamepad2" },
+      { template: "{brand} Puzzle 1000 Parça", visual: "generic", icon: "gamepad2" },
+      { template: "{brand} Hobi Boyama Seti", visual: "generic", icon: "gamepad2" },
+      { template: "{brand} Aksiyon Figürü", visual: "generic", icon: "gamepad2" },
     ],
     extraSpecs: [{ label: "Yaş Aralığı", value: "3+ Yaş" }],
   },

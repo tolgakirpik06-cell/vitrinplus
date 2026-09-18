@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product, ProductRowConfig, ProductRowAccent } from "@/types";
 import { cn } from "@/lib/utils";
+import { ICON_MAP } from "@/lib/icon-map";
 import { ProductCard } from "./ProductCard";
 
 const accentClasses: Record<ProductRowAccent, string> = {
@@ -61,6 +62,11 @@ export function FeaturedCarousel({
 
   if (items.length === 0) return null;
 
+  // config.icon, RSC sınırından (Server -> Client) serileştirilebilir bir
+  // string olarak geçiyor; gerçek ikon component'i burada, Client
+  // Component'in kendi içinde bu map üzerinden çözülüyor (bkz. lib/icon-map.ts).
+  const RowIcon = ICON_MAP[config.icon];
+
   return (
     <section
       id={config.id}
@@ -77,7 +83,7 @@ export function FeaturedCarousel({
           className="flex items-center gap-2 text-lg font-bold text-navy-900 sm:text-xl"
         >
           <span className={cn("flex h-8 w-8 items-center justify-center rounded-full", accentClasses[config.accent])}>
-            <config.icon size={16} />
+            <RowIcon size={16} />
           </span>
           <span>
             {config.title}

@@ -6,6 +6,7 @@ import { RatingStars } from "@/components/ui/RatingStars";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
 import { FavoriteButton } from "@/components/ui/FavoriteButton";
 import { cn, formatPrice } from "@/lib/utils";
+import { resolveIcon } from "@/lib/icon-map";
 
 export function ProductCard({ product, rank }: { product: Product; rank?: number }) {
   const ShippingIcon = product.shipping.variant === "fast" ? Zap : Truck;
@@ -42,7 +43,7 @@ export function ProductCard({ product, rank }: { product: Product; rank?: number
         <div className="flex h-full w-full items-center justify-center p-6 transition-transform duration-500 ease-out group-hover:scale-[1.06]">
           {product.visual === "generic" ? (
             <GenericCategoryVisual
-              icon={product.icon ?? Package}
+              icon={resolveIcon(product.icon, Package)}
               className="h-full w-full drop-shadow-[0_18px_20px_rgba(13,17,29,0.14)]"
             />
           ) : (

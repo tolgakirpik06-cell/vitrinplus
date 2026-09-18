@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { IconName } from "@/lib/icon-map";
 
 export type AiTagType = "price" | "delivery" | "rating" | "smart";
 
@@ -66,8 +67,13 @@ export type Product = {
   shipping: ShippingInfo;
   aiTag: AiTag;
   visual: ProductVisualKey;
-  /** Sadece visual === "generic" olduğunda kullanılır. */
-  icon?: LucideIcon;
+  /**
+   * Sadece visual === "generic" olduğunda kullanılır. Gerçek ikon component
+   * referansı değil, serileştirilebilir bir isim tutulur — bu ürün verisi
+   * Server Component'lerden "use client" bileşenlere (ör. FeaturedCarousel)
+   * prop olarak geçebildiğinden, ham bir fonksiyon değeri asla taşınamaz.
+   */
+  icon?: IconName;
   /**
    * Galeri görünüm etiketleri. Gerçek ürün fotoğrafı yerine elle çizilmiş
    * illüstrasyon kullanıldığından bunlar gerçek dosya değil, aynı
@@ -115,7 +121,8 @@ export type ProductRowConfig = {
   tag: ProductSectionTag;
   title: string;
   subtitle?: string;
-  icon: LucideIcon;
+  /** Serileştirilebilir ikon ismi — bkz. Product.icon'daki not. */
+  icon: IconName;
   accent: ProductRowAccent;
   showRank?: boolean;
 };

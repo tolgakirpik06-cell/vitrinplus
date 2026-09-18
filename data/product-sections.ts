@@ -1,4 +1,3 @@
-import { Flame, Zap, TrendingUp, Wand2, Rocket, Sparkles, Tag, PackageOpen } from "lucide-react";
 import type { ProductRowConfig } from "@/types";
 
 export const productRows: ProductRowConfig[] = [
@@ -7,7 +6,7 @@ export const productRows: ProductRowConfig[] = [
     tag: "super-firsatlar",
     title: "Süper Fırsatlar",
     subtitle: "Seçili ürünlerde büyük indirim",
-    icon: Flame,
+    icon: "flame",
     accent: "rose",
   },
   {
@@ -15,7 +14,7 @@ export const productRows: ProductRowConfig[] = [
     tag: "en-iyi-fiyat",
     title: "En İyi Fiyat",
     subtitle: "Bütçe dostu, kaliteli seçenekler",
-    icon: Tag,
+    icon: "tag",
     accent: "emerald",
   },
   {
@@ -23,7 +22,7 @@ export const productRows: ProductRowConfig[] = [
     tag: "gunun-firsatlari",
     title: "Günün Flaş Ürünleri",
     subtitle: "Sadece bugüne özel",
-    icon: Zap,
+    icon: "zap",
     accent: "brand",
   },
   {
@@ -31,7 +30,7 @@ export const productRows: ProductRowConfig[] = [
     tag: "en-cok-satanlar",
     title: "Çok Satanlar",
     subtitle: "Bu hafta en çok tercih edilenler",
-    icon: TrendingUp,
+    icon: "trending-up",
     accent: "emerald",
     showRank: true,
   },
@@ -40,7 +39,7 @@ export const productRows: ProductRowConfig[] = [
     tag: "sana-ozel",
     title: "Sana Özel Seçimler",
     subtitle: "Alışveriş geçmişine göre seçildi",
-    icon: Wand2,
+    icon: "wand2",
     accent: "violet",
   },
   {
@@ -48,7 +47,7 @@ export const productRows: ProductRowConfig[] = [
     tag: "yeni-gelenler",
     title: "Yeni Gelenler",
     subtitle: "Rafa yeni eklenenler",
-    icon: PackageOpen,
+    icon: "package-open",
     accent: "sky",
   },
   {
@@ -56,14 +55,14 @@ export const productRows: ProductRowConfig[] = [
     tag: "hizli-teslimat",
     title: "Hızlı Teslimat",
     subtitle: "Bugün kargoda",
-    icon: Rocket,
+    icon: "rocket",
     accent: "sky",
   },
   {
     id: "ai-onerileri",
     tag: "ai-onerileri",
     title: "Günün Öne Çıkanları",
-    icon: Sparkles,
+    icon: "sparkles",
     accent: "brand",
   },
 ];

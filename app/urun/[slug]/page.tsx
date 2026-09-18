@@ -11,6 +11,7 @@ import { ProductGallery, type GalleryImage } from "@/components/product/ProductG
 import { ProductPurchasePanel } from "@/components/product/ProductPurchasePanel";
 import { SellerCard } from "@/components/product/SellerCard";
 import { getProductBySlug, getRelatedProducts, getSampleReviews } from "@/lib/mock-catalog";
+import { resolveIcon } from "@/lib/icon-map";
 
 const VIEW_LABELS: Record<string, string> = {
   "on-gorunum": "Ön Görünüm",
@@ -52,7 +53,7 @@ export default async function ProductPage({
 
   const visualNode =
     product.visual === "generic" ? (
-      <GenericCategoryVisual icon={product.icon ?? Package} className="h-full w-full" />
+      <GenericCategoryVisual icon={resolveIcon(product.icon, Package)} className="h-full w-full" />
     ) : (
       <ProductVisual visual={product.visual} className="h-full w-full" />
     );

@@ -4,6 +4,7 @@ import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-vi
 import { products } from "@/data/products";
 import { stores } from "@/data/stores";
 import { formatPrice, cn } from "@/lib/utils";
+import { resolveIcon } from "@/lib/icon-map";
 
 /** Unsplash üzerinden ücretsiz lisanslı (Unsplash License) editoryal/lifestyle fotoğraflar. */
 function unsplash(id: string, w: number, h: number) {
@@ -140,7 +141,7 @@ export function HeroSection() {
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 sm:h-14 sm:w-14">
               {discountPick.visual === "generic" ? (
-                <GenericCategoryVisual icon={discountPick.icon ?? Package} className="h-full w-full" />
+                <GenericCategoryVisual icon={resolveIcon(discountPick.icon, Package)} className="h-full w-full" />
               ) : (
                 <ProductVisual visual={discountPick.visual} className="h-full w-full" />
               )}
@@ -195,7 +196,7 @@ export function HeroSection() {
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 sm:h-14 sm:w-14">
               {personalPick.visual === "generic" ? (
-                <GenericCategoryVisual icon={personalPick.icon ?? Package} className="h-full w-full" />
+                <GenericCategoryVisual icon={resolveIcon(personalPick.icon, Package)} className="h-full w-full" />
               ) : (
                 <ProductVisual visual={personalPick.visual} className="h-full w-full" />
               )}

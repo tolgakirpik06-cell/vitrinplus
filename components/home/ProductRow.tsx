@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import type { Product, ProductRowConfig, ProductRowAccent } from "@/types";
 import { cn } from "@/lib/utils";
+import { ICON_MAP } from "@/lib/icon-map";
 import { ProductCard } from "./ProductCard";
 
 const accentClasses: Record<ProductRowAccent, string> = {
@@ -27,6 +28,8 @@ export function ProductRow({
 }) {
   if (items.length === 0) return null;
 
+  const RowIcon = ICON_MAP[config.icon];
+
   return (
     // scroll-mt: kampanya/anchor linkleriyle bu bölüme atlandığında (örn.
     // "Süper Fırsatlar" kampanya kartı) başlık, sticky header + kategori
@@ -38,7 +41,7 @@ export function ProductRow({
           className="flex items-center gap-2 text-lg font-bold text-navy-900 sm:text-xl"
         >
           <span className={cn("flex h-8 w-8 items-center justify-center rounded-full", accentClasses[config.accent])}>
-            <config.icon size={16} />
+            <RowIcon size={16} />
           </span>
           <span>
             {config.title}

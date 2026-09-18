@@ -8,6 +8,7 @@ import { useFavorites } from "@/components/favorites/FavoritesProvider";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
 import { getProductBySlug } from "@/lib/mock-catalog";
 import { formatPrice } from "@/lib/utils";
+import { resolveIcon } from "@/lib/icon-map";
 import type { Product } from "@/types";
 
 const FREE_SHIPPING_THRESHOLD = 250;
@@ -81,7 +82,7 @@ export function CartPageClient() {
               className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-50 p-2"
             >
               {product.visual === "generic" ? (
-                <GenericCategoryVisual icon={product.icon ?? Package} className="h-full w-full" />
+                <GenericCategoryVisual icon={resolveIcon(product.icon, Package)} className="h-full w-full" />
               ) : (
                 <ProductVisual visual={product.visual} className="h-full w-full" />
               )}
