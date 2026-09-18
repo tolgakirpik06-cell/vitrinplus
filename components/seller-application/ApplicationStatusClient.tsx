@@ -13,6 +13,8 @@ export function ApplicationStatusClient() {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(SELLER_SUBMITTED_STORAGE_KEY);
+      // Bu değer yalnızca tarayıcıdaki başvuru özetinden okunabilir.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSummary(raw ? (JSON.parse(raw) as SubmittedApplicationSummary) : null);
     } catch {
       setSummary(null);

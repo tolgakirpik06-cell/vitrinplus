@@ -28,6 +28,8 @@ export function MobileNav({ searchQuery = "" }: { searchQuery?: string }) {
   const { count } = useCart();
 
   useEffect(() => {
+    // Portal yalnızca istemcide document.body mevcutken render edilebilir.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

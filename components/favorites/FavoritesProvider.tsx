@@ -34,6 +34,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as string[];
+        // İlk istemci yüklemesinde localStorage ile senkronize oluyoruz.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (Array.isArray(parsed)) setSlugs(parsed);
       }
     } catch {

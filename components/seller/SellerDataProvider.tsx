@@ -108,6 +108,8 @@ export function SellerDataProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<SellerDataState>;
+        // Kalıcı panel verisi hydration sonrasında varsayılan durumun yerini alır.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setState((prev) => ({
           products: Array.isArray(parsed.products) ? parsed.products : prev.products,
           campaigns: Array.isArray(parsed.campaigns) ? parsed.campaigns : prev.campaigns,

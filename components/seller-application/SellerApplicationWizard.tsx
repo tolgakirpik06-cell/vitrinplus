@@ -116,6 +116,8 @@ export function SellerApplicationWizard() {
       if (raw) {
         const parsed = JSON.parse(raw) as SellerApplicationData;
         if (parsed && typeof parsed === "object" && parsed.status === "taslak") {
+          // Taslak sadece hydration tamamlandıktan sonra uygulanabilir.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setData({ ...initialSellerApplicationData, ...parsed });
         }
       }

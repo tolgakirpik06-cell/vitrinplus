@@ -95,7 +95,7 @@ export function ProductPurchasePanel({
         </div>
         <p className="mt-2 flex items-center gap-1.5 text-xs text-navy-400">
           <CreditCard size={13} />
-          {installmentCount} taksit x {formatPrice(installmentAmount)}'den başlayan seçenekler
+          {installmentCount} taksit x {formatPrice(installmentAmount)}&apos;den başlayan seçenekler
         </p>
       </div>
 
