@@ -26,6 +26,26 @@
   --color-navy-900: #080a13;
   --color-navy-950: #050710;
 
+  /* Panel (satıcı / admin) birincil mavi-mor skalası — referans tasarımlardaki
+     "premium blue" birincil eylem rengi. Marka moru (brand-*) vitrinde kalır. */
+  --color-royal-50: #eef0ff;
+  --color-royal-100: #e0e4ff;
+  --color-royal-200: #c6ccff;
+  --color-royal-300: #a3acff;
+  --color-royal-400: #7c86fb;
+  --color-royal-500: #5560f2;
+  --color-royal-600: #3f46e6;
+  --color-royal-700: #3536c9;
+  --color-royal-800: #2d2ea3;
+  --color-royal-900: #282a80;
+
+  /* Panel yüzeyleri */
+  --color-sidebar: #0a1028;
+  --color-sidebar-raised: #121a3d;
+  --color-canvas: #f5f6fb;
+  --color-line: #e6e9f3;
+  --color-muted: #5f6a89;
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, sans-serif;
 
@@ -37,11 +57,49 @@
   --shadow-card-hover: 0 4px 10px rgba(13, 17, 29, 0.06), 0 16px 32px -12px rgba(13, 17, 29, 0.18);
   --shadow-glow: 0 20px 60px -20px rgba(124, 58, 237, 0.45);
   --shadow-premium: 0 2px 4px rgba(13, 17, 29, 0.03), 0 24px 48px -16px rgba(13, 17, 29, 0.16);
+  --shadow-brand: 0 10px 24px -10px rgba(124, 58, 237, 0.55);
+  --shadow-royal: 0 10px 24px -10px rgba(63, 70, 230, 0.55);
+  --shadow-panel: 0 1px 2px rgba(20, 27, 60, 0.04), 0 4px 14px -6px rgba(20, 27, 60, 0.08);
+  --shadow-drawer: -24px 0 48px -24px rgba(10, 16, 40, 0.28);
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-float-slow: float-slow 8s ease-in-out infinite;
   --animate-pulse-soft: pulse-soft 3s ease-in-out infinite;
   --animate-spin-slow: spin-slow 16s linear infinite;
+  --animate-drawer-in: drawer-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fade-in 0.18s ease-out;
+  --animate-toast-in: toast-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+
+  @keyframes drawer-in {
+    from {
+      transform: translateX(24px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      transform: translateY(8px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
 
   @keyframes float {
     0%,
@@ -98,6 +156,17 @@
     color: var(--color-navy-800);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

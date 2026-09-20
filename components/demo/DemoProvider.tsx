@@ -1,10 +1,11 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { getProductBySlug } from "@/lib/mock-catalog";
-import { emptyDemo, placeDemoOrder, shopProduct, transitionOrder, type DemoState, type DemoShop, type DemoOrderStatus } from "@/lib/demo-marketplace";
+import { emptyDemo, placeDemoOrder, shopProduct, transitionOrder, isSellable, type DemoState, type DemoShop, type DemoOrder, type DemoOrderStatus } from "@/lib/demo-marketplace";
+import { STORAGE_KEYS } from "@/lib/storage-migration";
 import type { CartLine } from "@/types";
 
-const KEY = "vitrinplus-demo-v1";
+const KEY = STORAGE_KEYS.demo;
 function useDemoState() {
   const [state, setState] = useState<DemoState>(emptyDemo);
   const [ready, setReady] = useState(false);
@@ -48,7 +49,7 @@ function useDemoState() {
   const resolveProduct = useCallback((slug: string) => {
     for (const store of state.shops) {
       const product = store.products.find(p => `demo-${p.id}` === slug);
-      if (product && store.status === "onaylandi") return shopProduct(product, store);
+      if (product && store.status === "onaylandi") return isSellable(product) ? shopProduct(product, store) : undefined;
     }
     const product = getProductBySlug(slug);
     return product ? { ...product, stock: Math.max(0, product.stock - (state.sold[slug] ?? 0)) } : undefined;
@@ -91,6 +92,10 @@ function useDemoState() {
     logout: () => commit(previous => ({ ...previous, currentUserId: null })),
     review: (reference: string, status: "onaylandi" | "reddedildi") => commit(previous => ({ ...previous, shops: previous.shops.map(s => s.reference === reference && s.status === "bekliyor" ? { ...s, status } : s) })),
     changeOrder: (id: string, status: DemoOrderStatus, admin = false) => commit(previous => transitionOrder(previous, id, status, admin)),
+    /** Satıcı panelindeki "Örnek veri yükle" için: verilen siparişleri (kimliği yeni olanları) demo kaydına ekler. */
+    injectOrders: (orders: DemoOrder[]) => commit(previous => ({ ...previous, orders: [...orders.filter(order => !previous.orders.some(existing => existing.id === order.id)), ...previous.orders] })),
+    /** Verilen kimlikteki siparişleri kaldırır (yalnızca örnek veri temizliği için). */
+    removeOrders: (ids: string[]) => commit(previous => ({ ...previous, orders: previous.orders.filter(order => !ids.includes(order.id)) })),
   };
 }
 const DemoContext = createContext<ReturnType<typeof useDemoState> | null>(null);

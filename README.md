@@ -1,14 +1,15 @@
-# VitrinPlus — Uçtan uca demo
+# VitrinPlus — Demo Pazaryeri
 
-Türkiye odaklı çok satıcılı pazaryeri **VitrinPlus**. Next.js 16 (App Router),
-TypeScript ve Tailwind CSS v4 ile geliştirilmiş yerel demo.
-Demo hesapları, mağaza başvurusu/onayı, satıcı ürünleri, sepet, ödeme simülasyonu,
-sipariş takibi ve stok iadesi aynı tarayıcıda çalışır. Demo kayıtları
-`localStorage` içinde kalır; hazır katalog `data/` dosyalarından gelir.
-Gerçek kimlik doğrulama, backend, ödeme ve AI servisi bağlı değildir.
+Türkiye odaklı çok satıcılı pazaryeri **VitrinPlus**. Next.js 16 (App Router), React 19,
+TypeScript ve Tailwind CSS v4 ile geliştirilmiş, **demo öncelikli** bir uygulamadır.
+Demo hesabı, mağaza başvurusu/onayı, satıcı paneli, sepet, ödeme simülasyonu, sipariş
+takibi ve stok yönetimi aynı tarayıcıda çalışır. Demo kayıtları `localStorage` içinde tutulur.
 
-**Başlangıç:** [Demo rehberi](http://localhost:3000/demo).
-Teslim kapsamı, sunum senaryosu ve canlı ürün planı: [DEMO-PLANI.md](DEMO-PLANI.md).
+Gerçek Supabase, ödeme, OAuth, kargo ve yapay zekâ servisi **bağlı değildir**; kod ileride
+bunlar bağlanabilecek şekilde ayrıştırılmıştır.
+
+**Başlangıç:** [Demo rehberi](http://localhost:3000/demo) ·
+Teslim kapsamı ve sunum senaryosu: [DEMO-PLANI.md](DEMO-PLANI.md)
 
 ## Kurulum
 
@@ -19,94 +20,77 @@ npm install
 npm run dev
 ```
 
-Ardından tarayıcıda [http://localhost:3000](http://localhost:3000) adresini aç.
-
-## Diğer komutlar
+## Komutlar
 
 ```bash
+npm run dev        # geliştirme sunucusu
 npm run build      # production build
-npm run start      # build sonrası production sunucusu
-npm run typecheck  # TypeScript hata kontrolü (tsc --noEmit)
-npm run test:demo  # Sipariş, stok, kupon ve durum geçişi testleri
 npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
+npm run test:demo  # sipariş, stok, kupon ve durum geçişi testleri
 ```
 
-## Proje mimarisi
+## Satıcı Paneli (`/satici-panel`)
+
+Her bölüm kendi rotasına sahiptir ve ortak bir panel kabuğunu (kenar çubuğu + üst çubuk) kullanır.
+
+| Rota | Bölüm |
+| --- | --- |
+| `/satici-panel` | Genel Bakış (KPI, satış grafiği, yapılacaklar, sağlık, son siparişler, Vitrin AI önerileri) |
+| `/satici-panel/siparisler` | Siparişler: durum kartları, toplu hazırla → etiket → yazdır → kargoya ver, sağ detay çekmecesi |
+| `/satici-panel/urunler`, `/urunler/yeni`, `/urunler/[id]` | Ürün listesi, Ürün Ekle/Düzenle + canlı kâr hesaplayıcı, toplu işlemler, CSV içe/dışa aktarma |
+| `/satici-panel/stok` | Stok Yönetimi: site içi toplu stok güncelleme, kritik seviye, stok hareketleri |
+| `/satici-panel/kampanyalar`, `/reklam` | Kampanyalar (Plus+), reklam ürünleri ve fiyat hesaplama |
+| `/satici-panel/kazanclar`, `/odemeler`, `/iadeler` | Net hakediş, ödeme takvimi, iptaller |
+| `/satici-panel/analizler` | Satış, kâr analizi (maliyet düzenleme), envanter |
+| `/satici-panel/sorular`, `/magazam`, `/paketim`, `/ayarlar` | Müşteri soruları, mağaza bilgileri, paket yönetimi, kargo/demo verisi |
+
+Boş bir mağaza için Ayarlar veya boş durum ekranlarından **“Örnek Veri Yükle”** kullanılabilir;
+yalnızca örnek olarak işaretli kayıtlar kaldırılır, kullanıcı verisine dokunulmaz.
+
+## Mimari
 
 ```
-app/
-  layout.tsx          Kök layout, font (Inter) ve metadata
-  page.tsx             Ana sayfa (bölümleri birleştirir)
-  globals.css          Tailwind v4 importu + tema tokenları (@theme)
-  kategoriler/         "Yakında" placeholder sayfası
-  favoriler/           "Yakında" placeholder sayfası
-  sepet/               "Yakında" placeholder sayfası
-  giris/                "Yakında" placeholder sayfası
-  uye-ol/               "Yakında" placeholder sayfası
-  satici-ol/            "Yakında" placeholder sayfası
-
+app/                  Rotalar (sunucu bileşenleri; sayfalar ince, istemci bileşenlerini çağırır)
 components/
-  layout/    Header, Logo, AiSearchBar, MobileNav, CategorySidebar,
-             CategoryStrip (mobil/tablet kategori şeridi), Footer
-  home/      Hero, ProductSection, ProductCard, StatsBar, SellerCta,
-             PricingSection, PricingCard, PerksSection
-  ui/        Button, Badge (AiTagBadge/Pill), RatingStars,
-             RobotIllustration, StoreIllustration, ComingSoon
-
-data/        Kategori, ürün, fiyat paketi, istatistik gibi statik mock veriler
-types/       Paylaşılan TypeScript tipleri
-lib/         Küçük yardımcı fonksiyonlar (cn, formatPrice)
+  dashboard/          Ortak panel bileşenleri (DashboardShell, Sidebar, DataTable, DetailDrawer,
+                      StatCard, Tabs, Modal, UpgradeLock, grafikler …)
+  seller/             Satıcı paneline özel ekranlar (orders, products, stock, pages, overview)
+  demo/               DemoProvider (localStorage tabanlı demo durumu) ve müşteri demo ekranları
+lib/
+  demo-marketplace.ts Saf iş kuralları (sipariş, stok düşümü, durum geçişi) — testlenir
+  plans.ts            Paket sistemi: TEK merkezi kaynak (fiyat, limit, özellik kilitleri)
+  ad-pricing.ts       Reklam ürünleri ve başlangıç fiyatları
+  profit.ts           Kâr / marj hesabı
+  seller-analytics.ts Sipariş, stok, kazanç türetmeleri (saf fonksiyonlar)
+  seller-ops.ts       Satıcıya ait ek veriler (kargo etiketi, takip no, stok hareketi, paket seçimi)
+  storage-migration.ts localStorage anahtarları ve eski (pazarbuy) anahtardan güvenli taşıma
 ```
 
-### Neden bu yapı?
+### Paketler
 
-- **Server/Client ayrımı**: Sadece etkileşim gerektiren parçalar
-  (`AiSearchBar`, `MobileNav`) `"use client"` — geri kalan her şey Server
-  Component olarak kalıyor, bu da daha küçük JS bundle'ı ve daha hızlı ilk
-  yükleme demek.
-- **Veri / görünüm ayrımı**: Ürünler, kategoriler, fiyat paketleri gibi
-  içerikler `data/` altında ayrı dosyalarda. Backend hazır olduğunda bu
-  dosyaları bir API/DB çağrısıyla değiştirmek yeterli, component'lere
-  dokunmaya gerek yok.
-- **Tasarım tokenları tek yerde**: Marka rengi (turuncu), lacivert tonlar,
-  radius ve gölge değerleri `app/globals.css` içinde `@theme` bloğunda
-  tanımlı. Renk paletini değiştirmek tek dosyadan yapılabiliyor.
+`lib/plans.ts` içinde tanımlıdır; başka yerde fiyat yazılmaz. Tüm paketlerde %0 komisyon ve
+sınırsız sipariş vardır. Ek ürün kapasitesi fiyatları **henüz belirlenmemiştir**; arayüzde
+“Fiyat daha sonra belirlenecek” yazar.
 
-## Tasarım notları
+### Depolama
 
-- Görsel referans olarak verilen `reference.png` esas alındı: header (logo +
-  AI arama + kategoriler + favoriler + sepet + giriş/üye/satıcı ol), koyu
-  lacivert hero + robot illüstrasyonu, "AI Sana Özel Seçti" ürün kartları,
-  istatistik şeridi, "%0 Komisyon" satıcı çağrısı, mağaza paketleri ve
-  "VitrinPlus Ayrıcalıkları" bölümleri birebir bu sırayla uygulandı.
-- Referanstaki sağ taraftaki mobil uygulama (telefon) mockup'ları bu MVP'nin
-  kapsamı dışında bırakıldı — istenirse ayrı bir bölüm olarak eklenebilir.
-- Robot ve mağaza görselleri, gerçek görsel/AI görsel üretimi olmadığı için
-  özel olarak çizilmiş SVG illüstrasyonlardır; ürün görselleri de marka
-  rengiyle uyumlu gradient + ikon placeholder'lardır. Gerçek ürün/satıcı
-  görselleri bağlandığında `components/home/ProductCard.tsx` içindeki ikon
-  alanının yerine `next/image` ile gerçek görsel konulabilir.
-- Header'daki "Satıcı Ol", "Giriş Yap", "Üye Ol", "Favoriler", "Sepet" gibi
-  linkler ve `AI Alışveriş Asistanı` kutusu şu an placeholder sayfalara veya
-  henüz oluşturulmamış rotalara gidiyor; backend/auth eklendiğinde bu
-  sayfaların gerçek karşılıkları yazılabilir.
+| Anahtar | İçerik |
+| --- | --- |
+| `vitrinplus-demo-v1` | Kullanıcılar, mağazalar, ürünler, siparişler |
+| `vitrinplus-seller-ops-v1` | Satıcı operasyon verisi (kargo, notlar, stok hareketleri, paket) |
+| `vitrinplus-questions-v1` | “Satıcıya Sor” soruları |
+| `vitrinplus-cart` | Sepet |
 
-## Responsive davranış
+Eski `pazarbuy-*` anahtarları silinmez; ilk okumada yeni anahtara taşınır.
 
-- **Mobil (< 768px)**: Header'da arama kutusu ikinci satıra iner, kategori
-  sidebar'ı yerini yatay kaydırılabilir kategori şeridine bırakır, hamburger
-  menü tüm navigasyonu (kategoriler, favoriler, sepet, giriş/üye/satıcı ol)
-  bir çekmecede toplar. Ürün kartları 2 sütun.
-- **Tablet (768–1024px)**: Arama kutusu header'a geri döner, ürün kartları 3
-  sütun, kategori sidebar'ı hâlâ gizli (yatay şerit kullanılır).
-- **Masaüstü (≥ 1024px)**: Sol kategori sidebar'ı görünür, ürün kartları 4–5
-  sütun, alt bölüm (satıcı CTA + paketler + ayrıcalıklar) 3 sütunlu grid.
+### Güvenlik ilkeleri
 
-## Bu ortamdaki bir kısıt hakkında not
+- Ürün maliyeti ve kâr yalnızca satıcı panelinde görünür; müşteri tarafına giden ürüne
+  (`shopProduct`) hiçbir zaman geçmez.
+- Panelde uydurma performans/reklam rakamı gösterilmez; veri yoksa “—” ve açıklama görünür.
 
-Bu proje, Claude'un bulut sandbox ortamında elle (npm install çalıştırmadan)
-yazıldı çünkü bu oturumda `registry.npmjs.org`'a erişim organizasyon
-politikası tarafından engellendi. Kod, TypeScript sözdizimi açısından
-otomatik olarak tarandı ve tüm import/export eşleşmeleri elle doğrulandı;
-yine de ilk `npm install` sonrası `npm run typecheck` ve `npm run build`
-komutlarını çalıştırıp gözden geçirmen önerilir.
+## Bu aşamada olmayanlar
+
+Müşteri hesap alt sayfaları, müşteri iade akışı, tam soru–cevap yayını, detaylı kazanç/ödeme
+raporları, tam kampanya/reklam yayını, admin paneli ve gerçek entegrasyonlar sonraki aşamalardadır.

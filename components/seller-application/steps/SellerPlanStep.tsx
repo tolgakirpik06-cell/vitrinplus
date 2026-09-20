@@ -20,9 +20,9 @@ export function SellerPlanStep({
   return (
     <StepShell
       title="Mağaza Paketi"
-      subtitle="VitrinPlus'ta satış komisyonu %0'dır — sadece seçtiğiniz pakete göre sabit bir aylık mağaza ücreti ödersiniz."
+      subtitle="VitrinPlus'ta satış komisyonu %0, sipariş sayısı sınırsızdır — yalnızca seçtiğiniz pakete göre sabit mağaza ücreti ödersiniz."
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {sellerPlans.map((plan) => {
           const isActive = data.planId === plan.id;
           return (
@@ -39,7 +39,7 @@ export function SellerPlanStep({
             >
               {plan.featured ? (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-500 px-3 py-1 text-[10px] font-bold text-white shadow-sm">
-                  En Popüler
+                  En Çok Tercih Edilen
                 </span>
               ) : null}
               <p className="text-sm font-bold text-navy-900">{plan.name}</p>
@@ -61,9 +61,9 @@ export function SellerPlanStep({
       {errors.planId ? <p className="text-xs font-medium text-rose-600">{errors.planId}</p> : null}
 
       <p className="rounded-xl border border-navy-100 bg-navy-50/50 px-4 py-3 text-xs leading-relaxed text-navy-500">
-        Paket ücretleri henüz kesinleşmedi ve lansmanla birlikte duyurulacak.
-        Şimdi bir paket seçmeniz, başvurunuzun türünü belirlememize yardımcı olur;
-        onay sonrası paketinizi mağaza panelinizden değiştirebilirsiniz.
+        Bu demoda ödeme alınmaz. Seçtiğiniz paket mağaza panelinizde başlangıç paketiniz
+        olur; onay sonrası paketinizi mağaza panelindeki Paketim ekranından
+        değiştirebilirsiniz. Ek ürün kapasitesi fiyatları henüz belirlenmedi.
       </p>
     </StepShell>
   );

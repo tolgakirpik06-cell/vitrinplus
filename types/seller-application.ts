@@ -5,6 +5,8 @@
  * localStorage'a yazılır (gerçek belge içerikleri HARİÇ).
  */
 
+import type { PlanKey } from "@/lib/plans";
+
 export type SellerType = "sahis" | "limited-as";
 
 /**
@@ -25,10 +27,11 @@ export const applicationStatusLabels: Record<ApplicationStatus, string> = {
 
 export type InvoicePreference =
   | "kendi-sistemim"
-  | "pazarbuy-entegrasyonu"
+  | "vitrinplus-entegrasyonu"
   | "sonra-ayarlayacagim";
 
-export type SellerPlanId = "baslangic" | "pro" | "premium";
+/** Paket kimlikleri merkezi paket config'iyle (lib/plans.ts) aynıdır. */
+export type SellerPlanId = PlanKey;
 
 /**
  * Yüklenen bir belgenin sadece meta bilgisi. Gerçek dosya içeriği/base64

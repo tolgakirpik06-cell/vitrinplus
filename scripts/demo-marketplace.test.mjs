@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const compiled = ts.transpileModule(fs.readFileSync('lib/demo-marketplace.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const exportsObject = {};
 vm.runInNewContext(compiled, { exports: exportsObject, Date, Map, Error });
-const { emptyDemo, placeDemoOrder, transitionOrder, totals } = exportsObject;
+const { emptyDemo, placeDemoOrder, transitionOrder, totals, isSellable, activeSalePrice, shopProduct } = exportsObject;
 const product = { slug: 'catalog-one', name: 'Örnek ürün', price: 100, stock: 5, seller: 'Örnek satıcı' };
 const catalog = slug => slug === product.slug ? product : undefined;
 const line = { lineId: product.slug, slug: product.slug, quantity: 2 };
@@ -60,4 +60,36 @@ test('Satıcı ürünü stoku düşer, iptalde geri gelir; silinen ürün satıl
 test('Onaylanmamış mağazanın ürünü satılamaz', () => {
   const initial = state(); initial.shops = [{ ownerId: 'seller', status: 'bekliyor', products: [{ id: 'p' }] }];
   assert.throws(() => placeDemoOrder(initial, [{ lineId: 'demo-p', slug: 'demo-p', quantity: 1 }], catalog, details, 'VP-S'));
+});
+
+const shopFor = products => ({ ownerId: 'seller', reference: 'S', status: 'onaylandi', products, settings: { storeName: 'Demo Mağaza', description: '' } });
+test('Pasif ve taslak ürün satılamaz; durumsuz eski kayıt satılabilir', () => {
+  assert.equal(isSellable({ id: 'a' }), true);
+  assert.equal(isSellable({ id: 'a', status: 'aktif' }), true);
+  assert.equal(isSellable({ id: 'a', status: 'pasif' }), false);
+  assert.equal(isSellable({ id: 'a', status: 'taslak' }), false);
+  const initial = state(); initial.shops = [shopFor([{ id: 'p', name: 'Demo', sku: 'D1', category: 'Genel', price: 300, cost: 100, stock: 5, status: 'pasif' }])];
+  assert.throws(() => placeDemoOrder(initial, [{ lineId: 'demo-p', slug: 'demo-p', quantity: 1 }], catalog, details, 'VP-P'), /satışta değil/);
+});
+test('İndirimli fiyat yalnızca geçerli tarih aralığında uygulanır', () => {
+  const base = { id: 'p', price: 100, salePrice: 80 };
+  assert.equal(activeSalePrice(base), 80);
+  assert.equal(activeSalePrice({ ...base, salePrice: 100 }), null);
+  assert.equal(activeSalePrice({ ...base, salePrice: 0 }), null);
+  assert.equal(activeSalePrice({ ...base, saleStart: '2999-01-01' }), null);
+  assert.equal(activeSalePrice({ ...base, saleEnd: '2000-01-01' }), null);
+});
+test('Müşteriye giden ürün maliyet ve ek maliyet bilgisi taşımaz', () => {
+  const seller = { id: 'p', name: 'Demo', sku: 'D1', category: 'Genel', price: 300, cost: 111, costs: { shipping: 22, packaging: 3 }, stock: 5, salePrice: 250, status: 'aktif', sample: true };
+  const publicProduct = shopProduct(seller, shopFor([seller]));
+  const json = JSON.stringify(publicProduct);
+  for (const key of ['cost', 'costs', 'sample', 'criticalThreshold', 'autoPassive']) assert.equal(key in publicProduct, false, key);
+  assert.equal(json.includes('111'), false);
+  assert.equal(publicProduct.price, 250); assert.equal(publicProduct.oldPrice, 300);
+});
+test('Stok biten ürün otomatik pasife alınır (autoPassive açıkken)', () => {
+  const initial = state(); initial.shops = [shopFor([{ id: 'p', name: 'Demo', sku: 'D1', category: 'Genel', price: 300, cost: 100, stock: 1, autoPassive: true }, { id: 'q', name: 'Diğer', sku: 'D2', category: 'Genel', price: 300, cost: 100, stock: 1 }])];
+  const result = placeDemoOrder(initial, [{ lineId: 'demo-p', slug: 'demo-p', quantity: 1 }, { lineId: 'demo-q', slug: 'demo-q', quantity: 1 }], catalog, details, 'VP-A');
+  assert.equal(result.state.shops[0].products[0].status, 'pasif');
+  assert.equal(result.state.shops[0].products[1].status, undefined);
 });

@@ -42,7 +42,7 @@ export function HeroBanner({ campaign }: { campaign: Campaign }) {
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Link
             href={campaign.href}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_14px_28px_-10px_rgba(255,106,18,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-600"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_14px_28px_-10px_rgba(124,58,237,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-600"
           >
             {campaign.ctaLabel}
             <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />

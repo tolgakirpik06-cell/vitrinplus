@@ -10,8 +10,10 @@ import {
   type ReactNode,
 } from "react";
 import type { CartLine } from "@/types";
+import { LEGACY_STORAGE_KEYS, STORAGE_KEYS, readWithMigration } from "@/lib/storage-migration";
 
-const STORAGE_KEY = "pazarbuy-cart";
+const STORAGE_KEY = STORAGE_KEYS.cart;
+const COUPON_KEY = STORAGE_KEYS.coupon;
 
 function buildLineId(slug: string, variantLabel?: string) {
   return variantLabel ? `${slug}::${variantLabel}` : slug;
@@ -46,11 +48,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Bu sayede sunucu/istemci arasında hydration uyuşmazlığı oluşmaz.
   useEffect(() => {
     try {
-      const savedCoupon = window.localStorage.getItem("vitrinplus-coupon");
+      const savedCoupon = window.localStorage.getItem(COUPON_KEY);
       // Restore browser-only coupon after hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (savedCoupon === "VITRINPLUS10") setCoupon(savedCoupon);
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      // Eski "pazarbuy-cart" kaydı varsa okunur, yeni anahtara taşınır.
+      const raw = readWithMigration(STORAGE_KEY, LEGACY_STORAGE_KEYS.cart);
       if (raw) {
         const parsed = JSON.parse(raw) as CartLine[];
         // İlk istemci yüklemesinde localStorage ile senkronize oluyoruz;
@@ -76,7 +79,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    try { if (coupon) localStorage.setItem("vitrinplus-coupon", coupon); else localStorage.removeItem("vitrinplus-coupon"); } catch { /* Coupon remains usable for this session. */ }
+    try { if (coupon) localStorage.setItem(COUPON_KEY, coupon); else localStorage.removeItem(COUPON_KEY); } catch { /* Coupon remains usable for this session. */ }
   }, [coupon, hydrated]);
 
   const addItem = useCallback(({ slug, quantity = 1, variantLabel }: AddItemInput) => {

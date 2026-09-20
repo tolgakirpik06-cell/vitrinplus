@@ -15,7 +15,7 @@ const options: { value: InvoicePreference; icon: typeof FileStack; title: string
     description: "Faturalarınızı kendi e-Fatura/e-Arşiv altyapınızla kesmeye devam edin.",
   },
   {
-    value: "pazarbuy-entegrasyonu",
+    value: "vitrinplus-entegrasyonu",
     icon: Plug,
     title: "VitrinPlus fatura entegrasyonunu kullanmak istiyorum",
     description: "VitrinPlus'ın e-Fatura entegrasyonu hazır olduğunda otomatik olarak bilgilendirilirsiniz.",
@@ -77,7 +77,7 @@ export function SellerInvoiceStep({
         <p className="text-xs font-medium text-rose-600">{errors.invoicePreference}</p>
       ) : null}
 
-      {data.invoicePreference === "pazarbuy-entegrasyonu" ? (
+      {data.invoicePreference === "vitrinplus-entegrasyonu" ? (
         <p className="rounded-xl border border-navy-100 bg-navy-50/50 px-4 py-3 text-xs leading-relaxed text-navy-500">
           VitrinPlus e-Fatura entegrasyonu şu an geliştirme aşamasındadır. Bu
           tercihi kaydediyoruz; entegrasyon devreye alındığında sizinle

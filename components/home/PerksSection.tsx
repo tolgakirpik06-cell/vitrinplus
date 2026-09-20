@@ -6,7 +6,7 @@ const toneClasses: Record<Perk["tone"], string> = {
   purple: "bg-violet-50 text-violet-600",
   blue: "bg-sky-50 text-sky-600",
   green: "bg-emerald-50 text-emerald-600",
-  orange: "bg-brand-50 text-brand-600",
+  brand: "bg-brand-50 text-brand-600",
 };
 
 export function PerksSection() {

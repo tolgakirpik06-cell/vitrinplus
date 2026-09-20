@@ -40,7 +40,7 @@ export function FavoritesPageClient() {
           </div>
           <Link
             href="/"
-            className="mt-1 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-10px_rgba(255,106,18,0.55)] transition-colors hover:bg-brand-600"
+            className="mt-1 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-10px_rgba(124,58,237,0.55)] transition-colors hover:bg-brand-600"
           >
             Alışverişe Başla
           </Link>

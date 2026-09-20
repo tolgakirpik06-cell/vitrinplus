@@ -1,7 +1,12 @@
-import type { ApplicationStatus, SellerPlan, SellerType } from "@/types/seller-application";
+import type { ApplicationStatus, SellerApplicationData, SellerPlan, SellerPlanId, SellerType } from "@/types/seller-application";
+import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from "@/lib/storage-migration";
+import { planList, planPriceLabel } from "@/lib/plans";
 
-export const SELLER_DRAFT_STORAGE_KEY = "pazarbuy:satici-basvuru-taslak";
-export const SELLER_SUBMITTED_STORAGE_KEY = "pazarbuy:satici-basvuru-gonderildi";
+export const SELLER_DRAFT_STORAGE_KEY = STORAGE_KEYS.sellerDraft;
+export const SELLER_SUBMITTED_STORAGE_KEY = STORAGE_KEYS.sellerSubmitted;
+/** Eski "PazarBuy" dönemi anahtarları — yalnızca okuma/taşıma için (bkz. lib/storage-migration.ts). */
+export const LEGACY_SELLER_DRAFT_STORAGE_KEY = LEGACY_STORAGE_KEYS.sellerDraft;
+export const LEGACY_SELLER_SUBMITTED_STORAGE_KEY = LEGACY_STORAGE_KEYS.sellerSubmitted;
 
 export type SubmittedApplicationSummary = {
   /** Başvurunun herkese açık referans numarası. */
@@ -84,30 +89,38 @@ export const sellerTypeLabels: Record<SellerType, string> = {
   "limited-as": "Limited / Anonim Şirket",
 };
 
-export const sellerPlans: SellerPlan[] = [
-  {
-    id: "baslangic",
-    name: "Başlangıç",
-    tagline: "Yeni başlayan satıcılar için",
-    priceLabel: "Yakında açıklanacak",
-    features: ["Sınırsız ürün", "Temel istatistikler", "E-posta destek", "1 Mağaza"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    tagline: "Büyüyen mağazalar için",
-    priceLabel: "Yakında açıklanacak",
-    features: ["Sınırsız ürün", "Gelişmiş istatistikler", "Reklam araçları", "Öncelikli destek"],
-    featured: true,
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    tagline: "Yüksek hacimli mağazalar için",
-    priceLabel: "Yakında açıklanacak",
-    features: ["Sınırsız ürün", "Premium görünürlük", "API erişimi", "Özel hesap yöneticisi"],
-  },
-];
+/** Başvuru sihirbazındaki paket kartları merkezi paket config'inden (lib/plans.ts) üretilir. */
+export const sellerPlans: SellerPlan[] = planList.map((plan) => ({
+  id: plan.key,
+  name: plan.name,
+  tagline: plan.tagline,
+  priceLabel:
+    plan.monthlyPrice === null
+      ? "Teklif Al"
+      : `${planPriceLabel(plan, "monthly")} · ${planPriceLabel(plan, "yearly")}`,
+  features: plan.features,
+  featured: plan.featured,
+}));
+
+const LEGACY_PLAN_IDS: Record<string, SellerPlanId> = {
+  baslangic: "vitrin",
+  pro: "vitrin-plus",
+  premium: "vitrin-pro-plus",
+};
+
+/**
+ * Eski taslaklardaki değerleri yeni adlandırmaya çevirir:
+ * planId "baslangic|pro|premium" ve invoicePreference "pazarbuy-entegrasyonu".
+ * Bilinmeyen paket kimliği null'a düşer; kullanıcı tekrar seçer.
+ */
+export function normalizeApplicationData(data: SellerApplicationData): SellerApplicationData {
+  const rawPlan = data.planId as string | null;
+  const rawInvoice = data.invoicePreference as string | null;
+  const knownPlans: string[] = planList.map((plan) => plan.key);
+  const planId: SellerPlanId | null = rawPlan === null ? null : knownPlans.includes(rawPlan) ? (rawPlan as SellerPlanId) : (LEGACY_PLAN_IDS[rawPlan] ?? null);
+  const invoicePreference = rawInvoice === "pazarbuy-entegrasyonu" ? "vitrinplus-entegrasyonu" : data.invoicePreference;
+  return { ...data, planId, invoicePreference };
+}
 
 export const sellerDocumentConfig: {
   key: "kimlik" | "vergiLevhasi" | "imzaBeyannamesi" | "ticaretSicilBelgesi" | "faaliyetBelgesi";
@@ -151,5 +164,5 @@ export function generateApplicationId(): string {
   const date = new Date();
   const y = date.getFullYear();
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `PB-${y}-${rand}`;
+  return `VP-${y}-${rand}`;
 }

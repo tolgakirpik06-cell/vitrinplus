@@ -24,6 +24,6 @@ export const perks: Perk[] = [
     icon: Truck,
     title: "Hızlı Teslimat",
     description: "En hızlı ve en uygun kargo seçimi otomatik yapılır.",
-    tone: "orange",
+    tone: "brand",
   },
 ];

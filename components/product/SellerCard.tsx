@@ -1,6 +1,7 @@
-import { Star, BadgeCheck, Crown, MessageCircle } from "lucide-react";
+import { Star, BadgeCheck, Crown } from "lucide-react";
 import { stores } from "@/data/stores";
 import { Button } from "@/components/ui/Button";
+import { AskSellerButton } from "@/components/product/AskSellerButton";
 import { cn } from "@/lib/utils";
 import type { Store } from "@/types";
 
@@ -26,9 +27,13 @@ function initials(name: string): string {
 export function SellerCard({
   sellerName,
   categoryLabel,
+  productSlug,
+  productName,
 }: {
   sellerName: string;
   categoryLabel: string;
+  productSlug?: string;
+  productName?: string;
 }) {
   const store = stores.find((s) => s.name === sellerName);
 
@@ -78,17 +83,14 @@ export function SellerCard({
 
       <div className="flex items-center gap-2">
         <Button
-          href={store ? `/magazalar#${store.slug}` : "/magazalar"}
+          href={store ? `/magaza/${store.slug}` : "/magazalar"}
           variant="outline"
           size="sm"
           className="flex-1"
         >
           Mağazaya Git
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="flex-1">
-          <MessageCircle size={14} />
-          Satıcıya Sor
-        </Button>
+        <AskSellerButton sellerName={display.name} productSlug={productSlug} productName={productName} />
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Package } from "lucide-react";
 import { useDemo } from "./DemoProvider";
-import { orderLabels, shopProduct, type DemoOrderStatus } from "@/lib/demo-marketplace";
+import { orderLabels, shopProduct, isSellable, type DemoOrderStatus } from "@/lib/demo-marketplace";
 import { ProductCard } from "@/components/home/ProductCard";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatPrice } from "@/lib/utils";
@@ -11,12 +12,15 @@ const button = "inline-flex items-center justify-center rounded-xl bg-brand-500 
 const card = "rounded-2xl border border-navy-100 bg-white p-5 sm:p-6";
 export function DemoBar() {
   const { user, storageError } = useDemo();
+  const pathname = usePathname();
+  // Satıcı paneli kendi başlığında demo bilgisini gösterir; ek şerit tam yükseklikli yan menüyü bozar.
+  if (pathname?.startsWith("/satici-panel")) return null;
   return <div className="border-b border-brand-100 bg-brand-50 text-xs text-brand-800"><div className="section-container flex flex-wrap items-center justify-between gap-2 py-2"><span>Demo · Gerçek ödeme alınmaz · Veriler bu tarayıcıda saklanır</span><div className="flex flex-wrap gap-4"><Link href="/demo" className="font-bold">Demo rehberi</Link><Link href="/hesabim">{user?.name ?? "Demo hesabım"}</Link><Link href="/siparislerim">Siparişlerim</Link><Link href="/satici-panel">Satıcı paneli</Link></div>{storageError && <p role="alert" className="w-full text-rose-700">{storageError}</p>}</div></div>;
 }
 export function DemoCatalog({ compact = false, initialQuery = "" }: { compact?: boolean; initialQuery?: string }) {
   const { state, ready } = useDemo();
   const [query, setQuery] = useState(initialQuery);
-  const products = state.shops.filter(s => s.status === "onaylandi").flatMap(s => s.products.map(p => shopProduct(p, s))).filter(p => `${p.name} ${p.category} ${p.seller}`.toLocaleLowerCase("tr").includes(query.toLocaleLowerCase("tr")));
+  const products = state.shops.filter(s => s.status === "onaylandi").flatMap(s => s.products.filter(isSellable).map(p => shopProduct(p, s))).filter(p => `${p.name} ${p.category} ${p.seller}`.toLocaleLowerCase("tr").includes(query.toLocaleLowerCase("tr")));
   if (compact && !products.length) return null;
   return <section className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-extrabold">Satıcıların eklediği ürünler</h2><input aria-label="Demo ürünlerinde ara" value={query} onChange={e => setQuery(e.target.value)} placeholder="Ürün veya mağaza ara" className="rounded-xl border border-navy-200 bg-white px-4 py-2 text-sm" /></div>{!ready ? <p>Ürünler yükleniyor…</p> : !products.length ? <p className={card}>Henüz ürün yok veya aramana uygun ürün bulunamadı. Onaylı mağazanın panelinden ürün ekleyebilirsin.</p> : <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{products.slice(0, compact ? 4 : undefined).map(p => <ProductCard key={p.id} product={p} />)}</div>}</section>;
 }

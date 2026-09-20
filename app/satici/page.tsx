@@ -17,7 +17,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { PricingCard } from "@/components/home/PricingCard";
-import { pricingPlans } from "@/data/pricing-plans";
+import { planList, COMMISSION_LABEL, UNLIMITED_ORDERS_LABEL } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Satıcı Ol | VitrinPlus" };
 
@@ -71,7 +71,7 @@ export default function SaticiPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/satici-basvuru"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-500 px-7 py-3.5 text-sm font-semibold text-white shadow-[0_16px_32px_-12px_rgba(255,106,18,0.6)] transition-colors hover:bg-brand-600"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-500 px-7 py-3.5 text-sm font-semibold text-white shadow-[0_16px_32px_-12px_rgba(124,58,237,0.6)] transition-colors hover:bg-brand-600"
               >
                 Hemen Başvur
                 <ArrowRight size={16} />
@@ -168,13 +168,13 @@ export default function SaticiPage() {
             <div className="mb-9 text-center">
               <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Mağaza Paketleri</h2>
               <p className="mx-auto mt-2.5 max-w-xl text-sm text-navy-400 sm:text-base">
-                Her büyüklükte satıcı için sabit aylık ücret, sürpriz kesinti yok.
+                Her büyüklükte satıcı için sabit mağaza ücreti; tüm paketlerde {COMMISSION_LABEL.toLowerCase()} ve {UNLIMITED_ORDERS_LABEL.toLowerCase()}.
               </p>
             </div>
 
-            <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-              {pricingPlans.map((plan) => (
-                <PricingCard key={plan.id} plan={plan} />
+            <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {planList.map((plan) => (
+                <PricingCard key={plan.key} plan={plan} />
               ))}
             </div>
           </div>

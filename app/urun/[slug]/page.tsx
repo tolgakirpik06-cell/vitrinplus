@@ -187,7 +187,7 @@ export default async function ProductPage({
           </div>
 
           <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-            <SellerCard sellerName={product.seller} categoryLabel={product.category} />
+            <SellerCard sellerName={product.seller} categoryLabel={product.category} productSlug={product.slug} productName={product.name} />
           </div>
         </div>
 

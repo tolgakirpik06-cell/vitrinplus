@@ -111,7 +111,7 @@ export type Perk = {
   icon: LucideIcon;
   title: string;
   description: string;
-  tone: "orange" | "purple" | "blue" | "green";
+  tone: "brand" | "purple" | "blue" | "green";
 };
 
 export type ProductRowAccent = "brand" | "rose" | "emerald" | "sky" | "violet";

@@ -15,9 +15,14 @@ import { SellerPlanStep } from "@/components/seller-application/steps/SellerPlan
 import { SellerAgreementStep } from "@/components/seller-application/steps/SellerAgreementStep";
 import { SellerSuccess } from "@/components/seller-application/steps/SellerSuccess";
 import {
+  LEGACY_SELLER_DRAFT_STORAGE_KEY,
+  LEGACY_SELLER_SUBMITTED_STORAGE_KEY,
   SELLER_DRAFT_STORAGE_KEY,
   SELLER_SUBMITTED_STORAGE_KEY,
+  normalizeApplicationData,
 } from "@/lib/seller-application";
+import { readWithMigration, removeWithLegacy } from "@/lib/storage-migration";
+import { setOwnerPlan } from "@/lib/seller-ops";
 import {
   validateAccount,
   validateAgreement,
@@ -114,13 +119,14 @@ export function SellerApplicationWizard() {
   // Taslağı localStorage'dan yükle (sadece ilk render'da, tarayıcıda).
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(SELLER_DRAFT_STORAGE_KEY);
+      // Eski "pazarbuy:" taslağı varsa yeni anahtara taşınır.
+      const raw = readWithMigration(SELLER_DRAFT_STORAGE_KEY, LEGACY_SELLER_DRAFT_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as SellerApplicationData;
         if (parsed && typeof parsed === "object" && parsed.status === "taslak") {
           // Taslak sadece hydration tamamlandıktan sonra uygulanabilir.
           // eslint-disable-next-line react-hooks/set-state-in-effect
-          setData({ ...initialSellerApplicationData, ...parsed });
+          setData(normalizeApplicationData({ ...initialSellerApplicationData, ...parsed }));
         }
       }
     } catch {
@@ -163,11 +169,12 @@ export function SellerApplicationWizard() {
     // Son adım — başvuruyu gönder.
     setSubmitting(true);
     let applicationId: string;
-    try { applicationId = demo.apply(data.store.magazaAdi, data.store.aciklama); } catch (e) { setErrors({ submit: (e as Error).message }); setSubmitting(false); return; }
+    try { applicationId = demo.apply(data.store.magazaAdi, data.store.aciklama); if (demo.user && data.planId) setOwnerPlan(demo.user.id, data.planId); } catch (e) { setErrors({ submit: (e as Error).message }); setSubmitting(false); return; }
     window.setTimeout(() => {
       setData((prev) => ({ ...prev, status: "bekliyor", applicationId }));
       try {
-        window.localStorage.removeItem(SELLER_DRAFT_STORAGE_KEY);
+        removeWithLegacy(SELLER_DRAFT_STORAGE_KEY, LEGACY_SELLER_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(LEGACY_SELLER_SUBMITTED_STORAGE_KEY);
         window.localStorage.setItem(
           SELLER_SUBMITTED_STORAGE_KEY,
           JSON.stringify({
@@ -227,7 +234,7 @@ export function SellerApplicationWizard() {
             type="button"
             onClick={handleNext}
             disabled={submitting}
-            className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-10px_rgba(255,106,18,0.55)] transition-colors hover:bg-brand-600 disabled:pointer-events-none disabled:opacity-70"
+            className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-10px_rgba(124,58,237,0.55)] transition-colors hover:bg-brand-600 disabled:pointer-events-none disabled:opacity-70"
           >
             {submitting ? (
               <>

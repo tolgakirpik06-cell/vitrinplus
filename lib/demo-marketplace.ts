@@ -1,7 +1,24 @@
 import type { Product, CartLine } from "@/types";
 
 export type DemoUser = { id: string; name: string; email: string };
-export type SellerProduct = { id: string; name: string; sku: string; category: string; price: number; cost: number; stock: number };
+export type ProductStatus = "aktif" | "pasif" | "taslak";
+/**
+ * Satıcı ürünü. Zorunlu alanlar eski kayıtlarla aynıdır; sonrasında eklenen
+ * alanlar isteğe bağlıdır, bu yüzden mevcut localStorage kayıtları olduğu gibi çalışır.
+ * `cost` ve `costs` yalnızca satıcıya aittir — müşteriye giden ürüne (shopProduct) ASLA geçmez.
+ */
+export type SellerProduct = {
+  id: string; name: string; sku: string; category: string; price: number; cost: number; stock: number;
+  status?: ProductStatus;
+  brand?: string; model?: string; shortDescription?: string; description?: string;
+  images?: string[];
+  costs?: { shipping?: number; packaging?: number; payment?: number; other?: number };
+  salePrice?: number; saleStart?: string; saleEnd?: string;
+  criticalThreshold?: number; autoPassive?: boolean;
+  /** Varyant seçenekleri (yalnızca satıcı paneli için; stok ürün düzeyinde tutulur). */
+  variants?: { id: string; label: string; sku?: string }[];
+  sample?: boolean; createdAt?: string;
+};
 export type SellerCampaign = { id: string; name: string; discountPercent: number; endDate: string };
 export type SellerSettings = { storeName: string; description: string; contactEmail: string; contactPhone: string };
 export type SellerShipping = { shippingFee: number; freeShippingThreshold: number; preparationDays: number; carrier: string };
@@ -23,11 +40,27 @@ export function totals(subtotal: number, coupon: string | null, express = false)
   const shipping = subtotal === 0 ? 0 : (subtotal - discount >= 250 ? 0 : 49.9) + (express ? 29.9 : 0);
   return { subtotal, discount, shipping, total: Math.round((subtotal - discount + shipping) * 100) / 100 };
 }
+/** Yalnızca aktif (pasif / taslak olmayan) ürünler müşteriye satılabilir. Eski kayıtlarda status yoktur → satılabilir. */
+export function isSellable(product: SellerProduct): boolean { return product.status !== "pasif" && product.status !== "taslak"; }
+/** Tarih aralığındaki indirimli fiyat geçerliyse döner. */
+export function activeSalePrice(product: SellerProduct, now: Date = new Date()): number | null {
+  const sale = product.salePrice;
+  if (!sale || !Number.isFinite(sale) || sale <= 0 || sale >= product.price) return null;
+  if (product.saleStart && now < new Date(product.saleStart)) return null;
+  if (product.saleEnd) { const end = new Date(product.saleEnd); end.setHours(23, 59, 59, 999); if (now > end) return null; }
+  return sale;
+}
 export function shopProduct(product: SellerProduct, shop: DemoShop): Product {
-  return { ...product, slug: `demo-${product.id}`, brand: shop.settings.storeName, seller: shop.settings.storeName,
+  // Maliyet, ek maliyetler, örnek işareti ve satıcı görselleri müşteri tarafına geçmez.
+  const { cost: _cost, costs: _costs, sample: _sample, images: _images, criticalThreshold: _threshold, autoPassive: _auto, salePrice: _sale, saleStart: _start, saleEnd: _end, status: _status, createdAt: _created, variants: _variants, shortDescription, description, brand, model, ...publicFields } = product;
+  void [_cost, _costs, _sample, _images, _threshold, _auto, _sale, _start, _end, _status, _created, _variants];
+  const sale = activeSalePrice(product);
+  const specifications = [{ label: "SKU", value: product.sku }, ...(brand?.trim() ? [{ label: "Marka", value: brand.trim() }] : []), ...(model?.trim() ? [{ label: "Model", value: model.trim() }] : [])];
+  return { ...publicFields, price: sale ?? product.price, ...(sale ? { oldPrice: product.price, discount: Math.round((1 - sale / product.price) * 100) } : {}),
+    slug: `demo-${product.id}`, brand: brand?.trim() || shop.settings.storeName, seller: shop.settings.storeName,
     rating: 0, reviewCount: 0, shipping: { label: "Demo teslimat", variant: "standard" },
     aiTag: { type: "smart", label: "Demo mağaza ürünü" }, visual: "generic", icon: "shopping-bag", images: [],
-    description: shop.settings.description || "Satıcı tarafından eklenen demo ürün.", specifications: [{ label: "SKU", value: product.sku }], tags: ["yeni-gelenler"] };
+    description: description?.trim() || shortDescription?.trim() || shop.settings.description || "Satıcı tarafından eklenen demo ürün.", specifications, tags: ["yeni-gelenler"] };
 }
 export function placeDemoOrder(state: DemoState, lines: CartLine[], catalog: (slug: string) => Product | undefined | null, details: { address: string; billingAddress: string; coupon: string | null; express: boolean }, id: string): { state: DemoState; order: DemoOrder } {
   if (!state.currentUserId) throw new Error("Sipariş için demo hesabına giriş yap.");
@@ -38,7 +71,7 @@ export function placeDemoOrder(state: DemoState, lines: CartLine[], catalog: (sl
   const items = lines.map(line => {
     if (!Number.isInteger(line.quantity) || line.quantity < 1) throw new Error("Ürün adedi geçersiz.");
     const shop = state.shops.find(s => s.status === "onaylandi" && s.products.some(p => `demo-${p.id}` === line.slug));
-    const ownProduct = shop?.products.find(p => `demo-${p.id}` === line.slug);
+    const ownProduct = shop?.products.find(p => `demo-${p.id}` === line.slug && isSellable(p));
     const product = shop && ownProduct ? shopProduct(ownProduct, shop) : line.slug.startsWith("demo-") ? undefined : catalog(line.slug);
     if (!product) throw new Error("Sepetindeki bir ürün artık satışta değil. Sepetini güncelle.");
     const quantity = (quantities.get(line.slug) ?? 0) + line.quantity;
@@ -51,7 +84,11 @@ export function placeDemoOrder(state: DemoState, lines: CartLine[], catalog: (sl
   const order: DemoOrder = { id, buyerId: state.currentUserId, createdAt: new Date().toISOString(), status: "alindi", items, address: details.address, billingAddress: details.billingAddress, ...pricing };
   const sold = { ...state.sold };
   for (const item of items) if (!item.ownerId) sold[item.slug] = (sold[item.slug] ?? 0) + item.quantity;
-  const shops = state.shops.map(shop => ({ ...shop, products: shop.products.map(p => ({ ...p, stock: p.stock - (quantities.get(`demo-${p.id}`) ?? 0) })) }));
+  const shops = state.shops.map(shop => ({ ...shop, products: shop.products.map(p => {
+    const quantity = quantities.get(`demo-${p.id}`) ?? 0;
+    const stock = p.stock - quantity;
+    return { ...p, stock, ...(quantity > 0 && stock <= 0 && p.autoPassive ? { status: "pasif" as const } : {}) };
+  }) }));
   return { order, state: { ...state, shops, sold, orders: [order, ...state.orders] } };
 }
 export function transitionOrder(state: DemoState, id: string, status: DemoOrderStatus, admin = false): DemoState {

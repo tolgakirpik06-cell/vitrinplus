@@ -110,7 +110,7 @@ export function AiSearchBar({
         type="submit"
         aria-label="Ara"
         className={cn(
-          "flex shrink-0 items-center gap-1.5 rounded-full font-semibold text-white shadow-[0_10px_20px_-8px_rgba(255,106,18,0.55)] transition-all duration-200 hover:-translate-y-0.5",
+          "flex shrink-0 items-center gap-1.5 rounded-full font-semibold text-white shadow-[0_10px_20px_-8px_rgba(124,58,237,0.55)] transition-all duration-200 hover:-translate-y-0.5",
           isLg
             ? "h-14 px-5 text-sm bg-brand-500 hover:bg-brand-600 sm:h-16 sm:px-7 sm:text-base"
             : "h-12 px-4 text-sm bg-brand-500 hover:bg-brand-600 sm:px-5 lg:h-[3.25rem]"
