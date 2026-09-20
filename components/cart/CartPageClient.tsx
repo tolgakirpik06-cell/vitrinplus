@@ -6,35 +6,33 @@ import { ShoppingCart, ShieldCheck, Truck, Package, Minus, Plus, Trash2, Heart, 
 import { useCart } from "@/components/cart/CartProvider";
 import { useFavorites } from "@/components/favorites/FavoritesProvider";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
-import { getProductBySlug } from "@/lib/mock-catalog";
+import { useDemo } from "@/components/demo/DemoProvider";
+import { totals } from "@/lib/demo-marketplace";
 import { formatPrice } from "@/lib/utils";
 import { resolveIcon } from "@/lib/icon-map";
 import type { Product } from "@/types";
 
 const FREE_SHIPPING_THRESHOLD = 250;
 const COUPON_CODE = "VITRINPLUS10";
-const COUPON_RATE = 0.1;
 
 export function CartPageClient() {
-  const { lines, updateQuantity, removeItem } = useCart();
+  const { lines, updateQuantity, removeItem, coupon: appliedCoupon, setCoupon: setAppliedCoupon } = useCart();
+  const { resolveProduct, ready } = useDemo();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [couponInput, setCouponInput] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
 
   const resolvedLines = useMemo(() => {
     return lines
-      .map((line) => ({ line, product: getProductBySlug(line.slug) }))
+      .map((line) => ({ line, product: resolveProduct(line.slug) }))
       .filter((entry): entry is { line: (typeof lines)[number]; product: Product } =>
         Boolean(entry.product)
       );
-  }, [lines]);
+  }, [lines, resolveProduct]);
 
   const subtotal = resolvedLines.reduce((sum, { line, product }) => sum + product.price * line.quantity, 0);
-  const discount = appliedCoupon ? Math.round(subtotal * COUPON_RATE) : 0;
+  const { discount, shipping, total } = totals(subtotal, appliedCoupon);
   const afterDiscount = subtotal - discount;
-  const shipping = resolvedLines.length === 0 ? 0 : afterDiscount >= FREE_SHIPPING_THRESHOLD ? 0 : 49.9;
-  const total = afterDiscount + shipping;
   const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - afterDiscount);
 
   function handleApplyCoupon() {
@@ -49,7 +47,9 @@ export function CartPageClient() {
     }
   }
 
-  if (resolvedLines.length === 0) {
+  if (!ready) return <p>Sepet yükleniyor…</p>;
+
+  if (resolvedLines.length === 0 && lines.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-navy-100 py-20 text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-500">
@@ -72,6 +72,7 @@ export function CartPageClient() {
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
       <div className="flex min-w-0 flex-1 flex-col gap-3">
+        {lines.filter(line => !resolveProduct(line.slug)).map(line => <div key={line.lineId} className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">Ürün artık satışta değil. <button className="underline" onClick={() => removeItem(line.lineId)}>Sepetten kaldır</button></div>)}
         {resolvedLines.map(({ line, product }) => (
           <div
             key={line.lineId}
@@ -168,9 +169,10 @@ export function CartPageClient() {
         <p className="text-sm font-bold text-navy-900">Sipariş Özeti</p>
 
         <div className="mt-3">
-          <label className="mb-1.5 block text-xs font-semibold text-navy-500">Kupon Kodu</label>
+          <label htmlFor="cart-coupon" className="mb-1.5 block text-xs font-semibold text-navy-500">Kupon Kodu</label>
           <div className="flex items-center gap-2">
             <input
+              id="cart-coupon"
               value={couponInput}
               onChange={(event) => setCouponInput(event.target.value)}
               placeholder="Örn: VITRINPLUS10"

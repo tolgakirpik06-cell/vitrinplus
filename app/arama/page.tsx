@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DemoCatalog } from "@/components/demo/DemoScreens";
 import Link from "next/link";
 import { SearchX, Store as StoreIcon, LayoutGrid } from "lucide-react";
 import { Header } from "@/components/layout/Header";
@@ -42,6 +43,7 @@ export default async function SearchPage({
 
       <main className="section-container flex flex-col gap-6 py-5 sm:py-6">
         <Breadcrumb items={[{ label: "Ana Sayfa", href: "/" }, { label: "Arama Sonuçları" }]} />
+        {q && <DemoCatalog key={q} initialQuery={q} />}
 
         {!q ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-navy-100 py-20 text-center">
@@ -66,7 +68,7 @@ export default async function SearchPage({
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-navy-100 py-20 text-center">
                 <SearchX size={32} className="text-navy-300" />
                 <p className="mt-3 text-sm font-semibold text-navy-700">
-                  &quot;{q}&quot; için sonuç bulunamadı
+                  Hazır katalogda &quot;{q}&quot; için sonuç bulunamadı
                 </p>
                 <p className="mt-1 max-w-sm text-xs text-navy-400">
                   Farklı bir anahtar kelime deneyebilir veya{" "}

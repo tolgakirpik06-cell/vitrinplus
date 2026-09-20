@@ -1,3 +1,4 @@
+import { DemoProduct } from "@/components/demo/DemoScreens";
 import type { Metadata } from "next";
 import { Package, Star, ShieldCheck, RotateCcw, Truck } from "lucide-react";
 import { Header } from "@/components/layout/Header";
@@ -37,6 +38,8 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
   const product = getProductBySlug(slug);
+
+  if (slug.startsWith("demo-")) return <><Header /><main className="section-container py-8"><DemoProduct slug={slug} /></main><Footer /></>;
 
   if (!product) {
     return (

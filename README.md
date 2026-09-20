@@ -1,14 +1,18 @@
-# PazarBuy — Frontend MVP
+# VitrinPlus — Uçtan uca demo
 
-Türkiye odaklı, AI destekli çok satıcılı pazaryeri **PazarBuy**'ın ana sayfa
-frontend MVP'si. Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 ile
-geliştirildi. Bu aşamada **sadece frontend** var; backend, gerçek ödeme ve
-gerçek AI entegrasyonu yok — tüm veriler `data/` klasöründeki statik
-dosyalardan geliyor.
+Türkiye odaklı çok satıcılı pazaryeri **VitrinPlus**. Next.js 16 (App Router),
+TypeScript ve Tailwind CSS v4 ile geliştirilmiş yerel demo.
+Demo hesapları, mağaza başvurusu/onayı, satıcı ürünleri, sepet, ödeme simülasyonu,
+sipariş takibi ve stok iadesi aynı tarayıcıda çalışır. Demo kayıtları
+`localStorage` içinde kalır; hazır katalog `data/` dosyalarından gelir.
+Gerçek kimlik doğrulama, backend, ödeme ve AI servisi bağlı değildir.
+
+**Başlangıç:** [Demo rehberi](http://localhost:3000/demo).
+Teslim kapsamı, sunum senaryosu ve canlı ürün planı: [DEMO-PLANI.md](DEMO-PLANI.md).
 
 ## Kurulum
 
-> Node.js 20 veya üzeri gerekir (öneri: 22 LTS).
+> Node.js 20.9 veya üzeri gerekir.
 
 ```bash
 npm install
@@ -23,6 +27,7 @@ Ardından tarayıcıda [http://localhost:3000](http://localhost:3000) adresini a
 npm run build      # production build
 npm run start      # build sonrası production sunucusu
 npm run typecheck  # TypeScript hata kontrolü (tsc --noEmit)
+npm run test:demo  # Sipariş, stok, kupon ve durum geçişi testleri
 npm run lint       # ESLint
 ```
 
@@ -73,7 +78,7 @@ lib/         Küçük yardımcı fonksiyonlar (cn, formatPrice)
   AI arama + kategoriler + favoriler + sepet + giriş/üye/satıcı ol), koyu
   lacivert hero + robot illüstrasyonu, "AI Sana Özel Seçti" ürün kartları,
   istatistik şeridi, "%0 Komisyon" satıcı çağrısı, mağaza paketleri ve
-  "PazarBuy Ayrıcalıkları" bölümleri birebir bu sırayla uygulandı.
+  "VitrinPlus Ayrıcalıkları" bölümleri birebir bu sırayla uygulandı.
 - Referanstaki sağ taraftaki mobil uygulama (telefon) mockup'ları bu MVP'nin
   kapsamı dışında bırakıldı — istenirse ayrı bir bölüm olarak eklenebilir.
 - Robot ve mağaza görselleri, gerçek görsel/AI görsel üretimi olmadığı için

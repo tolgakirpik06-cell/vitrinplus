@@ -35,6 +35,7 @@ export function SellerProductForm({
   onSubmit: (values: Omit<SellerProduct, "id">) => void;
 }) {
   const [values, setValues] = useState<FormValues>(() => toFormValues(product));
+  const [error, setError] = useState("");
 
   function handleChange<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -46,14 +47,14 @@ export function SellerProductForm({
     const cost = Number(values.cost);
     const stock = Number(values.stock);
     if (!values.name.trim() || Number.isNaN(price) || Number.isNaN(cost) || Number.isNaN(stock)) return;
-    onSubmit({
+    try { onSubmit({
       name: values.name.trim(),
       sku: values.sku.trim() || "SKU-YOK",
       category: values.category.trim() || "Genel",
       price: Math.max(0, price),
       cost: Math.max(0, cost),
       stock: Math.max(0, Math.round(stock)),
-    });
+    }); } catch (e) { setError((e as Error).message); }
   }
 
   return (
@@ -73,6 +74,7 @@ export function SellerProductForm({
         </button>
       </div>
 
+      {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-xs font-semibold text-navy-600">
           Ürün Adı

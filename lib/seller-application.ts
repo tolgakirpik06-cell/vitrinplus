@@ -4,7 +4,10 @@ export const SELLER_DRAFT_STORAGE_KEY = "pazarbuy:satici-basvuru-taslak";
 export const SELLER_SUBMITTED_STORAGE_KEY = "pazarbuy:satici-basvuru-gonderildi";
 
 export type SubmittedApplicationSummary = {
-  applicationId: string;
+  /** Başvurunun herkese açık referans numarası. */
+  reference: string;
+  /** Durum sorgusunda kullanılan rastgele erişim anahtarı. */
+  accessToken: string;
   status: ApplicationStatus;
   magazaAdi: string;
   submittedAt: string;

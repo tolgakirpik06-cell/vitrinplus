@@ -22,11 +22,11 @@ export default function SaticiPanelPage() {
             </span>
             <div>
               <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Satıcı Paneli</h1>
-              <p className="mt-1 text-sm text-navy-400">TeknoMarket · Pro Paket</p>
+              <p className="mt-1 text-sm text-navy-400">Demo mağaza yönetimi</p>
             </div>
           </div>
           <p className="rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-semibold text-emerald-700">
-            Ürün, stok ve kâr yönetimi gerçek zamanlı çalışır · satış/sipariş verileri örnektir
+            Eklediğin ürünler vitrinde görünür · demo siparişleri stoktan düşer
           </p>
         </div>
 

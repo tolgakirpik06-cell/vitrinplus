@@ -33,9 +33,9 @@ export function SellerSuccess({
       </div>
 
       <p className="max-w-md text-xs leading-relaxed text-navy-400">
-        Şu anda başvuruları otomatik onaylayan bir sistemimiz yok. Ekibimiz
-        belgelerinizi ve bilgilerinizi inceledikten sonra sizinle e-posta veya
-        telefon yoluyla iletişime geçecektir.
+        Bu bir demo başvurusudur. Demo rehberindeki yönetici simülasyonundan
+        başvuruna onay verip mağazanı kullanabilirsin. Gerçek belge incelemesi
+        veya e-posta gönderimi yapılmaz.
       </p>
 
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">

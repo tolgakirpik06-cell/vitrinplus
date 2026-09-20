@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { FavoritesProvider } from "@/components/favorites/FavoritesProvider";
 import "./globals.css";
+import { DemoProvider } from "@/components/demo/DemoProvider";
+import { DemoBar } from "@/components/demo/DemoScreens";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,9 +26,12 @@ export default function RootLayout({
   return (
     <html lang="tr" className={inter.variable}>
       <body className="min-h-screen bg-[#f7f8fb] font-sans antialiased">
-        <CartProvider>
-          <FavoritesProvider>{children}</FavoritesProvider>
-        </CartProvider>
+        <DemoProvider>
+          <CartProvider>
+            <DemoBar />
+            <FavoritesProvider>{children}</FavoritesProvider>
+          </CartProvider>
+        </DemoProvider>
       </body>
     </html>
   );

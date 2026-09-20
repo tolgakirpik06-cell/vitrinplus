@@ -17,7 +17,6 @@ import { SellerSuccess } from "@/components/seller-application/steps/SellerSucce
 import {
   SELLER_DRAFT_STORAGE_KEY,
   SELLER_SUBMITTED_STORAGE_KEY,
-  generateApplicationId,
 } from "@/lib/seller-application";
 import {
   validateAccount,
@@ -31,6 +30,8 @@ import {
   validateStore,
   type FieldErrors,
 } from "@/lib/seller-application-validation";
+import { useDemo } from "@/components/demo/DemoProvider";
+import Link from "next/link";
 import { initialSellerApplicationData } from "@/types/seller-application";
 import type { SellerApplicationData } from "@/types/seller-application";
 
@@ -103,6 +104,7 @@ const steps: StepConfig[] = [
 ];
 
 export function SellerApplicationWizard() {
+  const demo = useDemo();
   const [data, setData] = useState<SellerApplicationData>(initialSellerApplicationData);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -132,7 +134,7 @@ export function SellerApplicationWizard() {
   useEffect(() => {
     if (!hydrated || data.status !== "taslak") return;
     try {
-      window.localStorage.setItem(SELLER_DRAFT_STORAGE_KEY, JSON.stringify(data));
+      window.localStorage.setItem(SELLER_DRAFT_STORAGE_KEY, JSON.stringify({ ...data, account: { ...data.account, sifre: "", sifreTekrar: "", tcKimlikNo: "", dogumTarihi: "" }, bank: initialSellerApplicationData.bank }));
     } catch {
       // localStorage dolu/erişilemez olabilir — taslak kaydı best-effort'tur.
     }
@@ -160,16 +162,18 @@ export function SellerApplicationWizard() {
 
     // Son adım — başvuruyu gönder.
     setSubmitting(true);
-    const applicationId = generateApplicationId();
+    let applicationId: string;
+    try { applicationId = demo.apply(data.store.magazaAdi, data.store.aciklama); } catch (e) { setErrors({ submit: (e as Error).message }); setSubmitting(false); return; }
     window.setTimeout(() => {
-      setData((prev) => ({ ...prev, status: "gonderildi", applicationId }));
+      setData((prev) => ({ ...prev, status: "bekliyor", applicationId }));
       try {
         window.localStorage.removeItem(SELLER_DRAFT_STORAGE_KEY);
         window.localStorage.setItem(
           SELLER_SUBMITTED_STORAGE_KEY,
           JSON.stringify({
-            applicationId,
-            status: "gonderildi",
+            reference: applicationId,
+            accessToken: "demo",
+            status: "bekliyor",
             magazaAdi: data.store.magazaAdi,
             submittedAt: new Date().toISOString(),
           })
@@ -200,6 +204,8 @@ export function SellerApplicationWizard() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="rounded-3xl border border-navy-100/80 bg-white p-5 shadow-card sm:p-8">
+        <div className="mb-6 rounded-xl bg-brand-50 p-4 text-sm">Bu ayrıntılı form demo önizlemesidir. Gerçek belge veya kişisel bilgi girme. <Link href="/demo" className="font-bold text-brand-600 underline">Hızlı demo başvurusu yap</Link></div>
+        {errors.submit && <p role="alert" className="mb-4 text-rose-600">{errors.submit}</p>}
         <Stepper steps={stepperItems} currentIndex={currentIndex} />
 
         <div className="mt-7 sm:mt-8">

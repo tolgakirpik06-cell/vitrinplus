@@ -1,4 +1,6 @@
 "use client";
+import { useDemo } from "@/components/demo/DemoProvider";
+import { DemoOrders } from "@/components/demo/DemoScreens";
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
@@ -12,11 +14,9 @@ import {
   BarChart3,
   Settings,
   Wallet,
-  Eye,
   TrendingUp,
   Plus,
   Trash2,
-  AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
@@ -55,33 +55,6 @@ const TABS: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
   { key: "ayarlar", label: "Mağaza Ayarları", icon: Settings },
 ];
 
-// Gerçek bir sipariş/ödeme altyapısı bu ortamda bağlı olmadığından, satış ve
-// sipariş verileri açıkça "örnek veri" olarak işaretlenir — hiçbir yerde
-// gerçek kullanıcı/finansal veri gibi sunulmaz (madde 6'nın açık şartı).
-const sampleMetrics = [
-  { icon: Wallet, label: "Bugünkü Satış", value: "18.420 TL", change: "+%12" },
-  { icon: ClipboardList, label: "Sipariş Sayısı", value: "47", change: "+%8" },
-  { icon: Eye, label: "Görüntülenme", value: "6.230", change: "+%21" },
-  { icon: TrendingUp, label: "Dönüşüm Oranı", value: "%3,4", change: "+%0,6" },
-];
-
-const sampleBestSellers = [
-  { name: "GamePower Warlock Oyuncu Bilgisayarı", sold: 128, revenue: 1919872 },
-  { name: "Sony WH-1000XM5 Kablosuz Kulaklık", sold: 94, revenue: 845906 },
-  { name: "Apple Watch Series 9 45mm", sold: 71, revenue: 922429 },
-];
-
-type SampleOrder = { id: string; customer: string; amount: number; status: string };
-
-const sampleOrders: SampleOrder[] = [
-  { id: "VP-48213", customer: "Elif Y.", amount: 2699, status: "Hazırlanıyor" },
-  { id: "VP-48212", customer: "Mert K.", amount: 14999, status: "Kargoya Verildi" },
-  { id: "VP-48211", customer: "Zeynep A.", amount: 8999, status: "Teslim Edildi" },
-  { id: "VP-48210", customer: "Burak S.", amount: 12999, status: "Hazırlanıyor" },
-  { id: "VP-48209", customer: "Aylin T.", amount: 4599, status: "Kargoya Verildi" },
-  { id: "VP-48208", customer: "Ozan D.", amount: 999, status: "Teslim Edildi" },
-];
-
 const statusTone: Record<string, string> = {
   Hazırlanıyor: "bg-amber-50 text-amber-700",
   "Kargoya Verildi": "bg-sky-50 text-sky-700",
@@ -96,15 +69,6 @@ function StatusBadge({ status }: { status: string }) {
     <span className={cn("inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[11px] font-semibold", statusTone[status])}>
       {status}
     </span>
-  );
-}
-
-function SampleDataNote({ children }: { children: ReactNode }) {
-  return (
-    <p className="mb-4 flex items-start gap-1.5 rounded-xl bg-navy-50/70 px-3 py-2.5 text-[11px] leading-relaxed text-navy-500">
-      <AlertTriangle size={13} className="mt-0.5 shrink-0 text-navy-400" />
-      {children}
-    </p>
   );
 }
 
@@ -154,152 +118,12 @@ function ActionButton({
   );
 }
 
-function MetricsGrid({ metrics }: { metrics: typeof sampleMetrics }) {
-  return (
-    <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
-      {metrics.map((metric) => (
-        <div key={metric.label} className="rounded-2xl border border-navy-100/80 bg-white p-4">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-            <metric.icon size={17} />
-          </span>
-          <p className="mt-3 text-lg font-extrabold text-navy-900">{metric.value}</p>
-          <p className="text-xs text-navy-400">{metric.label}</p>
-          <p className="mt-1 text-[11px] font-semibold text-emerald-600">{metric.change} bu hafta</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function GenelBakisTab() {
-  const { products } = useSellerData();
-
-  const inventoryMetrics = useMemo(() => {
-    const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
-    const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 10).length;
-    const inventoryValue = products.reduce((sum, p) => sum + p.price * p.stock, 0);
-    return [
-      { icon: Package, label: "Toplam Ürün", value: String(products.length), change: "gerçek" },
-      { icon: Boxes, label: "Toplam Stok", value: `${totalStock} adet`, change: "gerçek" },
-      { icon: AlertTriangle, label: "Az Stoklu Ürün", value: String(lowStock), change: "gerçek" },
-      { icon: Wallet, label: "Envanter Değeri", value: formatPrice(inventoryValue), change: "gerçek" },
-    ];
-  }, [products]);
-
-  return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <p className="mb-2.5 text-xs font-bold uppercase tracking-wide text-navy-400">
-          Ürün Kataloğundan Gerçek Zamanlı Veriler
-        </p>
-        <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
-          {inventoryMetrics.map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-navy-100/80 bg-white p-4">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                <metric.icon size={17} />
-              </span>
-              <p className="mt-3 text-lg font-extrabold text-navy-900">{metric.value}</p>
-              <p className="text-xs text-navy-400">{metric.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="mb-2.5 text-xs font-bold uppercase tracking-wide text-navy-400">Örnek Satış Verileri</p>
-        <MetricsGrid metrics={sampleMetrics} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card title="En Çok Satan Ürünler">
-          <SampleDataNote>
-            Örnek veridir — gerçek satış geçmişi için sipariş/ödeme entegrasyonu gerekir.
-          </SampleDataNote>
-          <ul className="flex flex-col gap-3">
-            {sampleBestSellers.map((item, index) => (
-              <li key={item.name} className="flex items-center gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navy-50 text-xs font-bold text-navy-600">
-                  {index + 1}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-navy-800">{item.name}</span>
-                  <span className="block text-xs text-navy-400">{item.sold} satış</span>
-                </span>
-                <span className="shrink-0 text-sm font-bold text-navy-900">{formatPrice(item.revenue)}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card title="Son Siparişler">
-          <SampleDataNote>
-            Örnek veridir — gerçek zamanlı siparişler için sipariş altyapısı entegrasyonu gerekir.
-          </SampleDataNote>
-          <ul className="flex flex-col divide-y divide-navy-50">
-            {sampleOrders.slice(0, 4).map((order) => (
-              <li key={order.id} className="flex items-center justify-between gap-2 py-2.5 first:pt-0 last:pb-0">
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-navy-800">{order.id}</span>
-                  <span className="block text-xs text-navy-400">{order.customer}</span>
-                </span>
-                <span className="shrink-0 text-sm font-bold text-navy-900">{formatPrice(order.amount)}</span>
-                <StatusBadge status={order.status} />
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-const ORDER_FILTERS = ["Tümü", "Hazırlanıyor", "Kargoya Verildi", "Teslim Edildi"] as const;
-
-function SiparislerTab() {
-  const [filter, setFilter] = useState<(typeof ORDER_FILTERS)[number]>("Tümü");
-  const filtered = filter === "Tümü" ? sampleOrders : sampleOrders.filter((o) => o.status === filter);
-
-  return (
-    <Card title="Tüm Siparişler">
-      <SampleDataNote>
-        Bu liste örnek sipariş verisidir — gerçek siparişlerin akması için ödeme ve lojistik altyapısı entegrasyonu
-        gerekir. Filtre aşağıda gerçek şekilde çalışır.
-      </SampleDataNote>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        {ORDER_FILTERS.map((status) => (
-          <button
-            key={status}
-            type="button"
-            onClick={() => setFilter(status)}
-            className={cn(
-              "rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
-              filter === status ? "bg-navy-900 text-white" : "bg-navy-50 text-navy-600 hover:bg-navy-100"
-            )}
-          >
-            {status}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
-        <p className="py-6 text-center text-sm text-navy-400">Bu durumda sipariş bulunmuyor.</p>
-      ) : (
-        <ul className="flex flex-col divide-y divide-navy-50">
-          {filtered.map((order) => (
-            <li key={order.id} className="flex items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-navy-800">{order.id}</span>
-                <span className="block text-xs text-navy-400">{order.customer}</span>
-              </span>
-              <span className="shrink-0 text-sm font-bold text-navy-900">{formatPrice(order.amount)}</span>
-              <StatusBadge status={order.status} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </Card>
-  );
+  const { products, settings } = useSellerData();
+  const { state, user } = useDemo();
+  const orders = state.orders.filter(o => o.items.some(i => i.ownerId === user?.id));
+  const revenue = orders.filter(o => o.status !== "iptal-edildi").reduce((sum,o) => sum + o.items.filter(i => i.ownerId === user?.id).reduce((amount,i) => amount + i.price * i.quantity,0),0);
+  return <div className="space-y-5"><h2 className="text-xl font-bold">{settings.storeName}</h2><p className="text-sm text-navy-500">Bu tarayıcıdaki demo işlemlerinden hesaplanır. Satış tutarı kupon ve kargo öncesi ürün toplamıdır.</p><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[{ label: "Ürün", value: products.length }, { label: "Stok", value: products.reduce((sum,p) => sum+p.stock,0) }, { label: "Demo sipariş", value: orders.length }, { label: "Demo satış", value: formatPrice(revenue) }].map(metric => <div key={metric.label} className="rounded-2xl border border-navy-100 bg-white p-5"><p className="text-2xl font-bold">{metric.value}</p><p className="mt-2 text-xs text-navy-500">{metric.label}</p></div>)}</div><Card title="Mağazamın siparişleri"><DemoOrders seller /></Card></div>;
 }
 
 function UrunlerTab() {
@@ -522,6 +346,7 @@ function KampanyalarTab() {
       title="Mağaza Kampanyaların"
       action={!open ? <ActionButton label="Kampanya Oluştur" icon={Plus} onClick={() => setOpen(true)} /> : null}
     >
+      <p className="mb-4 text-sm text-navy-500">Kampanya taslaklarıdır; ürün fiyatlarına otomatik uygulanmaz. Alışveriş demosunda VITRINPLUS10 kuponu kullanılabilir.</p>
       {open ? (
         <form onSubmit={handleSubmit} className="mb-4 flex flex-col gap-3 rounded-2xl border border-brand-100 bg-brand-50/30 p-4 sm:flex-row sm:items-end sm:flex-wrap">
           <label className="flex flex-1 min-w-[160px] flex-col gap-1 text-xs font-semibold text-navy-600">
@@ -618,6 +443,7 @@ function KargoTab() {
 
   return (
     <Card title="Kargo Ayarları" action={saved ? <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600"><CheckCircle2 size={14} /> Kaydedildi</span> : null}>
+      <p className="mb-4 text-sm text-navy-500">Bu ayarlar mağaza taslağı olarak saklanır. Demo ödemede tüm mağazalar için 250 TL üzeri ücretsiz, altında 49,90 TL standart kargo uygulanır.</p>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-xs font-semibold text-navy-600">
           Kargo Ücreti (TL)
@@ -800,7 +626,7 @@ function SellerPanelContent() {
 
       <div className="min-w-0 flex-1">
         {active === "genel-bakis" ? <GenelBakisTab /> : null}
-        {active === "siparisler" ? <SiparislerTab /> : null}
+        {active === "siparisler" ? <DemoOrders seller /> : null}
         {active === "urunler" ? <UrunlerTab /> : null}
         {active === "stok" ? <StokTab /> : null}
         {active === "kar-analizi" ? <KarAnaliziTab /> : null}

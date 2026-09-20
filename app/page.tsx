@@ -1,3 +1,4 @@
+import { DemoCatalog } from "@/components/demo/DemoScreens";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CategoryStrip } from "@/components/layout/CategoryStrip";
@@ -49,6 +50,7 @@ export default function HomePage() {
         <HeroSection />
 
         <CategoryChips />
+        <DemoCatalog compact />
 
         {featuredRow ? <FeaturedCarousel config={featuredRow} items={featuredItems} /> : null}
 

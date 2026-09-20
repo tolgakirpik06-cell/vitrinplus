@@ -33,7 +33,7 @@ const founderPerks = [
   "Erken katılan mağazalara özel görünürlük avantajları",
 ];
 
-const whyPazarbuy = [
+const whyVitrinPlus = [
   { icon: Percent, title: "%0 Satış Komisyonu", description: "Sattığın her üründen değil, sadece aylık mağaza ücretinden kazanırız." },
   { icon: Wand2, title: "AI ile Ürün Ekleme", description: "Ürün fotoğrafını yükle; başlık, açıklama ve kategori AI tarafından oluşturulsun." },
   { icon: ClipboardList, title: "Sipariş Yönetimi", description: "Tüm siparişlerini tek panelden takip et, kargo süreçlerini yönet." },
@@ -137,7 +137,7 @@ export default function SaticiPage() {
           </div>
         </section>
 
-        {/* Neden PazarBuy */}
+        {/* Neden VitrinPlus */}
         <section className="section-container py-14 sm:py-20">
           <div className="mb-9 text-center">
             <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Neden VitrinPlus?</h2>
@@ -147,7 +147,7 @@ export default function SaticiPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {whyPazarbuy.map((item) => (
+            {whyVitrinPlus.map((item) => (
               <div
                 key={item.title}
                 className="flex flex-col gap-3 rounded-2xl border border-navy-100/80 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"

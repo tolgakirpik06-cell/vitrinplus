@@ -4,14 +4,15 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { useFavorites } from "@/components/favorites/FavoritesProvider";
 import { ProductCard } from "@/components/home/ProductCard";
-import { getProductBySlug } from "@/lib/mock-catalog";
+import { useDemo } from "@/components/demo/DemoProvider";
 import type { Product } from "@/types";
 
 export function FavoritesPageClient() {
+  const { resolveProduct } = useDemo();
   const { slugs } = useFavorites();
 
   const favorites = slugs
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => resolveProduct(slug))
     .filter((product): product is Product => Boolean(product));
 
   return (

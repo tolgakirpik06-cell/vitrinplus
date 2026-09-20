@@ -1,5 +1,5 @@
 /**
- * PazarBuy satıcı başvuru sihirbazı için tip tanımları.
+ * VitrinPlus satıcı başvuru sihirbazı için tip tanımları.
  * Bu dosya sadece veri şeklini tanımlar; gerçek bir backend/API entegrasyonu
  * henüz yok — form state'i frontend'de tutulur ve taslak olarak
  * localStorage'a yazılır (gerçek belge içerikleri HARİÇ).
@@ -8,23 +8,17 @@
 export type SellerType = "sahis" | "limited-as";
 
 /**
- * Satıcı başvurusunun yaşam döngüsü. Gerçek bir admin/inceleme sistemi
- * olmadığından, form gönderildiğinde durum asla otomatik olarak
- * "onaylandi" yapılmaz — "gonderildi" ile başlar.
+ * Satıcı başvurusunun yönetici tarafından güncellenen yaşam döngüsü.
  */
 export type ApplicationStatus =
   | "taslak"
-  | "gonderildi"
-  | "inceleniyor"
-  | "ek-belge-gerekli"
+  | "bekliyor"
   | "onaylandi"
   | "reddedildi";
 
 export const applicationStatusLabels: Record<ApplicationStatus, string> = {
   taslak: "Taslak",
-  gonderildi: "Başvuru Gönderildi",
-  inceleniyor: "İnceleniyor",
-  "ek-belge-gerekli": "Ek Belge Gerekli",
+  bekliyor: "Bekliyor",
   onaylandi: "Onaylandı",
   reddedildi: "Reddedildi",
 };
