@@ -16,6 +16,8 @@ export const STORAGE_KEYS = {
   sellerOps: "vitrinplus-seller-ops-v1",
   questions: "vitrinplus-questions-v1",
   sidebar: "vitrinplus-sidebar-v1",
+  demoReturns: "vitrinplus-demo-returns-v1",
+  demoAccount: "vitrinplus-demo-account-v1",
 } as const;
 
 export const LEGACY_STORAGE_KEYS = {

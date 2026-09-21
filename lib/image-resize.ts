@@ -4,12 +4,18 @@
  * Yüklenen görseli küçültüp JPEG veri URL'sine çevirir.
  * Demo verisi tarayıcı depolamasında (~5 MB) tutulduğu için tam boyutlu görsel saklanmaz.
  */
-const MAX_SIDE = 480;
-const QUALITY = 0.72;
 const MAX_INPUT_BYTES = 8 * 1024 * 1024;
 
-export async function resizeImageFile(file: File): Promise<string> {
-  if (!file.type.startsWith("image/")) throw new Error(`${file.name}: yalnızca görsel dosyaları yüklenebilir.`);
+export type ResizeOptions = { maxSide: number; quality: number };
+/** Demo: tarayıcı depolaması (~5 MB) için küçük. Gerçek mod: Supabase Storage'a yüklenecek (en çok 5 MB) sınırda, vitrin kalitesinde. */
+export const DEMO_RESIZE: ResizeOptions = { maxSide: 480, quality: 0.72 };
+export const STORE_RESIZE: ResizeOptions = { maxSide: 1280, quality: 0.82 };
+
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+export async function resizeImageFile(file: File, options: ResizeOptions = DEMO_RESIZE): Promise<string> {
+  const { maxSide: MAX_SIDE, quality: QUALITY } = options;
+  if (!ACCEPTED_TYPES.includes(file.type)) throw new Error(`${file.name}: yalnızca JPEG, PNG veya WebP görseller yüklenebilir.`);
   if (file.size > MAX_INPUT_BYTES) throw new Error(`${file.name}: dosya 8 MB'dan büyük.`);
   const url = URL.createObjectURL(file);
   try {

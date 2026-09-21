@@ -4,6 +4,7 @@ import type { Product } from "@/types";
 import { AiTagBadge } from "@/components/ui/Badge";
 import { RatingStars } from "@/components/ui/RatingStars";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { FavoriteButton } from "@/components/ui/FavoriteButton";
 import { cn, formatPrice } from "@/lib/utils";
 import { resolveIcon } from "@/lib/icon-map";
@@ -40,6 +41,13 @@ export function ProductCard({ product, rank }: { product: Product; rank?: number
 
         <FavoriteButton slug={product.slug} className="absolute right-3 top-3 z-10" />
 
+        {product.imageUrls?.[0] ? (
+          <div className="relative h-full w-full p-3 transition-transform duration-500 ease-out group-hover:scale-[1.04]">
+            <div className="relative h-full w-full">
+              <ProductImage src={product.imageUrls[0]} alt={product.name} sizes="(min-width: 1280px) 22vw, (min-width: 768px) 33vw, 50vw" />
+            </div>
+          </div>
+        ) : (
         <div className="flex h-full w-full items-center justify-center p-6 transition-transform duration-500 ease-out group-hover:scale-[1.06]">
           {product.visual === "generic" ? (
             <GenericCategoryVisual
@@ -53,6 +61,7 @@ export function ProductCard({ product, rank }: { product: Product; rank?: number
             />
           )}
         </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-2.5 p-4 sm:p-5">

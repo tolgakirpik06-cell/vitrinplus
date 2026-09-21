@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Bell, Boxes, ChevronDown, Filter, History, Lightbulb, Minus, PackageSearch, Plus, Power, PowerOff, Settings2, Trash2, TrendingUp } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { HeaderPopover } from "@/components/dashboard/DashboardHeader";
 import { drawerOffsetClass } from "@/components/dashboard/DetailDrawer";
 import type { MenuItem } from "@/components/dashboard/DropdownMenu";
@@ -17,6 +17,10 @@ import { Tabs } from "@/components/dashboard/Tabs";
 import { useToast } from "@/components/dashboard/Toast";
 import { ActionButton, linkButtonClass } from "@/components/dashboard/form";
 import { cn } from "@/lib/utils";
+import { useMarketplace } from "@/components/marketplace/context";
+import { toUiMovement } from "@/lib/stock-movement-ui";
+import { useAsync } from "@/lib/use-async";
+import type { StockMovement } from "@/lib/seller-ops";
 import { buildMovements, stockStatusLabels, summarizeStock, type StockRow, type StockStatus } from "@/lib/seller-analytics";
 import { uniqueSorted } from "@/lib/seller-orders";
 import {
@@ -73,7 +77,16 @@ function StockView({ initialFilters, initialOpenId }: { initialFilters: StockFil
   const [movementsOpen, setMovementsOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
-  const movements = useMemo(() => buildMovements(orderRows, ops.stockMovements, new Set(products.map((product) => product.id))), [orderRows, ops.stockMovements, products]);
+  // Gerçek modda stok hareketleri sunucudaki hareket geçmişinden gelir (satış, iptal, iade, manuel); demo modda yerel kayıt + siparişlerden türetilir.
+  const { mode, services, sync } = useMarketplace();
+  const stockService = services.stock;
+  const loadMovements = useCallback(() => (stockService ? stockService.movements({ limit: 300 }) : Promise.resolve([])), [stockService]);
+  // Kuyruk boşalınca (yazmalar sunucuya ulaşınca) hareket geçmişi yeniden okunur.
+  const serverMovements = useAsync(mode === "supabase" ? loadMovements : null, sync.status);
+  const movements = useMemo<StockMovement[]>(() => {
+    if (mode === "supabase") return (serverMovements.data ?? []).flatMap((view) => toUiMovement(view) ?? []);
+    return buildMovements(orderRows, ops.stockMovements, new Set(products.map((product) => product.id)));
+  }, [mode, serverMovements.data, orderRows, ops.stockMovements, products]);
   const summary = useMemo(() => summarizeStock(stockRows, movements, now), [stockRows, movements, now]);
   const tabCounts = useMemo(() => countStockTabs(stockRows), [stockRows]);
   const categories = useMemo(() => uniqueSorted(stockRows.map((row) => row.product.category)), [stockRows]);
@@ -165,15 +178,17 @@ function StockView({ initialFilters, initialOpenId }: { initialFilters: StockFil
       <EmptyState
         icon={PackageSearch}
         title="Stok takibi için önce ürün ekle"
-        description="Ürünlerin burada stok, satış hızı ve tahmini tükenme günüyle listelenir. Hızlı denemek için demo örnek veri yükleyebilirsin."
+        description={sample.available ? "Ürünlerin burada stok, satış hızı ve tahmini tükenme günüyle listelenir. Hızlı denemek için demo örnek veri yükleyebilirsin." : "Ürünlerin burada stok, satış hızı ve tahmini tükenme günüyle listelenir."}
         action={
           <>
             <Link href={sellerHref.newProduct} className={linkButtonClass("primary")}>
               <Plus size={14} aria-hidden /> Ürün Ekle
             </Link>
-            <ActionButton variant="secondary" onClick={sample.load}>
-              Örnek Veri Yükle
-            </ActionButton>
+            {sample.available ? (
+              <ActionButton variant="secondary" onClick={sample.load}>
+                Örnek Veri Yükle
+              </ActionButton>
+            ) : null}
           </>
         }
       />
@@ -212,6 +227,12 @@ function StockView({ initialFilters, initialOpenId }: { initialFilters: StockFil
         />
 
         <div className="flex flex-col gap-5">
+          {mode === "supabase" && serverMovements.error ? (
+            <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">
+              Stok hareketleri yüklenemedi; geçmiş ve hareket özetleri eksik olabilir. {serverMovements.error}{" "}
+              <button type="button" onClick={serverMovements.reload} className="font-semibold underline">Tekrar dene</button>
+            </p>
+          ) : null}
           <StockKpis summary={summary} rows={stockRows} />
 
           <Panel padded={false} aria-label="Stok listesi" className="p-4 sm:p-5">

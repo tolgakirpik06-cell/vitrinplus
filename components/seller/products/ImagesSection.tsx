@@ -3,7 +3,8 @@
 import { Camera, ImageIcon, Star, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { useToast } from "@/components/dashboard/Toast";
-import { resizeImageFile } from "@/lib/image-resize";
+import { useMarketplace } from "@/components/marketplace/context";
+import { DEMO_RESIZE, STORE_RESIZE, resizeImageFile } from "@/lib/image-resize";
 import { MAX_IMAGES } from "@/lib/product-form";
 import { FormSection } from "@/components/seller/products/FormSection";
 
@@ -13,6 +14,7 @@ import { FormSection } from "@/components/seller/products/FormSection";
  */
 export function ImagesSection({ images, onChange }: { images: string[]; onChange: (images: string[]) => void }) {
   const toast = useToast();
+  const live = useMarketplace().mode === "supabase";
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
@@ -27,7 +29,7 @@ export function ImagesSection({ images, onChange }: { images: string[]; onChange
     const added: string[] = [];
     for (const file of Array.from(files).slice(0, room)) {
       try {
-        added.push(await resizeImageFile(file));
+        added.push(await resizeImageFile(file, live ? STORE_RESIZE : DEMO_RESIZE));
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Görsel eklenemedi.");
       }
@@ -81,7 +83,7 @@ export function ImagesSection({ images, onChange }: { images: string[]; onChange
           </li>
         ) : null}
       </ul>
-      <input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={(event) => void addFiles(event.target.files)} aria-label="Ürün görseli seç" />
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(event) => void addFiles(event.target.files)} aria-label="Ürün görseli seç" />
     </FormSection>
   );
 }

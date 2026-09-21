@@ -162,15 +162,17 @@ function ProductsView({ initialTab, initialQuery, initialBulk }: { initialTab: P
       <EmptyState
         icon={PackageSearch}
         title="Henüz ürünün yok"
-        description="İlk ürününü ekleyerek satışa başla. Hızlı denemek için demo örnek veri de yükleyebilirsin."
+        description={sample.available ? "İlk ürününü ekleyerek satışa başla. Hızlı denemek için demo örnek veri de yükleyebilirsin." : "İlk ürününü ekleyerek satışa başla."}
         action={
           <>
             <Link href={sellerHref.newProduct} className={linkButtonClass("primary")}>
               <Plus size={14} aria-hidden /> Ürün Ekle
             </Link>
-            <ActionButton variant="secondary" onClick={sample.load}>
-              Örnek Veri Yükle
-            </ActionButton>
+            {sample.available ? (
+              <ActionButton variant="secondary" onClick={sample.load}>
+                Örnek Veri Yükle
+              </ActionButton>
+            ) : null}
           </>
         }
       />

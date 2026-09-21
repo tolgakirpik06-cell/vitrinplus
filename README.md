@@ -5,8 +5,11 @@ TypeScript ve Tailwind CSS v4 ile geliştirilmiş, **demo öncelikli** bir uygul
 Demo hesabı, mağaza başvurusu/onayı, satıcı paneli, sepet, ödeme simülasyonu, sipariş
 takibi ve stok yönetimi aynı tarayıcıda çalışır. Demo kayıtları `localStorage` içinde tutulur.
 
-Gerçek Supabase, ödeme, OAuth, kargo ve yapay zekâ servisi **bağlı değildir**; kod ileride
-bunlar bağlanabilecek şekilde ayrıştırılmıştır.
+**Aşama 2 ile iki çalışma modu vardır:** `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+boşsa uygulama yukarıdaki demo modunda çalışır. Doldurulursa hesap, satıcı başvurusu, ürün, stok, sipariş,
+iade, soru-cevap ve kazanç kayıtları Supabase'de tutulur (kurulum: [supabase/README.md](supabase/README.md)).
+Ödeme sağlayıcısı, kargo, e-fatura ve yapay zekâ servisi **bağlı değildir**; kod ileride bunlar
+bağlanabilecek şekilde ayrıştırılmıştır.
 
 **Başlangıç:** [Demo rehberi](http://localhost:3000/demo) ·
 Teslim kapsamı ve sunum senaryosu: [DEMO-PLANI.md](DEMO-PLANI.md)

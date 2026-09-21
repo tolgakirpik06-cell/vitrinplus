@@ -80,6 +80,15 @@ export type Product = {
    * illüstrasyonun farklı açı/detay varyasyonlarını temsil eden etiketlerdir.
    */
   images: string[];
+  /**
+   * Satıcının yüklediği gerçek görsellerin (Supabase Storage) herkese açık adresleri, sıralı.
+   * Boşsa / yoksa çizimli `visual` gösterilir.
+   */
+  imageUrls?: string[];
+  /** Yalnızca gerçek (Supabase) mağaza ürünlerinde: satın alınabilir seçenekler ve seçenek bazlı stok. */
+  variantOptions?: { label: string; stock: number }[];
+  /** Yalnızca gerçek mağaza ürünlerinde: mağazanın kargo kuralı (sepet / ödeme özeti için; sipariş toplamını sunucu hesaplar). */
+  storeInfo?: { shippingFee: number; freeShippingThreshold: number };
   description: string;
   specifications: ProductSpec[];
   variants?: ProductVariantGroup[];

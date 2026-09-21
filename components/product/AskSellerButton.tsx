@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, MessageCircle } from "lucide-react";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { Modal } from "@/components/dashboard/Modal";
@@ -12,7 +13,9 @@ import { askQuestion } from "@/lib/questions";
  * "Müşteri Soruları" ekranına düşer. Gerçek bildirim / e-posta gönderilmez.
  */
 export function AskSellerButton({ sellerName, productSlug, productName }: { sellerName: string; productSlug?: string; productName?: string }) {
-  const { user } = useDemo();
+  const { user, mode, services } = useDemo();
+  const live = mode === "supabase";
+  const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
@@ -26,13 +29,22 @@ export function AskSellerButton({ sellerName, productSlug, productName }: { sell
     setText("");
   }
 
-  function submit() {
+  async function submit() {
+    if (busy) return;
+    setBusy(true);
     try {
-      askQuestion({ sellerName, productSlug, productName, customerName: user?.name ?? "Misafir", question: text });
+      if (live) {
+        if (!productSlug) throw new Error("Bu ürün için soru gönderilemiyor.");
+        await services.questions.ask(productSlug, text);
+      } else {
+        askQuestion({ sellerName, productSlug, productName, customerName: user?.name ?? "Misafir", question: text });
+      }
       setSent(true);
       setError("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Sorun gönderilemedi.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -57,8 +69,8 @@ export function AskSellerButton({ sellerName, productSlug, productName }: { sell
               <ActionButton variant="secondary" onClick={close}>
                 Vazgeç
               </ActionButton>
-              <ActionButton variant="primary" disabled={text.trim().length < 5} onClick={submit}>
-                Soruyu Gönder
+              <ActionButton variant="primary" disabled={busy || text.trim().length < 5 || (live && !user)} onClick={() => void submit()}>
+                {busy ? "Gönderiliyor…" : "Soruyu Gönder"}
               </ActionButton>
             </>
           )
@@ -67,7 +79,11 @@ export function AskSellerButton({ sellerName, productSlug, productName }: { sell
         {sent ? (
           <p className="flex items-start gap-2 text-[13px] leading-relaxed text-navy-700">
             <CheckCircle2 size={18} aria-hidden className="mt-0.5 shrink-0 text-emerald-600" />
-            Sorun iletildi. Demo sürümünde soru bu tarayıcıya kaydedilir; gerçek bir bildirim ya da e-posta gönderilmez.
+            {live ? "Sorun satıcıya iletildi. Satıcı yanıtladığında ürün sayfasında görünür." : "Sorun iletildi. Demo sürümünde soru bu tarayıcıya kaydedilir; gerçek bir bildirim ya da e-posta gönderilmez."}
+          </p>
+        ) : live && !user ? (
+          <p className="text-[13px] leading-relaxed text-navy-700">
+            Satıcıya soru sormak için giriş yapmalısın. <Link href={`/giris?next=${encodeURIComponent(productSlug ? `/urun/${productSlug}` : "/")}`} className="font-semibold text-brand-600">Giriş yap →</Link>
           </p>
         ) : (
           <Field label="Sorun" htmlFor={fieldId} error={error || undefined} hint={`${text.length}/500`}>

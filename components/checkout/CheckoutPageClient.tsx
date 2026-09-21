@@ -5,7 +5,15 @@ import { useCart } from "@/components/cart/CartProvider";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { totals } from "@/lib/demo-marketplace";
 import { formatPrice } from "@/lib/utils";
+import { LiveCheckout } from "@/components/checkout/LiveCheckout";
+
+/** Gerçek (Supabase) mod ile Aşama 1 demo ödeme akışı ayrı bileşenlerdir; demo akışı olduğu gibi korunur. */
 export function CheckoutPageClient() {
+  const { mode } = useDemo();
+  return mode === "supabase" ? <LiveCheckout /> : <DemoCheckout />;
+}
+
+function DemoCheckout() {
   const { lines, clear, coupon } = useCart();
   const demo = useDemo();
   const [express, setExpress] = useState(false);

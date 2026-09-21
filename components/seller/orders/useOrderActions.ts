@@ -19,7 +19,8 @@ export type ShipOptions = { carrier?: string; tracking?: string; onlyReady?: boo
  */
 export function useOrderActions() {
   const toast = useToast();
-  const { changeOrder } = useDemo();
+  const { changeOrder, markReadyToShip, saveOrderDetails, mode } = useDemo();
+  const live = mode === "supabase";
   const { rows, updateOps } = useSellerWorkspace();
 
   return useMemo(() => {
@@ -75,9 +76,10 @@ export function useOrderActions() {
           ids,
           (row) => row.ui === "hazirlaniyor" && !row.meta.labelCreated,
           (row, at) =>
-            updateOps((ops) => withOrderEvent(withOrderMeta(ops, row.order.id, { labelCreated: true, carrier: row.carrier, tracking: row.meta.tracking ?? demoTrackingNo(row.order.id) }), row.order.id, "etiket", at))
+            // Gerçek modda takip numarası UYDURULMAZ; satıcı kargo firmasından aldığı numarayı kendisi girer.
+            updateOps((ops) => withOrderEvent(withOrderMeta(ops, row.order.id, { labelCreated: true, carrier: row.carrier, tracking: live ? row.meta.tracking : row.meta.tracking ?? demoTrackingNo(row.order.id) }), row.order.id, "etiket", at))
         ),
-        (count) => `${count} sipariş için demo kargo etiketi oluşturuldu.`
+        (count) => (live ? `${count} sipariş için kargo etiketi hazırlandı olarak işaretlendi. Kargo firması entegrasyonu yoktur; takip numarasını sipariş detayından gir.` : `${count} sipariş için demo kargo etiketi oluşturuldu.`)
       );
 
     const markPrinted = (ids: string[]) =>
@@ -85,7 +87,10 @@ export function useOrderActions() {
         batch(
           ids,
           (row) => row.ui === "hazirlaniyor" && row.meta.labelCreated === true && !row.meta.labelPrinted,
-          (row) => updateOps((ops) => withOrderMeta(ops, row.order.id, { labelPrinted: true }))
+          (row) => {
+            markReadyToShip(row.order.id); // Gerçek modda sunucuya "kargoya hazır" olarak yazılır (demo modunda etkisizdir).
+            updateOps((ops) => withOrderMeta(ops, row.order.id, { labelPrinted: true }));
+          }
         ),
         (count) => `${count} sipariş etiketi yazdırıldı olarak işaretlendi. Siparişler Kargoya Hazır.`
       );
@@ -100,9 +105,9 @@ export function useOrderActions() {
               changeOrder(row.order.id, "hazirlaniyor");
               updateOps((ops) => withOrderEvent(ops, row.order.id, "hazirlaniyor", at));
             }
-            changeOrder(row.order.id, "kargoda");
             const carrier = options.carrier?.trim() || row.carrier;
-            const tracking = options.tracking?.trim() || row.meta.tracking || demoTrackingNo(row.order.id);
+            const tracking = options.tracking?.trim() || row.meta.tracking || (live ? undefined : demoTrackingNo(row.order.id));
+            changeOrder(row.order.id, "kargoda", false, { carrier, tracking });
             updateOps((ops) => withOrderEvent(withOrderMeta(ops, row.order.id, { carrier, tracking, labelCreated: true, labelPrinted: true }), row.order.id, "kargoda", at));
           }
         ),
@@ -148,6 +153,11 @@ export function useOrderActions() {
     function createInvoice(id: string): boolean {
       const row = byId.get(id);
       if (!row || row.ui === "iptal" || row.meta.invoiceNo) return false;
+      if (live) {
+        // E-fatura entegrasyonu yok: sahte fatura numarası üretilmez.
+        toast.info("E-fatura entegrasyonu henüz bağlı değil. Faturayı kendi sisteminden kesmelisin.");
+        return false;
+      }
       try {
         const at = new Date();
         updateOps((ops) => withOrderMeta(ops, id, { invoiceNo: demoInvoiceNo(id, at), invoiceAt: at.toISOString() }));
@@ -161,6 +171,7 @@ export function useOrderActions() {
 
     function saveDetails(id: string, patch: Pick<OrderMeta, "carrier" | "tracking" | "notes">): boolean {
       try {
+        saveOrderDetails(id, { carrier: patch.carrier?.trim() ?? "", tracking: patch.tracking?.trim() ?? "", notes: patch.notes?.trim() ?? "" });
         updateOps((ops) => withOrderMeta(ops, id, { carrier: patch.carrier?.trim() || undefined, tracking: patch.tracking?.trim() || undefined, notes: patch.notes?.trim() || undefined }));
         toast.success("Sipariş bilgileri kaydedildi.");
         return true;
@@ -173,6 +184,10 @@ export function useOrderActions() {
     function sendMessage(id: string, text: string): boolean {
       const trimmed = text.trim();
       if (!trimmed) return false;
+      if (live) {
+        toast.info("Müşteriye mesaj gönderme henüz aktif değil.");
+        return false;
+      }
       try {
         const at = new Date().toISOString();
         updateOps((ops) => withOrderMeta(ops, id, { messages: [...(ops.orderMeta[id]?.messages ?? []), { text: trimmed, at }] }));
@@ -185,7 +200,7 @@ export function useOrderActions() {
     }
 
     return { prepare, createLabels, markPrinted, ship, outForDelivery, deliver, cancel, createInvoice, saveDetails, sendMessage };
-  }, [rows, changeOrder, updateOps, toast]);
+  }, [rows, changeOrder, markReadyToShip, saveOrderDetails, live, updateOps, toast]);
 }
 
 export type OrderActions = ReturnType<typeof useOrderActions>;

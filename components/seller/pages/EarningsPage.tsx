@@ -7,6 +7,8 @@ import { Panel, PanelHeader } from "@/components/dashboard/Panel";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Tabs } from "@/components/dashboard/Tabs";
 import { EarningsTable, type EarningsFilter } from "@/components/seller/pages/EarningsTable";
+import { useMarketplace } from "@/components/marketplace/context";
+import { LiveEarnings } from "@/components/seller/pages/LiveFinance";
 import { useSellerWorkspace } from "@/components/seller/SellerWorkspace";
 import { COMMISSION_LABEL } from "@/lib/plans";
 import { formatShortDate, formatTL } from "@/lib/format";
@@ -15,6 +17,11 @@ import { PAYMENT_FEE_RATE } from "@/lib/profit";
 
 /** Kazançlarım: bu ayın brüt satışı, kesintiler ve net hakediş; sipariş bazlı döküm. Tüm tutarlar sipariş verisinden hesaplanır. */
 export function EarningsPage() {
+  const { mode } = useMarketplace();
+  return mode === "supabase" ? <LiveEarnings /> : <DemoEarnings />;
+}
+
+function DemoEarnings() {
   const { rows, now, payouts } = useSellerWorkspace();
   const [filter, setFilter] = useState<EarningsFilter>("hepsi");
   const month = monthEarnings(rows, now);

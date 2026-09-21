@@ -7,10 +7,23 @@ export function PasswordField({
   id,
   label,
   placeholder,
+  name,
+  autoComplete = "current-password",
+  required = false,
+  minLength,
+  maxLength,
+  disabled = false,
 }: {
   id: string;
   label: string;
   placeholder?: string;
+  /** Verilirse alan bir formun parçası olur (FormData ile okunur). Şifre state'te ya da depoda tutulmaz. */
+  name?: string;
+  autoComplete?: "current-password" | "new-password";
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  disabled?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -21,8 +34,14 @@ export function PasswordField({
         <Lock size={16} className="shrink-0 text-navy-300" />
         <input
           id={id}
+          name={name}
           type={visible ? "text" : "password"}
           placeholder={placeholder}
+          autoComplete={autoComplete}
+          required={required}
+          minLength={minLength}
+          maxLength={maxLength}
+          disabled={disabled}
           className="w-full bg-transparent text-sm font-normal text-navy-800 placeholder:text-navy-300 focus:outline-none"
         />
         <button

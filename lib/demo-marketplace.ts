@@ -10,13 +10,13 @@ export type ProductStatus = "aktif" | "pasif" | "taslak";
 export type SellerProduct = {
   id: string; name: string; sku: string; category: string; price: number; cost: number; stock: number;
   status?: ProductStatus;
-  brand?: string; model?: string; shortDescription?: string; description?: string;
+  brand?: string; model?: string; barcode?: string; shortDescription?: string; description?: string;
   images?: string[];
   costs?: { shipping?: number; packaging?: number; payment?: number; other?: number };
   salePrice?: number; saleStart?: string; saleEnd?: string;
   criticalThreshold?: number; autoPassive?: boolean;
   /** Varyant seçenekleri (yalnızca satıcı paneli için; stok ürün düzeyinde tutulur). */
-  variants?: { id: string; label: string; sku?: string }[];
+  variants?: { id: string; label: string; sku?: string; /** Yalnızca Supabase modunda: seçenek bazında stok. */ stock?: number }[];
   sample?: boolean; createdAt?: string;
 };
 export type SellerCampaign = { id: string; name: string; discountPercent: number; endDate: string };
@@ -29,6 +29,8 @@ export type DemoShop = {
 export type DemoOrderStatus = "alindi" | "hazirlaniyor" | "kargoda" | "teslim-edildi" | "iptal-edildi";
 export type DemoOrder = {
   id: string; buyerId: string; createdAt: string; status: DemoOrderStatus;
+  /** Teslim edildiği an (iade süresi buradan başlar). Eski kayıtlarda yoktur → sipariş tarihi kullanılır. */
+  deliveredAt?: string;
   items: { slug: string; name: string; seller: string; ownerId?: string; quantity: number; price: number; variantLabel?: string }[];
   address: string; billingAddress: string; subtotal: number; discount: number; shipping: number; total: number;
 };
@@ -52,8 +54,8 @@ export function activeSalePrice(product: SellerProduct, now: Date = new Date()):
 }
 export function shopProduct(product: SellerProduct, shop: DemoShop): Product {
   // Maliyet, ek maliyetler, örnek işareti ve satıcı görselleri müşteri tarafına geçmez.
-  const { cost: _cost, costs: _costs, sample: _sample, images: _images, criticalThreshold: _threshold, autoPassive: _auto, salePrice: _sale, saleStart: _start, saleEnd: _end, status: _status, createdAt: _created, variants: _variants, shortDescription, description, brand, model, ...publicFields } = product;
-  void [_cost, _costs, _sample, _images, _threshold, _auto, _sale, _start, _end, _status, _created, _variants];
+  const { cost: _cost, costs: _costs, sample: _sample, images: _images, criticalThreshold: _threshold, autoPassive: _auto, salePrice: _sale, saleStart: _start, saleEnd: _end, status: _status, createdAt: _created, variants: _variants, barcode: _barcode, shortDescription, description, brand, model, ...publicFields } = product;
+  void [_cost, _costs, _sample, _images, _threshold, _auto, _sale, _start, _end, _status, _created, _variants, _barcode];
   const sale = activeSalePrice(product);
   const specifications = [{ label: "SKU", value: product.sku }, ...(brand?.trim() ? [{ label: "Marka", value: brand.trim() }] : []), ...(model?.trim() ? [{ label: "Model", value: model.trim() }] : [])];
   return { ...publicFields, price: sale ?? product.price, ...(sale ? { oldPrice: product.price, discount: Math.round((1 - sale / product.price) * 100) } : {}),
@@ -105,5 +107,10 @@ export function transitionOrder(state: DemoState, id: string, status: DemoOrderS
     shops = shops.map(shop => ({ ...shop, products: shop.products.map(p => ({ ...p, stock: p.stock + order.items.filter(i => i.slug === `demo-${p.id}`).reduce((sum, i) => sum + i.quantity, 0) })) }));
     for (const item of order.items) if (!item.ownerId) sold[item.slug] = Math.max(0, (sold[item.slug] ?? 0) - item.quantity);
   }
-  return { ...state, shops, sold, orders: state.orders.map(o => o.id === id ? { ...o, status } : o) };
+  return { ...state, shops, sold, orders: state.orders.map(o => o.id === id ? { ...o, status, ...(status === "teslim-edildi" ? { deliveredAt: new Date().toISOString() } : {}) } : o) };
+}
+/** İade edilen ürünü satıcının stoğuna geri ekler (demo modu; yalnızca satıcıya ait ürünler). */
+export function restockProduct(state: DemoState, slug: string, quantity: number): DemoState {
+  if (!Number.isInteger(quantity) || quantity < 1) return state;
+  return { ...state, shops: state.shops.map(shop => ({ ...shop, products: shop.products.map(p => `demo-${p.id}` === slug ? { ...p, stock: p.stock + quantity } : p) })) };
 }

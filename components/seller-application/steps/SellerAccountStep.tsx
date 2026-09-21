@@ -10,10 +10,15 @@ export function SellerAccountStep({
   data,
   errors,
   setData,
+  live = false,
+  accountEmail,
 }: {
   data: SellerApplicationData;
   errors: FieldErrors;
   setData: Dispatch<SetStateAction<SellerApplicationData>>;
+  /** Gerçek hesap modu: e-posta oturumdaki hesaptan gelir (değiştirilemez), şifre istenmez. */
+  live?: boolean;
+  accountEmail?: string;
 }) {
   const { account } = data;
 
@@ -50,10 +55,12 @@ export function SellerAccountStep({
           label="E-posta"
           type="email"
           required
-          value={account.email}
+          value={live && accountEmail ? accountEmail : account.email}
           error={errors.email}
+          readOnly={live && Boolean(accountEmail)}
           onChange={(e) => update("email", e.target.value)}
           placeholder="ornek@sirket.com"
+          hint={live ? "Başvuru, giriş yaptığın hesaba bağlanır." : undefined}
         />
         <TextField
           id="telefon"
@@ -84,6 +91,7 @@ export function SellerAccountStep({
           value={account.dogumTarihi}
           onChange={(e) => update("dogumTarihi", e.target.value)}
         />
+        {!live && (<>
         <TextField
           id="sifre"
           label="Şifre"
@@ -104,12 +112,13 @@ export function SellerAccountStep({
           onChange={(e) => update("sifreTekrar", e.target.value)}
           placeholder="Şifrenizi tekrar girin"
         />
+        </>)}
       </div>
 
       <p className="rounded-xl border border-navy-100 bg-navy-50/50 px-4 py-3 text-xs leading-relaxed text-navy-500">
         E-posta ve telefon doğrulaması şu an aktif değildir; bu ekran gerçek bir
         SMS/e-posta doğrulama altyapısıyla çalışacak şekilde hazırlanmıştır.
-        Bilgileriniz &quot;doğrulanmadı&quot; olarak kaydedilecektir.
+        Bilgileriniz &quot;doğrulanmadı&quot; olarak kaydedilecektir.{live ? " T.C. kimlik no ve doğum tarihi yalnızca form doğrulaması içindir, sunucuya kaydedilmez." : ""}
       </p>
     </StepShell>
   );

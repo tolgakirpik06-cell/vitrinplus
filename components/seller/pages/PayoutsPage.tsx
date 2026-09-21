@@ -7,12 +7,19 @@ import { Panel, PanelHeader } from "@/components/dashboard/Panel";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Tabs } from "@/components/dashboard/Tabs";
 import { EarningsTable, type EarningsFilter } from "@/components/seller/pages/EarningsTable";
+import { useMarketplace } from "@/components/marketplace/context";
+import { LivePayouts } from "@/components/seller/pages/LiveFinance";
 import { useSellerWorkspace } from "@/components/seller/SellerWorkspace";
 import { formatShortDate, formatTL } from "@/lib/format";
 import { PAYOUT_DELAY_DAYS } from "@/lib/seller-analytics";
 
 /** Ödemeler: hesaba aktarılan / planlanan ödemeler. Banka bilgisi alınmaz, gerçek aktarım yapılmaz. */
 export function PayoutsPage() {
+  const { mode } = useMarketplace();
+  return mode === "supabase" ? <LivePayouts /> : <DemoPayouts />;
+}
+
+function DemoPayouts() {
   const { rows, now, payouts } = useSellerWorkspace();
   const [filter, setFilter] = useState<Exclude<EarningsFilter, "teslim-bekleniyor">>("planli");
 

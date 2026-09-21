@@ -3,7 +3,13 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDemo } from "@/components/demo/DemoProvider";
+import { SupabaseAuthForm } from "@/components/auth/SupabaseAuthForm";
+/** Gerçek hesap modunda Supabase Auth formu, yoksa Aşama 1 demo hesabı formu gösterilir. */
 export function AuthFormCard({ mode }: { mode: "giris" | "kayit" }) {
+  const { mode: marketplaceMode } = useDemo();
+  return marketplaceMode === "supabase" ? <SupabaseAuthForm mode={mode} /> : <DemoAuthForm mode={mode} />;
+}
+function DemoAuthForm({ mode }: { mode: "giris" | "kayit" }) {
   const { login, ready } = useDemo();
   const router = useRouter();
   const [error, setError] = useState("");

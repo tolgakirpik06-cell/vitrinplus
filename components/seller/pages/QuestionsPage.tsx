@@ -9,6 +9,8 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Tabs } from "@/components/dashboard/Tabs";
 import { useToast } from "@/components/dashboard/Toast";
 import { ActionButton, Field, TextArea } from "@/components/dashboard/form";
+import { useMarketplace } from "@/components/marketplace/context";
+import { LiveQuestions } from "@/components/seller/pages/LiveQuestions";
 import { useSellerWorkspace } from "@/components/seller/SellerWorkspace";
 import { formatDateTime } from "@/lib/format";
 import { answerQuestion, useQuestions, type SellerQuestion } from "@/lib/questions";
@@ -72,10 +74,22 @@ function QuestionCard({ item }: { item: SellerQuestion }) {
 }
 
 /**
- * Müşteri Soruları: ürün sayfasındaki "Satıcıya Sor" ile gelen sorular. Yanıtlama çalışır;
- * yanıtların ürün sayfasında yayınlanması ve bildirimler sonraki aşamadadır.
+ * Müşteri Soruları: gerçek modda veritabanından (LiveQuestions), demo modda bu tarayıcıdaki kayıttan gelir.
  */
 export function QuestionsPage() {
+  const { mode } = useMarketplace();
+  if (mode === "supabase") {
+    return (
+      <>
+        <PageHeader title="Müşteri Soruları" description="Ürün sayfalarından gelen soruları yanıtla. Yanıtladığın sorular ürün sayfasında herkese görünür." />
+        <LiveQuestions />
+      </>
+    );
+  }
+  return <DemoQuestions />;
+}
+
+function DemoQuestions() {
   const { shop } = useSellerWorkspace();
   const items = useQuestions(shop.settings.storeName);
   const [tab, setTab] = useState<"bekliyor" | "yanitlandi" | "tumu">("bekliyor");

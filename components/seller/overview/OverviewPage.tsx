@@ -24,7 +24,7 @@ import { TodoCard } from "@/components/seller/overview/TodoCard";
 
 const DAY_MS = 86_400_000;
 
-function EmptyShopBanner({ onLoadSample }: { onLoadSample: () => void }) {
+function EmptyShopBanner({ onLoadSample }: { onLoadSample?: () => void }) {
   return (
     <Panel className="mb-5 flex flex-wrap items-center gap-4 border-royal-100 bg-gradient-to-r from-royal-50 via-white to-white">
       <span aria-hidden className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-royal-600 text-white shadow-royal">
@@ -33,14 +33,16 @@ function EmptyShopBanner({ onLoadSample }: { onLoadSample: () => void }) {
       <div className="min-w-0 flex-1">
         <h2 className="text-[15px] font-extrabold text-navy-900">Mağazan hazır, şimdi ürünlerini ekle</h2>
         <p className="mt-0.5 text-xs leading-relaxed text-muted">
-          Paneli hemen denemek için demo örnek veri yükleyebilir ya da ilk ürününü kendin ekleyebilirsin. Örnek veri istediğin an tek tıkla kaldırılır.
+          {onLoadSample ? "Paneli hemen denemek için demo örnek veri yükleyebilir ya da ilk ürününü kendin ekleyebilirsin. Örnek veri istediğin an tek tıkla kaldırılır." : "İlk ürününü ekleyerek satışa başlayabilirsin. Ürünlerin yayına alındığında müşteriler mağazanı görür."}
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <ActionButton variant="primary" onClick={onLoadSample}>
-          Örnek Veri Yükle
-        </ActionButton>
-        <Link href={sellerHref.newProduct} className={linkButtonClass("secondary")}>
+        {onLoadSample ? (
+          <ActionButton variant="primary" onClick={onLoadSample}>
+            Örnek Veri Yükle
+          </ActionButton>
+        ) : null}
+        <Link href={sellerHref.newProduct} className={linkButtonClass(onLoadSample ? "secondary" : "primary")}>
           İlk Ürünümü Ekle
         </Link>
       </div>
@@ -91,7 +93,7 @@ export function OverviewPage() {
         }
       />
 
-      {isEmpty ? <EmptyShopBanner onLoadSample={sample.load} /> : null}
+      {isEmpty ? <EmptyShopBanner onLoadSample={sample.available ? sample.load : undefined} /> : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex min-w-0 flex-col gap-5">

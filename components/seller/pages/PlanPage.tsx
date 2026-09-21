@@ -1,5 +1,6 @@
 "use client";
 
+import { useDemo } from "@/components/demo/DemoProvider";
 import { ArrowRight, Check, Gem, Minus, PackagePlus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { ProgressBar } from "@/components/dashboard/charts";
@@ -59,6 +60,7 @@ function PriceBlock({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
 export function PlanPage() {
   const toast = useToast();
   const { plan, planKey, ops, products, updateOps } = useSellerWorkspace();
+  const { mode, changePlan } = useDemo();
   const [billing, setBilling] = useState<BillingPeriod>(ops.billing);
   const [target, setTarget] = useState<Plan | null>(null);
   const [addOnKey, setAddOnKey] = useState<string>(ops.capacityRequest ?? "");
@@ -79,8 +81,16 @@ export function PlanPage() {
   function confirmSwitch() {
     if (!target) return;
     const next = target;
-    safely(() => updateOps((current) => ({ ...current, planKey: next.key, billing })), `${next.name} paketine geçildi (demo; ödeme alınmadı).`);
     setTarget(null);
+    if (mode === "supabase") {
+      // Paket sunucuda değişir; ürün sayısı yeni paketin limitini aşıyorsa veritabanı reddeder.
+      changePlan(next.key).then(
+        () => safely(() => updateOps((current) => ({ ...current, billing })), `${next.name} paketine geçildi. Ödeme sağlayıcısı henüz bağlı olmadığı için ödeme alınmadı.`),
+        (error: unknown) => toast.error(error instanceof Error ? error.message : "Paket değiştirilemedi."),
+      );
+      return;
+    }
+    safely(() => updateOps((current) => ({ ...current, planKey: next.key, billing })), `${next.name} paketine geçildi (demo; ödeme alınmadı).`);
   }
 
   return (

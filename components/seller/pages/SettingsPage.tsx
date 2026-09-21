@@ -96,6 +96,7 @@ function ShippingSection() {
 function SampleDataSection() {
   const sample = useSampleData();
   const [confirm, setConfirm] = useState(false);
+  if (!sample.available) return null;
   return (
     <Panel aria-label="Demo verisi">
       <PanelHeader title="Demo Verisi" subtitle="Paneli dolu bir mağaza gibi denemek için örnek ürün, sipariş ve müşteri sorusu yükle. Yalnızca örnek olarak işaretli kayıtlar kaldırılır; kendi verilerine dokunulmaz." action={<Database size={18} aria-hidden className="text-navy-300" />} />

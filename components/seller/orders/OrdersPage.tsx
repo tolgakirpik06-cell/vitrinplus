@@ -150,12 +150,14 @@ function OrdersView({ initial, initialOpenId }: { initial: OrderFilters; initial
       <EmptyState
         icon={PackageSearch}
         title="Henüz siparişin yok"
-        description="Müşteriler ürünlerini satın aldığında siparişler burada görünür. Paneli denemek için demo örnek veri yükleyebilirsin."
+        description={sample.available ? "Müşteriler ürünlerini satın aldığında siparişler burada görünür. Paneli denemek için demo örnek veri yükleyebilirsin." : "Müşteriler ürünlerini satın aldığında siparişler burada görünür."}
         action={
           <>
-            <ActionButton variant="primary" onClick={sample.load}>
-              Örnek Veri Yükle
-            </ActionButton>
+            {sample.available ? (
+              <ActionButton variant="primary" onClick={sample.load}>
+                Örnek Veri Yükle
+              </ActionButton>
+            ) : null}
             <Link href={sellerHref.newProduct} className={linkButtonClass("secondary")}>
               Ürün Ekle
             </Link>

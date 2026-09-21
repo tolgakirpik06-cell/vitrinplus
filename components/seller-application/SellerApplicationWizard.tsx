@@ -22,7 +22,7 @@ import {
   normalizeApplicationData,
 } from "@/lib/seller-application";
 import { readWithMigration, removeWithLegacy } from "@/lib/storage-migration";
-import { setOwnerPlan } from "@/lib/seller-ops";
+import { DEFAULT_PLAN_KEY, isPlanKey } from "@/lib/plans";
 import {
   validateAccount,
   validateAgreement,
@@ -48,6 +48,9 @@ type StepConfig = {
     data: SellerApplicationData;
     errors: FieldErrors;
     setData: Dispatch<SetStateAction<SellerApplicationData>>;
+    /** Gerçek hesap modu: şifre alınmaz, e-posta oturumdaki hesaptan gelir. */
+    live: boolean;
+    accountEmail?: string;
   }) => ReactNode;
 };
 
@@ -110,6 +113,7 @@ const steps: StepConfig[] = [
 
 export function SellerApplicationWizard() {
   const demo = useDemo();
+  const live = demo.mode === "supabase";
   const [data, setData] = useState<SellerApplicationData>(initialSellerApplicationData);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -154,8 +158,15 @@ export function SellerApplicationWizard() {
     []
   );
 
+  /** Gerçek modda e-posta oturumdaki hesaptır; şifre bu forma ait değildir (kimlik sağlayıcıda tutulur). */
+  const effective: SellerApplicationData = live && demo.user ? { ...data, account: { ...data.account, email: demo.user.email } } : data;
+
   function handleNext() {
-    const stepErrors = currentStep.validate(data);
+    const stepErrors = { ...currentStep.validate(effective) };
+    if (live) {
+      delete stepErrors.sifre;
+      delete stepErrors.sifreTekrar;
+    }
     setErrors(stepErrors);
     if (Object.keys(stepErrors).length > 0) return;
 
@@ -166,31 +177,33 @@ export function SellerApplicationWizard() {
       return;
     }
 
-    // Son adım — başvuruyu gönder.
+    // Son adım — başvuruyu gönder. Demo modunda tarayıcıya, gerçek hesap modunda veritabanına kaydedilir.
     setSubmitting(true);
-    let applicationId: string;
-    try { applicationId = demo.apply(data.store.magazaAdi, data.store.aciklama); if (demo.user && data.planId) setOwnerPlan(demo.user.id, data.planId); } catch (e) { setErrors({ submit: (e as Error).message }); setSubmitting(false); return; }
-    window.setTimeout(() => {
-      setData((prev) => ({ ...prev, status: "bekliyor", applicationId }));
-      try {
-        removeWithLegacy(SELLER_DRAFT_STORAGE_KEY, LEGACY_SELLER_DRAFT_STORAGE_KEY);
-        window.localStorage.removeItem(LEGACY_SELLER_SUBMITTED_STORAGE_KEY);
-        window.localStorage.setItem(
-          SELLER_SUBMITTED_STORAGE_KEY,
-          JSON.stringify({
-            reference: applicationId,
-            accessToken: "demo",
-            status: "bekliyor",
-            magazaAdi: data.store.magazaAdi,
-            submittedAt: new Date().toISOString(),
-          })
-        );
-      } catch {
-        // best-effort
-      }
-      setSubmitting(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 600);
+    const plan = isPlanKey(data.planId) ? data.planId : DEFAULT_PLAN_KEY;
+    void demo
+      .submitSellerApplication({ storeName: data.store.magazaAdi, description: data.store.aciklama, plan, application: effective })
+      .then((applicationId) => {
+        setData((prev) => ({ ...prev, status: "bekliyor", applicationId }));
+        try {
+          removeWithLegacy(SELLER_DRAFT_STORAGE_KEY, LEGACY_SELLER_DRAFT_STORAGE_KEY);
+          window.localStorage.removeItem(LEGACY_SELLER_SUBMITTED_STORAGE_KEY);
+          window.localStorage.setItem(
+            SELLER_SUBMITTED_STORAGE_KEY,
+            JSON.stringify({
+              reference: applicationId,
+              accessToken: "demo",
+              status: "bekliyor",
+              magazaAdi: data.store.magazaAdi,
+              submittedAt: new Date().toISOString(),
+            })
+          );
+        } catch {
+          // best-effort
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      })
+      .catch((error: unknown) => setErrors({ submit: error instanceof Error ? error.message : "Başvuru gönderilemedi." }))
+      .finally(() => setSubmitting(false));
   }
 
   function handleBack() {
@@ -203,7 +216,22 @@ export function SellerApplicationWizard() {
   if (isSuccess) {
     return (
       <div className="mx-auto max-w-2xl rounded-3xl border border-navy-100/80 bg-white p-6 shadow-card sm:p-10">
-        <SellerSuccess applicationId={data.applicationId ?? ""} status={data.status} />
+        <SellerSuccess applicationId={data.applicationId ?? ""} status={data.status} live={live} />
+      </div>
+    );
+  }
+
+  // Gerçek hesap modunda başvuru bir hesaba bağlıdır: önce giriş yapılmalı.
+  if (live && !demo.ready) return <p className="text-center text-sm text-navy-400">Yükleniyor…</p>;
+  if (live && !demo.user) {
+    return (
+      <div className="mx-auto max-w-lg rounded-3xl border border-navy-100/80 bg-white p-8 text-center shadow-card">
+        <h2 className="text-xl font-extrabold text-navy-900">Başvuru için giriş yap</h2>
+        <p className="mt-2 text-sm text-navy-500">Satıcı başvurun hesabına bağlı olarak kaydedilir ve durumunu daha sonra buradan takip edersin.</p>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <Link href="/giris?next=%2Fsatici-basvuru" className="rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white">Giriş yap</Link>
+          <Link href="/kayit?next=%2Fsatici-basvuru" className="rounded-full border border-navy-100 px-6 py-2.5 text-sm font-semibold text-navy-700">Üye ol</Link>
+        </div>
       </div>
     );
   }
@@ -211,12 +239,16 @@ export function SellerApplicationWizard() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="rounded-3xl border border-navy-100/80 bg-white p-5 shadow-card sm:p-8">
-        <div className="mb-6 rounded-xl bg-brand-50 p-4 text-sm">Bu ayrıntılı form demo önizlemesidir. Gerçek belge veya kişisel bilgi girme. <Link href="/demo" className="font-bold text-brand-600 underline">Hızlı demo başvurusu yap</Link></div>
+        {live ? (
+          <div className="mb-6 rounded-xl bg-brand-50 p-4 text-sm">Başvurun hesabına kaydedilir ve yönetici tarafından incelenir. Şifre, TC kimlik no, doğum tarihi ve tam IBAN sunucuya gönderilmez; belgeler için yalnızca dosya adı ve boyutu kaydedilir.</div>
+        ) : (
+          <div className="mb-6 rounded-xl bg-brand-50 p-4 text-sm">Bu ayrıntılı form demo önizlemesidir. Gerçek belge veya kişisel bilgi girme. <Link href="/demo" className="font-bold text-brand-600 underline">Hızlı demo başvurusu yap</Link></div>
+        )}
         {errors.submit && <p role="alert" className="mb-4 text-rose-600">{errors.submit}</p>}
         <Stepper steps={stepperItems} currentIndex={currentIndex} />
 
         <div className="mt-7 sm:mt-8">
-          {currentStep.render({ data, errors, setData })}
+          {currentStep.render({ data: effective, errors, setData, live, accountEmail: demo.user?.email })}
         </div>
 
         <div className="mt-8 flex items-center justify-between gap-3 border-t border-navy-100 pt-6">

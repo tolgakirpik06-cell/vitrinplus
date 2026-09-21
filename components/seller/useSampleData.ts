@@ -13,7 +13,9 @@ import { buildSampleData, isSampleOrderId, isSampleProduct, SAMPLE_MOVEMENT_PREF
  */
 export function useSampleData() {
   const toast = useToast();
-  const { updateShop, injectOrders, removeOrders } = useDemo();
+  const { updateShop, injectOrders, removeOrders, mode } = useDemo();
+  /** Örnek veri yalnızca demo modundadır; gerçek hesap modunda sahte kayıtlar veritabanına yazılmaz. */
+  const available = mode === "demo";
   const { owner, shop, products, rows, updateOps } = useSellerWorkspace();
   const loaded = products.some(isSampleProduct) || rows.some((row) => isSampleOrderId(row.order.id));
 
@@ -57,5 +59,5 @@ export function useSampleData() {
     }
   }, [rows, updateShop, removeOrders, updateOps, shop.settings.storeName, toast]);
 
-  return { loaded, load, remove };
+  return { loaded, load, remove, available };
 }

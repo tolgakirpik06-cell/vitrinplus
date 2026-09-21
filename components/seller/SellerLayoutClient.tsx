@@ -15,6 +15,7 @@ import { SellerWorkspaceProvider, useSellerWorkspace } from "@/components/seller
 import { VitrinAiPanel, VitrinAiPromoCard } from "@/components/seller/VitrinAi";
 import { buildSellerNav, sellerHref } from "@/components/seller/seller-nav";
 import { useOpenQuestionCount } from "@/lib/questions";
+import { useOpenQuestionBadge } from "@/components/seller/useOpenQuestionBadge";
 
 function GateCard({ icon: Icon, title, description, actions }: { icon: typeof Lock; title: string; description: ReactNode; actions: ReactNode }) {
   return (
@@ -43,7 +44,7 @@ function HelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       open={open}
       onClose={onClose}
       title="Yardım Merkezi"
-      description="Demo sürümünde canlı destek bağlı değildir. Sık yapılan işlemler için kısa yönlendirmeler:"
+      description="Canlı destek şu an bağlı değil. Sık yapılan işlemler için kısa yönlendirmeler:"
       footer={
         <ActionButton variant="secondary" onClick={onClose}>
           Kapat
@@ -69,7 +70,8 @@ function ShellWithData({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { logout } = useDemo();
   const { waitingOrders, shop } = useSellerWorkspace();
-  const openQuestions = useOpenQuestionCount(shop.settings.storeName);
+  const localQuestions = useOpenQuestionCount(shop.settings.storeName);
+  const openQuestions = useOpenQuestionBadge(localQuestions);
   const [helpOpen, setHelpOpen] = useState(false);
   const nav = useMemo(() => buildSellerNav({ orders: waitingOrders, questions: openQuestions }), [waitingOrders, openQuestions]);
   const actions = useMemo<SidebarAction[]>(
@@ -80,12 +82,14 @@ function ShellWithData({ children }: { children: ReactNode }) {
         label: "Çıkış Yap",
         icon: LogOut,
         onClick: () => {
-          try {
-            logout();
-            router.push("/");
-          } catch {
-            // Çıkış kaydedilemezse oturum açık kalır; kullanıcı tekrar deneyebilir.
-          }
+          // Çıkış kaydedilemezse (ör. eşitlenmemiş değişiklik) oturum açık kalır; kullanıcı tekrar deneyebilir.
+          Promise.resolve()
+            .then(() => logout())
+            .then(() => {
+              router.push("/");
+              router.refresh();
+            })
+            .catch(() => undefined);
         },
       },
     ],
@@ -107,7 +111,8 @@ function ShellWithData({ children }: { children: ReactNode }) {
  * bilgilendirme ekranını ya da paneli gösterir. Boş/kırık sayfa göstermez.
  */
 export function SellerLayoutClient({ children }: { children: ReactNode }) {
-  const { ready, user, shop } = useDemo();
+  const { ready, user, shop, mode, role, sellerAccount } = useDemo();
+  const live = mode === "supabase";
 
   if (!ready) {
     return (
@@ -122,15 +127,17 @@ export function SellerLayoutClient({ children }: { children: ReactNode }) {
       <GateCard
         icon={LogIn}
         title="Satıcı paneli için giriş yap"
-        description="Panel, bu tarayıcıdaki demo hesabına bağlı çalışır. Demo hesabınla giriş yap ya da yeni bir demo hesabı oluştur."
+        description={live ? "Satıcı panelini kullanmak için hesabınla giriş yapmalısın." : "Panel, bu tarayıcıdaki demo hesabına bağlı çalışır. Demo hesabınla giriş yap ya da yeni bir demo hesabı oluştur."}
         actions={
           <>
-            <Link href="/giris" className={linkButtonClass("primary")}>
+            <Link href={live ? "/giris?next=%2Fsatici-panel" : "/giris"} className={linkButtonClass("primary")}>
               Giriş Yap
             </Link>
-            <Link href="/demo" className={linkButtonClass("secondary")}>
-              Demo Rehberi
-            </Link>
+            {!live && (
+              <Link href="/demo" className={linkButtonClass("secondary")}>
+                Demo Rehberi
+              </Link>
+            )}
           </>
         }
       />
@@ -142,15 +149,17 @@ export function SellerLayoutClient({ children }: { children: ReactNode }) {
       <GateCard
         icon={Store}
         title="Mağazanı açarak başla"
-        description="Satıcı panelini kullanmak için önce mağaza başvurusu yapmalısın. Başvuru demo rehberinden onaylanabilir."
+        description={live ? "Satıcı panelini kullanmak için önce mağaza başvurusu yapmalısın. Başvurun yönetici tarafından incelendikten sonra mağazan açılır." : "Satıcı panelini kullanmak için önce mağaza başvurusu yapmalısın. Başvuru demo rehberinden onaylanabilir."}
         actions={
           <>
             <Link href="/satici-basvuru" className={linkButtonClass("primary")}>
               Mağaza Başvurusu Yap
             </Link>
-            <Link href="/demo" className={linkButtonClass("secondary")}>
-              Demo Rehberi
-            </Link>
+            {!live && (
+              <Link href="/demo" className={linkButtonClass("secondary")}>
+                Demo Rehberi
+              </Link>
+            )}
           </>
         }
       />
@@ -164,15 +173,18 @@ export function SellerLayoutClient({ children }: { children: ReactNode }) {
         title="Başvurun inceleniyor"
         description={
           <>
-            <span className="font-semibold text-navy-700">{shop.settings.storeName}</span> başvurun (Ref: {shop.reference}) onay bekliyor. Demo ortamında onayı demo rehberinden verebilirsin.
+            <span className="font-semibold text-navy-700">{shop.settings.storeName}</span> başvurun (Ref: {shop.reference}) onay bekliyor.{" "}
+            {live ? "Onaylanana kadar mağazan kapalıdır ve ürünlerin satışa çıkmaz." : "Demo ortamında onayı demo rehberinden verebilirsin."}
           </>
         }
         actions={
           <>
-            <Link href="/demo" className={linkButtonClass("primary")}>
-              Demo Onayına Git
-            </Link>
-            <Link href="/satici-basvuru/durum" className={linkButtonClass("secondary")}>
+            {!live && (
+              <Link href="/demo" className={linkButtonClass("primary")}>
+                Demo Onayına Git
+              </Link>
+            )}
+            <Link href="/satici-basvuru/durum" className={linkButtonClass(live ? "primary" : "secondary")}>
               Başvuru Durumu
             </Link>
           </>
@@ -182,14 +194,43 @@ export function SellerLayoutClient({ children }: { children: ReactNode }) {
   }
 
   if (shop.status === "reddedildi") {
+    const suspended = sellerAccount?.status === "suspended";
     return (
       <GateCard
         icon={ShieldX}
-        title="Başvurun reddedildi"
-        description="Bu mağaza başvurusu reddedildi. Bilgilerini güncelleyerek yeniden başvurabilirsin."
+        title={suspended ? "Mağazan askıya alındı" : "Başvurun reddedildi"}
+        description={
+          <>
+            {suspended ? "Mağazan şu an satış yapamıyor." : "Bu mağaza başvurusu reddedildi."}
+            {sellerAccount?.rejectionReason ? <span className="mt-2 block rounded-lg bg-navy-50 p-2 text-left text-xs text-navy-700">Gerekçe: {sellerAccount.rejectionReason}</span> : null}
+            {suspended ? " Ayrıntı için destek ekibiyle iletişime geç." : " Bilgilerini güncelleyerek yeniden başvurabilirsin."}
+          </>
+        }
         actions={
-          <Link href="/satici-basvuru" className={linkButtonClass("primary")}>
-            Yeniden Başvur
+          suspended ? (
+            <Link href="/satici-basvuru/durum" className={linkButtonClass("secondary")}>
+              Başvuru Durumu
+            </Link>
+          ) : (
+            <Link href="/satici-basvuru" className={linkButtonClass("primary")}>
+              Yeniden Başvur
+            </Link>
+          )
+        }
+      />
+    );
+  }
+
+  // Derinlemesine savunma: sunucu zaten yetkiyi denetler; rol uyuşmazsa panel açılmaz.
+  if (live && role !== "seller" && role !== "admin") {
+    return (
+      <GateCard
+        icon={ShieldX}
+        title="Bu sayfaya erişimin yok"
+        description="Satıcı paneli yalnızca onaylı satıcı hesaplarına açıktır."
+        actions={
+          <Link href="/hesabim" className={linkButtonClass("primary")}>
+            Hesabıma Dön
           </Link>
         }
       />

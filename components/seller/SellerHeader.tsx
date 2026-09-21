@@ -55,12 +55,13 @@ export function SellerHeader({ shell }: { shell: ShellHeaderContext }) {
 
   function signOut() {
     setMenuOpen(false);
-    try {
-      logout();
-      router.push("/");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Çıkış yapılamadı.");
-    }
+    Promise.resolve()
+      .then(() => logout())
+      .then(() => {
+        router.push("/");
+        router.refresh();
+      })
+      .catch((error: unknown) => toast.error(error instanceof Error ? error.message : "Çıkış yapılamadı."));
   }
 
   return (

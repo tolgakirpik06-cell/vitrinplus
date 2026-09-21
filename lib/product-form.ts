@@ -8,7 +8,8 @@ import { fixedCost, type CostBreakdown } from "@/lib/profit";
 export const MAX_IMAGES = 8;
 export const SHORT_DESCRIPTION_LIMIT = 500;
 
-export type VariantForm = { id: string; label: string; sku: string };
+/** `stock`: seçenek bazlı stok (yalnızca gerçek modda doldurulur; boş = seçenek stoğu takip edilmiyor). */
+export type VariantForm = { id: string; label: string; sku: string; stock: string };
 
 export type ProductFormState = {
   name: string;
@@ -29,6 +30,7 @@ export type ProductFormState = {
   other: string;
   stock: string;
   sku: string;
+  barcode: string;
   criticalThreshold: string;
   autoPassive: boolean;
   variants: VariantForm[];
@@ -53,6 +55,7 @@ export const emptyProductForm: ProductFormState = {
   other: "",
   stock: "",
   sku: "",
+  barcode: "",
   criticalThreshold: "",
   autoPassive: false,
   variants: [],
@@ -104,9 +107,10 @@ export function productToForm(product: SellerProduct): ProductFormState {
     other: show(product.costs?.other),
     stock: String(product.stock),
     sku: product.sku,
+    barcode: product.barcode ?? "",
     criticalThreshold: show(product.criticalThreshold),
     autoPassive: product.autoPassive === true,
-    variants: (product.variants ?? []).map((variant) => ({ id: variant.id, label: variant.label, sku: variant.sku ?? "" })),
+    variants: (product.variants ?? []).map((variant) => ({ id: variant.id, label: variant.label, sku: variant.sku ?? "", stock: variant.stock === undefined ? "" : String(variant.stock) })),
   };
 }
 
@@ -139,6 +143,17 @@ export function validateProductForm(form: ProductFormState, mode: "draft" | "pub
   }
   if (form.shortDescription.length > SHORT_DESCRIPTION_LIMIT) errors.shortDescription = `Kısa açıklama en fazla ${SHORT_DESCRIPTION_LIMIT} karakter olabilir.`;
 
+  if (form.barcode.trim().length > 64) errors.barcode = "Barkod en fazla 64 karakter olabilir.";
+  if (form.variants.some((variant) => variant.stock.trim() && (Number.isNaN(toNumber(variant.stock)) || toNumber(variant.stock) < 0 || !Number.isInteger(toNumber(variant.stock))))) {
+    errors.variants = "Varyant stokları 0 veya daha büyük tam sayı olmalı.";
+  }
+  const namedVariants = form.variants.filter((variant) => variant.label.trim());
+  const labels = namedVariants.map((variant) => variant.label.trim().toLocaleLowerCase("tr-TR"));
+  if (!errors.variants && new Set(labels).size !== labels.length) errors.variants = "Aynı adı taşıyan iki varyant olamaz.";
+  // Seçenek bazlı stok takip ediliyorsa her adlandırılmış varyantın stoğu girilmiş olmalı (boş bırakılan 0 sayılır ve müşteriye "tükendi" görünür).
+  const tracksVariantStock = namedVariants.some((variant) => variant.stock.trim());
+  if (!errors.variants && tracksVariantStock && namedVariants.some((variant) => !variant.stock.trim())) errors.variants = "Varyant stoğu takip ediliyorsa her varyant için stok gir (0 olabilir).";
+
   const sku = form.sku.trim();
   if (sku && existingSkus.includes(sku)) errors.sku = "Bu SKU başka bir üründe kullanılıyor.";
 
@@ -154,7 +169,8 @@ export function validateProductForm(form: ProductFormState, mode: "draft" | "pub
     if (!form.category.trim()) errors.category = "Kategori seç.";
     if (!sku) errors.sku = "Satışa yayınlamak için SKU gerekli.";
     if (!form.price.trim() || Number.isNaN(toNumber(form.price)) || toNumber(form.price) <= 0) errors.price = "Satış fiyatı 0'dan büyük olmalı.";
-    if (!form.stock.trim()) errors.stock = "Stok adedini gir (0 olabilir).";
+    // Seçenek bazlı stokta ürün stoğu varyant stoklarının toplamıdır; ayrıca girilmesi gerekmez.
+    if (!tracksVariantStock && !form.stock.trim()) errors.stock = "Stok adedini gir (0 olabilir).";
   }
   return errors;
 }
@@ -166,17 +182,23 @@ export function formToProduct(form: ProductFormState, status: ProductStatus, bas
   const hasExtras = Object.values(extras).some((value) => value > 0);
   const sale = toNumber(form.salePrice);
   const threshold = toNumber(form.criticalThreshold);
-  const variants = form.variants.filter((variant) => variant.label.trim()).map((variant) => ({ id: variant.id, label: variant.label.trim(), ...(variant.sku.trim() ? { sku: variant.sku.trim() } : {}) }));
+  const variants = form.variants
+    .filter((variant) => variant.label.trim())
+    .map((variant) => ({ id: variant.id, label: variant.label.trim(), ...(variant.sku.trim() ? { sku: variant.sku.trim() } : {}), ...(variant.stock.trim() ? { stock: Math.max(0, Math.round(numberOrZero(variant.stock))) } : {}) }));
+  // Seçenek bazlı stok takip ediliyorsa ürün stoğu seçenek stoklarının toplamıdır.
+  const tracksVariantStock = variants.some((variant) => variant.stock !== undefined);
+  const totalStock = tracksVariantStock ? variants.reduce((sum, variant) => sum + (variant.stock ?? 0), 0) : Math.max(0, Math.round(numberOrZero(form.stock)));
   const { id: _id, ...rest } = (base ?? {}) as SellerProduct;
   void _id;
   return {
     ...rest,
     name: form.name.trim(),
     sku: form.sku.trim(),
+    barcode: form.barcode.trim() || undefined,
     category: form.category.trim() || "Genel",
     price: numberOrZero(form.price),
     cost,
-    stock: Math.max(0, Math.round(numberOrZero(form.stock))),
+    stock: totalStock,
     status,
     brand: form.brand.trim() || undefined,
     model: form.model.trim() || undefined,

@@ -6,9 +6,12 @@ import type { ApplicationStatus } from "@/types/seller-application";
 export function SellerSuccess({
   applicationId,
   status,
+  live = false,
 }: {
   applicationId: string;
   status: ApplicationStatus;
+  /** Gerçek hesap modu: başvuru veritabanına kaydedildi ve yönetici incelemesini bekliyor. */
+  live?: boolean;
 }) {
   return (
     <div className="flex flex-col items-center gap-5 py-6 text-center">
@@ -33,9 +36,9 @@ export function SellerSuccess({
       </div>
 
       <p className="max-w-md text-xs leading-relaxed text-navy-400">
-        Bu bir demo başvurusudur. Demo rehberindeki yönetici simülasyonundan
-        başvuruna onay verip mağazanı kullanabilirsin. Gerçek belge incelemesi
-        veya e-posta gönderimi yapılmaz.
+        {live
+          ? "Başvurun kaydedildi ve yönetici incelemesini bekliyor. Onaylanana kadar mağazan kapalıdır; durumu başvuru durumu sayfasından takip edebilirsin."
+          : "Bu bir demo başvurusudur. Demo rehberindeki yönetici simülasyonundan başvuruna onay verip mağazanı kullanabilirsin. Gerçek belge incelemesi veya e-posta gönderimi yapılmaz."}
       </p>
 
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">

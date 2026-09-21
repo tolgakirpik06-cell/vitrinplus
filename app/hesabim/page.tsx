@@ -1,5 +1,12 @@
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { DemoAccount } from "@/components/demo/DemoScreens";
+import { AccountPageFrame } from "@/components/account/AccountPageFrame";
+import { AccountOverview } from "@/components/account/AccountOverview";
+
 export const metadata = { title: "Hesabım | VitrinPlus" };
-export default function Page() { return <><Header /><main className="section-container space-y-6 py-8"><DemoAccount /></main><Footer /></>; }
+
+export default function Page() {
+  return (
+    <AccountPageFrame>
+      <AccountOverview />
+    </AccountPageFrame>
+  );
+}

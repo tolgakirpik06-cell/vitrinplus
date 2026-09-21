@@ -5,11 +5,13 @@ import { Heart } from "lucide-react";
 import { useFavorites } from "@/components/favorites/FavoritesProvider";
 import { ProductCard } from "@/components/home/ProductCard";
 import { useDemo } from "@/components/demo/DemoProvider";
+import { useEnsureProducts } from "@/components/marketplace/useEnsureProducts";
 import type { Product } from "@/types";
 
 export function FavoritesPageClient() {
   const { resolveProduct } = useDemo();
-  const { slugs } = useFavorites();
+  const { slugs, syncError, loaded } = useFavorites();
+  const { loading, error, retry } = useEnsureProducts(slugs);
 
   const favorites = slugs
     .map((slug) => resolveProduct(slug))
@@ -23,11 +25,22 @@ export function FavoritesPageClient() {
         </span>
         <div>
           <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Favorilerim</h1>
-          <p className="mt-1 text-sm text-navy-400">{favorites.length} ürün favorilerinde</p>
+          <p className="mt-1 text-sm text-navy-400">{loaded ? `${favorites.length} ürün favorilerinde` : "Favorilerin yükleniyor…"}</p>
         </div>
       </div>
 
-      {favorites.length === 0 ? (
+      {syncError ? <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">Favoriler hesabına kaydedilemedi. {syncError}</p> : null}
+
+      {error ? (
+        <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">
+          Ürün bilgileri alınamadı. {error}{" "}
+          <button type="button" onClick={retry} className="font-semibold underline">Tekrar dene</button>
+        </p>
+      ) : null}
+
+      {!loaded || (loading && favorites.length === 0) ? (
+        <p role="status" className="text-sm text-navy-400">Favorilerin yükleniyor…</p>
+      ) : favorites.length === 0 && error ? null : favorites.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-navy-100 py-20 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-400">
             <Heart size={26} />

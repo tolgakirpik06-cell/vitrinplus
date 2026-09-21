@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Ban, RotateCcw } from "lucide-react";
+import { Ban } from "lucide-react";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -12,10 +12,11 @@ import { useSellerWorkspace } from "@/components/seller/SellerWorkspace";
 import { sellerHref } from "@/components/seller/seller-nav";
 import { formatCompactDateTime, formatTL } from "@/lib/format";
 import { sumAmount, type SellerOrderRow } from "@/lib/seller-analytics";
+import { SellerReturns } from "@/components/seller/pages/SellerReturns";
 
 /**
- * İadeler: iade talebi akışı (müşteri talebi, onay, kargo, para iadesi) sonraki aşamadadır.
- * Bu ekran şimdilik gerçek veriyle iptal edilen siparişleri gösterir ve bunu açıkça belirtir.
+ * İadeler: müşteri iade talepleri (onay / ret / teslim alma / iade edildi) gerçek kayıtlardır (SellerReturns).
+ * Altında, iptal edilen siparişler ayrıca listelenir; iptal edilen siparişlerin stoğu otomatik geri yüklenir.
  */
 export function ReturnsPage() {
   const { rows } = useSellerWorkspace();
@@ -40,19 +41,14 @@ export function ReturnsPage() {
 
   return (
     <>
-      <PageHeader title="İadeler" description="İptal edilen siparişlerini ve iade süreçlerini takip et." />
+      <PageHeader title="İadeler" description="Müşteri iade taleplerini yönet ve iptal edilen siparişlerini takip et." />
       <div className="flex flex-col gap-5">
-        <ul aria-label="İade özeti" className="grid gap-3 sm:grid-cols-2">
+        <SellerReturns />
+        <ul aria-label="İptal özeti" className="grid gap-3 sm:grid-cols-2">
           <li>
             <StatCard icon={Ban} tone="rose" label="İptal Edilen Sipariş" value={cancelled.length} note={`Toplam ${formatTL(sumAmount(cancelled))}`} className="h-full" />
           </li>
-          <li>
-            <StatCard icon={RotateCcw} tone="slate" label="İade Talebi" value="—" note="İade talebi akışı sonraki aşamada" className="h-full" />
-          </li>
         </ul>
-        <p role="note" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
-          Müşteri iade talepleri, onay ve para iadesi akışı sonraki aşamada eklenecek. Şimdilik yalnızca iptal edilen siparişler listelenir; iptal edilen siparişlerin stoğu otomatik geri yüklenir.
-        </p>
         <Panel aria-label="İptal edilen siparişler">
           <PanelHeader title="İptal Edilen Siparişler" />
           <DataTable
