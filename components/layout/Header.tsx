@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Heart, ShoppingCart, LogIn, Store } from "lucide-react";
+import { Heart, ShoppingCart, Store } from "lucide-react";
 import { Logo } from "./Logo";
 import { AiSearchBar } from "./AiSearchBar";
 import { MobileNav } from "./MobileNav";
+import { UserMenu } from "./UserMenu";
 import { CategoryNav } from "./CategoryNav";
 import { Button } from "@/components/ui/Button";
 import { CartBadge } from "@/components/cart/CartBadge";
@@ -42,10 +43,7 @@ export function Header({ searchQuery = "" }: { searchQuery?: string }) {
 
           <span className="mx-2.5 h-7 w-px bg-navy-100" aria-hidden />
 
-          <Button href="/giris" variant="outline" size="sm" className="whitespace-nowrap">
-            <LogIn size={15} />
-            Giriş Yap
-          </Button>
+          <UserMenu />
           <Button href="/satici-basvuru" variant="primary" size="sm" className="whitespace-nowrap">
             <Store size={15} />
             Mağaza Aç

@@ -143,7 +143,7 @@ function useDemoState(configProblem: string | null): MarketplaceValue {
     commit(previous => placeDemoOrder(previous, lines, getProductBySlug, details, id).state);
     return id;
   }
-  return { mode: "demo", state, ready, storageError, user, shop, resolveProduct, login, apply, updateShop, checkout,
+  return { mode: "demo", state, ready, storageError, user, signedIn: user !== null, shop, resolveProduct, login, apply, updateShop, checkout,
     role: null, sellerAccount: null, configProblem, sync: IDLE_SYNC, retrySync: noop, discardUnsynced: noop, catalog: [], serverOrderMeta: {}, services, auth: demoAuth,
     refresh: noopAsync, ensureProducts: noopAsync, searchCatalog: async () => ({ items: [], total: 0 }), markReadyToShip: noop, saveOrderDetails: noop,
     submitSellerApplication: async (input) => { const reference = apply(input.storeName, input.description); if (user) setOwnerPlan(user.id, input.plan); return reference; },

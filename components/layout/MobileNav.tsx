@@ -8,13 +8,13 @@ import {
   X,
   Heart,
   ShoppingCart,
-  LogIn,
   Store,
   LayoutGrid,
 } from "lucide-react";
 import { navCategories } from "@/data/categories";
 import { useCart } from "@/components/cart/CartProvider";
 import { AiSearchBar } from "./AiSearchBar";
+import { MobileAccount } from "./UserMenu";
 
 export function MobileNav({ searchQuery = "" }: { searchQuery?: string }) {
   const [open, setOpen] = useState(false);
@@ -99,13 +99,7 @@ export function MobileNav({ searchQuery = "" }: { searchQuery?: string }) {
         </nav>
 
         <div className="mt-auto flex flex-col gap-2 pt-2">
-          <Link
-            href="/giris"
-            onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 rounded-full border border-navy-100 px-4 py-2.5 text-sm font-semibold text-navy-700"
-          >
-            <LogIn size={16} /> Giriş Yap
-          </Link>
+          <MobileAccount onNavigate={() => setOpen(false)} />
           <Link
             href="/satici-basvuru"
             onClick={() => setOpen(false)}

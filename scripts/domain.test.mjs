@@ -28,7 +28,7 @@ function load(file) {
     for (const candidate of [`${base}.ts`, path.join(base, 'index.ts')]) if (fs.existsSync(candidate)) return candidate;
     throw new Error(`Modül çözümlenemedi: ${spec} (${file})`);
   };
-  vm.runInNewContext(js, { module: loaded, exports: loaded.exports, require: spec => load(resolve(spec)), Date, Map, Set, Error, URL, atob, TextEncoder, setTimeout, clearTimeout, process: { env: {} } }, { filename: full });
+  vm.runInNewContext(js, { module: loaded, exports: loaded.exports, require: spec => load(resolve(spec)), Date, Map, Set, Error, URL, atob, TextEncoder, setTimeout, clearTimeout, File, Blob, crypto, process: { env: {} } }, { filename: full });
   return loaded.exports;
 }
 
@@ -57,6 +57,7 @@ const cartQuote = load('lib/domain/cart-quote.ts');
 const productForm = load('lib/product-form.ts');
 const liveFinance = load('lib/seller-live-finance.ts');
 const movementUi = load('lib/stock-movement-ui.ts');
+const headerAccount = load('lib/header-account.ts');
 const sql = name => fs.readFileSync(path.join(root, 'supabase/migrations', name), 'utf8');
 const functions = sql('0004_functions.sql');
 const foundation = sql('0001_foundation.sql');
@@ -884,4 +885,352 @@ test('Stok hareketi arayüz dönüşümü: tür etiketi + not; silinmiş ürün�
   assert.equal(movementUi.toUiMovement({ ...view, productId: null }), null);
   assert.equal(movementUi.toUiMovement({ ...view, type: 'return_restock', note: null, change: 1 }).reason, 'İade / stoğa geri ekleme');
   for (const type of ['initial', 'manual_add', 'manual_remove', 'manual_set', 'sale', 'order_cancel', 'return_restock', 'adjustment']) assert.equal(typeof movementUi.movementTypeLabels[type], 'string', type);
+});
+
+// ─── Müşteri header'ı · hesap alanı (Giriş Yap / kullanıcı menüsü) ──────────
+const ayse = { name: 'Ayşe Yılmaz', email: 'ayse@ornek.com' };
+
+test('Header hesap alanı: oturum açık kullanıcıya "Giriş Yap" (guest) ASLA çıkmaz — demo ve Supabase modunda', () => {
+  // Oturum açık + profil yüklü
+  same(headerAccount.resolveHeaderAccount({ ready: true, signedIn: true, user: ayse }), { status: 'member', name: 'Ayşe Yılmaz' });
+  // Demo: kullanıcı nesnesi var (signedIn = user !== null)
+  same(headerAccount.resolveHeaderAccount({ ready: true, signedIn: true, user: ayse }).status, 'member');
+  // Supabase: oturum var ama profil henüz yüklenmedi / yüklenemedi → yine üye (genel ad), asla misafir değil
+  same(headerAccount.resolveHeaderAccount({ ready: false, signedIn: true, user: null }), { status: 'member', name: 'Hesabım' });
+  same(headerAccount.resolveHeaderAccount({ ready: true, signedIn: true, user: null }), { status: 'member', name: 'Hesabım' });
+  // Kullanıcı nesnesi varsa ready olmasa bile üye
+  assert.equal(headerAccount.resolveHeaderAccount({ ready: false, signedIn: false, user: ayse }).status, 'member');
+  // Hiçbir kombinasyonda oturumlu biri "guest" olmaz
+  for (const ready of [true, false]) for (const user of [ayse, null]) {
+    assert.notEqual(headerAccount.resolveHeaderAccount({ ready, signedIn: true, user }).status, 'guest');
+  }
+});
+
+test('Header hesap alanı: girişsiz ziyaretçide "Giriş Yap" kalır; oturum durumu belirsizken düğme gösterilmez (loading)', () => {
+  same(headerAccount.resolveHeaderAccount({ ready: true, signedIn: false, user: null }), { status: 'guest' });
+  same(headerAccount.resolveHeaderAccount({ ready: false, signedIn: false, user: null }), { status: 'loading' });
+});
+
+test('Header hesap alanı: görünen ad — ad-soyad, yoksa e-posta yerel kısmı, yoksa "Hesabım"', () => {
+  assert.equal(headerAccount.displayName({ name: '  Mehmet Kaya  ', email: 'm@k.com' }), 'Mehmet Kaya');
+  assert.equal(headerAccount.displayName({ name: '   ', email: 'mehmet.kaya@ornek.com' }), 'mehmet.kaya');
+  assert.equal(headerAccount.displayName({ name: '', email: '' }), 'Hesabım');
+  assert.equal(headerAccount.displayName(null), 'Hesabım');
+});
+
+test('Header kullanıcı menüsü: istenen dört bağlantı (Hesabım, Siparişlerim, Favorilerim, Adreslerim) ve gerçek sayfalara işaret eder', () => {
+  same(headerAccount.ACCOUNT_MENU_LINKS.map(link => link.label), ['Hesabım', 'Siparişlerim', 'Favorilerim', 'Adreslerim']);
+  same(headerAccount.ACCOUNT_MENU_LINKS.map(link => link.href), ['/hesabim', '/siparislerim', '/favoriler', '/hesabim/adresler']);
+  for (const link of headerAccount.ACCOUNT_MENU_LINKS) {
+    assert.ok(fs.existsSync(path.join(root, 'app', ...link.href.split('/').filter(Boolean), 'page.tsx')), `${link.href} için sayfa yok`);
+  }
+});
+
+test('Header kaynağı: giriş yapmışta ince barda ad-soyad / Siparişlerim / Çıkış tekrarı yok; Header ve MobileNav sabit "Giriş Yap" düğmesi taşımaz', () => {
+  const screens = fs.readFileSync(path.join(root, 'components/demo/DemoScreens.tsx'), 'utf8');
+  const bar = screens.slice(screens.indexOf('export function DemoBar'), screens.indexOf('export function DemoCatalog')).split('\n').filter(line => !line.trim().startsWith('//')).join('\n');
+  assert.ok(bar.length > 100);
+  for (const banned of ['Siparişlerim', 'Çıkış yap', 'Çıkış Yap', 'Demo hesabım', 'user?.name', 'logout']) assert.ok(!bar.includes(banned), `ince barda "${banned}" kalmış`);
+  // Oturum açık olabilecek her yerde "Giriş Yap" yalnızca oturum durumuna bağlı bileşenden gelir.
+  for (const file of ['components/layout/Header.tsx', 'components/layout/MobileNav.tsx', 'components/layout/Footer.tsx']) {
+    assert.ok(!fs.readFileSync(path.join(root, file), 'utf8').includes('Giriş Yap'), `${file} içinde koşulsuz "Giriş Yap" var`);
+  }
+  assert.ok(/ready && !signedIn[^)]*Giriş yap/.test(bar), 'ince bardaki "Giriş yap" oturum durumuna bağlı olmalı');
+});
+
+test('Alt bilgi: "Giriş Yap" ve "Üye Ol" yalnızca girişsiz ziyaretçiye görünür; belirsizken boş yer ayrılır, bağlantı çıkmaz', () => {
+  const modes = account => Object.fromEntries(headerAccount.FOOTER_ACCOUNT_LINKS.map(link => [link.label, headerAccount.footerLinkMode(link, account)]));
+  const member = headerAccount.resolveHeaderAccount({ ready: true, signedIn: true, user: ayse });
+  const memberNoProfile = headerAccount.resolveHeaderAccount({ ready: true, signedIn: true, user: null });
+  const guest = headerAccount.resolveHeaderAccount({ ready: true, signedIn: false, user: null });
+  const loading = headerAccount.resolveHeaderAccount({ ready: false, signedIn: false, user: null });
+  same(modes(member), { Favorilerim: 'link', Sepetim: 'link', 'Giriş Yap': 'hidden', 'Üye Ol': 'hidden' });
+  same(modes(memberNoProfile), { Favorilerim: 'link', Sepetim: 'link', 'Giriş Yap': 'hidden', 'Üye Ol': 'hidden' });
+  same(modes(guest), { Favorilerim: 'link', Sepetim: 'link', 'Giriş Yap': 'link', 'Üye Ol': 'link' });
+  same(modes(loading), { Favorilerim: 'link', Sepetim: 'link', 'Giriş Yap': 'placeholder', 'Üye Ol': 'placeholder' });
+  same(headerAccount.FOOTER_ACCOUNT_LINKS.map(link => link.href), ['/favoriler', '/sepet', '/giris', '/uye-ol']);
+  for (const link of headerAccount.FOOTER_ACCOUNT_LINKS) {
+    assert.ok(fs.existsSync(path.join(root, 'app', ...link.href.split('/').filter(Boolean), 'page.tsx')), `${link.href} için sayfa yok`);
+  }
+});
+
+// ─── Satıcı belgeleri (özel depolama) ve başvuru inceleme akışı ─────────────
+const sellerDocs = load('lib/domain/seller-documents.ts');
+const appDetail = load('lib/domain/application-detail.ts');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const UID = '3f2b8c1e-4a5d-4e6f-8a9b-0c1d2e3f4a5b';
+const FID = 'd0000000-0000-4000-8000-000000000001';
+
+test('Belge yükleme doğrulaması: yalnızca PDF/JPG/PNG, en fazla 10 MB; içerik (imza baytları) türle uyuşmalı', () => {
+  assert.equal(sellerDocs.validateSellerDocument({ type: 'application/pdf', size: 1000 }), 'pdf');
+  assert.equal(sellerDocs.validateSellerDocument({ type: 'image/jpeg', size: 1000 }), 'jpg');
+  assert.equal(sellerDocs.validateSellerDocument({ type: 'IMAGE/PNG', size: 10_485_760 }), 'png');
+  assert.throws(() => sellerDocs.validateSellerDocument({ type: 'image/webp', size: 10 }), (e) => e.code === 'INVALID_DOCUMENT_TYPE');
+  assert.throws(() => sellerDocs.validateSellerDocument({ type: 'text/html', size: 10 }), (e) => e.code === 'INVALID_DOCUMENT_TYPE');
+  assert.throws(() => sellerDocs.validateSellerDocument({ type: 'application/pdf', size: 10_485_761 }), (e) => e.code === 'DOCUMENT_TOO_LARGE' && /10 MB/.test(e.message));
+  assert.throws(() => sellerDocs.validateSellerDocument({ type: 'application/pdf', size: 0 }), (e) => e.code === 'INVALID_DOCUMENT');
+  const bytes = (...values) => new Uint8Array(values);
+  assert.equal(sellerDocs.sniffSellerDocumentMime(bytes(0x25, 0x50, 0x44, 0x46, 0x2d, 0x31)), 'application/pdf');
+  assert.equal(sellerDocs.sniffSellerDocumentMime(bytes(0xff, 0xd8, 0xff, 0xe0)), 'image/jpeg');
+  assert.equal(sellerDocs.sniffSellerDocumentMime(bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)), 'image/png');
+  assert.equal(sellerDocs.sniffSellerDocumentMime(bytes(0x3c, 0x68, 0x74, 0x6d, 0x6c)), null); // <html
+  assert.equal(sellerDocs.sniffSellerDocumentMime(bytes()), null);
+});
+
+test('Belge yolu: {kullanıcı}/{tür}/{uuid}.{uzantı}; SQL politikasındaki kalıpla ve sabitlerle birebir uyumlu', () => {
+  const p = sellerDocs.buildSellerDocumentPath(UID.toUpperCase(), 'vergiLevhasi', FID, 'pdf');
+  assert.equal(p, `${UID}/vergiLevhasi/${FID}.pdf`);
+  assert.equal(sellerDocs.isSellerDocumentPath(p), true);
+  for (const bad of [`${UID}/gizli/${FID}.pdf`, `${UID}/kimlik/${FID}.exe`, `${UID}/kimlik/../${FID}.pdf`, `baska/kimlik/${FID}.pdf`, `${UID}/kimlik.pdf`]) assert.equal(sellerDocs.isSellerDocumentPath(bad), false, bad);
+  assert.throws(() => sellerDocs.buildSellerDocumentPath('../x', 'kimlik', FID, 'pdf'), (e) => e.code === 'INVALID_PATH');
+  assert.throws(() => sellerDocs.buildSellerDocumentPath(UID, 'pasaport', FID, 'pdf'), (e) => e.code === 'INVALID_PATH');
+  assert.throws(() => sellerDocs.buildSellerDocumentPath(UID, 'kimlik', FID, 'exe'), (e) => e.code === 'INVALID_PATH');
+  const migration = sql('0007_seller_documents.sql');
+  // TS sabitleri SQL ile aynı: belge türleri, boyut sınırı, izinli MIME türleri, kova adı.
+  const types = [...migration.match(/is_seller_document_path[\s\S]*?\((kimlik[^)]*)\)/)[1].split('|')];
+  same(types, [...sellerDocs.SELLER_DOCUMENT_KEYS]);
+  assert.equal(sellerDocs.SELLER_DOCUMENT_MAX_BYTES, 10485760);
+  assert.match(migration, /file_size_limit[\s\S]*?10485760/);
+  for (const mime of Object.keys(sellerDocs.SELLER_DOCUMENT_MIME_EXTENSIONS)) assert.ok(migration.includes(`'${mime}'`), mime);
+  assert.equal(sellerDocs.SELLER_DOCUMENT_BUCKET, 'seller-documents');
+});
+
+test('Migration 0007: kova ÖZEL; belge tablosuna API yazma yetkisi yok; politikalar sahip/yönetici ile sınırlı; yeni migration eskileri değiştirmez', () => {
+  const migration = sql('0007_seller_documents.sql');
+  assert.match(migration, /values \('seller-documents', 'seller-documents', false,/);
+  assert.match(migration, /set public = false/);
+  assert.equal(/'seller-documents'[^\n]*true/.test(migration), false, 'kova asla public=true olmamalı');
+  assert.match(migration, /revoke all on table public\.seller_documents from anon, authenticated/);
+  assert.match(migration, /grant select on public\.seller_documents to authenticated/);
+  assert.equal(/grant (insert|update|delete)[^;]*seller_documents/i.test(migration), false);
+  assert.match(migration, /alter table public\.seller_documents enable row level security/);
+  assert.match(migration, /owner_id = \(select auth\.uid\(\)\) or public\.is_admin\(\)/);
+  assert.equal(/for update/.test(migration.match(/create policy[\s\S]*?on storage\.objects[\s\S]*$/)?.[0].replace(/for update;/g, '') ?? ''), false, 'storage.objects için UPDATE politikası olmamalı');
+  assert.equal(/to anon/.test(migration.replace(/from public, anon, authenticated/g, '').replace(/from anon, authenticated/g, '')), false, 'anon hiçbir belge nesnesine yetkilendirilmemeli');
+  assert.match(migration, /create or replace function public\.admin_review_seller_application/);
+  assert.match(migration, /hint = 'ALREADY_REVIEWED'/);
+  assert.match(migration, /hint = 'REASON_REQUIRED'/);
+  assert.match(migration, /revoke all on function public\.admin_review_seller_application\(uuid, text, text\) from public, anon, authenticated/);
+  // Geriye dönük değişiklik yok: 0004'teki eski RPC hâlâ aynı imzayla duruyor.
+  assert.match(sql('0004_functions.sql'), /create or replace function public\.admin_set_seller_status\(p_account_id uuid, p_status text, p_reason text default null\)/);
+});
+
+test('Zorunlu belge listesi satıcı tipine göre; eksikler "Yüklenmedi" görünür, yüklenen hiçbir belge gizlenmez', () => {
+  same(sellerDocs.requiredDocumentKeys('sahis'), ['kimlik', 'vergiLevhasi', 'imzaBeyannamesi']);
+  same(sellerDocs.requiredDocumentKeys('limited-as'), ['kimlik', 'vergiLevhasi', 'imzaBeyannamesi', 'ticaretSicilBelgesi', 'faaliyetBelgesi']);
+  same(sellerDocs.requiredDocumentKeys(null), ['kimlik', 'vergiLevhasi', 'imzaBeyannamesi']);
+  const doc = (docType, id) => ({ id, docType, name: `${docType}.pdf`, mimeType: 'application/pdf', sizeBytes: 2048, uploadedAt: '2026-01-01T10:00:00Z' });
+  const none = sellerDocs.buildDocumentChecklist('sahis', []);
+  assert.equal(none.complete, false);
+  assert.equal(none.requiredCount, 3);
+  assert.equal(none.uploadedRequiredCount, 0);
+  same(none.missingLabels, ['Kimlik Belgesi', 'Vergi Levhası', 'İmza Beyannamesi / Sirküleri']);
+  assert.ok(none.items.every(item => item.document === null && item.required));
+  const partial = sellerDocs.buildDocumentChecklist('sahis', [doc('kimlik', 'a'), doc('faaliyetBelgesi', 'b')]);
+  assert.equal(partial.uploadedRequiredCount, 1);
+  assert.equal(partial.complete, false);
+  same(partial.items.map(item => [item.key, item.required, item.document?.id ?? null]), [['kimlik', true, 'a'], ['vergiLevhasi', true, null], ['imzaBeyannamesi', true, null], ['faaliyetBelgesi', false, 'b']]);
+  const full = sellerDocs.buildDocumentChecklist('sahis', [doc('kimlik', 'a'), doc('vergiLevhasi', 'b'), doc('imzaBeyannamesi', 'c')]);
+  assert.equal(full.complete, true);
+  same(full.missingLabels, []);
+  assert.equal(sellerDocs.safeDownloadName('İmza Beyannamesi / Sirküleri', 'application/pdf'), 'imza-beyannamesi-sirkuleri.pdf');
+  assert.equal(sellerDocs.safeDownloadName('Kimlik Belgesi', 'image/jpeg'), 'kimlik-belgesi.jpg');
+});
+
+test('Başvuru detayı: sanitizeApplication çıktısındaki GERÇEK alanlar okunur; saklanmayan hassas veriler görünmez; kayıtsız alan "—" (null) kalır', () => {
+  const data = {
+    sellerType: 'limited-as', status: 'taslak', applicationId: null, invoicePreference: 'vitrinplus-entegrasyonu', planId: 'vitrin-pro-plus',
+    account: { ad: 'Ayşe', soyad: 'Yılmaz', email: 'a@example.com', telefon: '05320000000', tcKimlikNo: '11111111110', dogumTarihi: '1990-01-01', sifre: 'GizliSifre123!', sifreTekrar: 'GizliSifre123!' },
+    business: { ticariUnvan: '', vergiDairesi: 'Kadıköy VD', vergiNumarasi: '1234567890', isletmeAdresi: '', il: 'İstanbul', ilce: 'Kadıköy', sirketUnvani: 'Yılmaz Ticaret A.Ş.', mersisNumarasi: '0123456789012345', ticaretSicilNumarasi: '123456', yetkiliKisi: 'Ayşe Yılmaz', sirketAdresi: 'Moda Cad. No:1' },
+    bank: { iban: 'TR33 0006 1005 1978 6457 8413 26', bankaAdi: 'Örnek Banka', hesapSahibiAdi: 'Yılmaz Ticaret A.Ş.' },
+    shipping: { il: 'İstanbul', ilce: 'Kadıköy', acikAdres: 'Depo Sok. 3', iadeAdresiAyni: false, iadeIl: 'Ankara', iadeIlce: 'Çankaya', iadeAcikAdres: 'İade Sok. 9' },
+    store: { magazaAdi: 'Yılmaz Mağaza', magazaSlug: 'yilmaz', aciklama: 'Ev tekstili', logo: null, kapakGorseli: null, anaKategoriler: ['Ev', 'Moda'] },
+    documents: { kimlik: { name: 'kimlik.pdf', size: 2048, type: 'application/pdf', uploadedAt: '2026-01-01' } },
+    agreement: { sozlesmeKabul: true, kvkkKabul: true, ticariIletiKabul: false },
+  };
+  const detail = appDetail.parseApplicationDetail(application.sanitizeApplication(data));
+  assert.equal(detail.unrecognized, false);
+  assert.equal(detail.sellerType, 'limited-as');
+  assert.equal(detail.sellerTypeLabel, 'Limited / Anonim Şirket');
+  const flat = Object.fromEntries(detail.sections.flatMap(section => section.rows.map(row => [`${section.id}.${row.label}`, row.value])));
+  assert.equal(flat['store.Mağaza adı'], 'Yılmaz Mağaza');
+  assert.equal(flat['store.Ana kategoriler'], 'Ev, Moda');
+  assert.equal(flat['contact.Ad soyad'], 'Ayşe Yılmaz');
+  assert.equal(flat['contact.E-posta'], 'a@example.com');
+  assert.equal(flat['business.Şirket unvanı'], 'Yılmaz Ticaret A.Ş.');
+  assert.equal(flat['business.Vergi dairesi'], 'Kadıköy VD');
+  assert.equal(flat['business.Vergi numarası'], '1234567890');
+  assert.equal(flat['business.Ticaret sicil numarası'], '123456');
+  assert.equal(flat['business.İl / İlçe'], 'Kadıköy / İstanbul');
+  assert.equal(flat['shipping.Gönderim adresi'], 'Depo Sok. 3, Kadıköy / İstanbul');
+  assert.equal(flat['shipping.İade adresi gönderim adresiyle aynı'], 'Hayır');
+  assert.equal(flat['shipping.İade adresi'], 'İade Sok. 9, Çankaya / Ankara');
+  assert.equal(flat['bank.Banka'], 'Örnek Banka');
+  assert.ok(flat['bank.IBAN (maskeli)'].endsWith('1326') && flat['bank.IBAN (maskeli)'].includes('*'));
+  assert.equal(flat['preferences.Fatura tercihi'], 'VitrinPlus entegrasyonu');
+  assert.equal(flat['preferences.KVKK aydınlatma onayı'], 'Evet');
+  assert.equal(flat['preferences.Ticari elektronik ileti izni'], 'Hayır');
+  same(detail.declaredDocuments.map(doc => doc.key), ['kimlik']);
+  // Hiçbir sırrın ekrana taşınamayacağı: ayrıştırılmış çıktıda TC, doğum tarihi, şifre, tam IBAN yok.
+  const json = JSON.stringify(detail);
+  for (const secret of ['GizliSifre123!', '11111111110', '1990-01-01', '0006 1005 1978', '00061005197864578413']) assert.equal(json.includes(secret), false, secret);
+  same([...appDetail.NOT_STORED_FIELDS], ['T.C. kimlik no', 'Doğum tarihi', 'Tam IBAN', 'Şifre']);
+  // Şahıs işletmesinde şirket alanları gösterilmez; eksik değer uydurulmaz.
+  const sole = appDetail.parseApplicationDetail(application.sanitizeApplication({ ...data, sellerType: 'sahis', business: { ...data.business, ticariUnvan: 'AY Ticaret', isletmeAdresi: '' } }));
+  const soleRows = sole.sections.find(section => section.id === 'business').rows;
+  assert.equal(soleRows.some(row => row.label === 'Şirket unvanı'), false);
+  assert.equal(soleRows.find(row => row.label === 'İşletme adresi').value, null);
+  // Tanınmayan / boş kayıt: bölümler uydurma veri içermez.
+  const empty = appDetail.parseApplicationDetail({});
+  assert.equal(empty.unrecognized, true);
+  assert.ok(empty.sections.every(section => section.rows.every(row => row.value === null)));
+  assert.equal(appDetail.parseApplicationDetail(null).unrecognized, true);
+  assert.equal(appDetail.sellerTypeOf({ sellerType: 'sahis' }), 'sahis');
+  assert.equal(appDetail.sellerTypeOf({ sellerType: 'x' }), null);
+});
+
+test('Yönetici servisi: onay/ret yalnızca yeni inceleme RPC\'siyle; ret nedeni zorunlu; belge servisi yalnızca giriş yapmış Supabase kullanıcısında', async () => {
+  const calls = [];
+  const adminRepo = new Proxy({}, { get: (_t, name) => async (...args) => { calls.push([name, ...args]); return name === 'getDocumentUrl' ? 'https://signed.example/x' : undefined; } });
+  const svc = services.createServices({ returns: {}, questions: {}, account: {}, admin: adminRepo });
+  await svc.admin.approveApplication('acc-1');
+  await assert.rejects(svc.admin.rejectApplication('acc-1', '   '), (e) => e.code === 'REASON_REQUIRED');
+  await assert.rejects(svc.admin.rejectApplication('acc-1', 'kısa'), (e) => e.code === 'REASON_REQUIRED' && /5 karakter/.test(e.message));
+  await svc.admin.rejectApplication('acc-1', '  Vergi levhası okunaksız.  ');
+  same(calls.filter(call => call[0] === 'reviewApplication'), [['reviewApplication', 'acc-1', 'approve'], ['reviewApplication', 'acc-1', 'reject', 'Vergi levhası okunaksız.']]);
+  assert.equal(calls.some(call => call[0] === 'setApplicationStatus'), false, 'onay/ret eski (koşulsuz) durum RPC\'sini kullanmamalı');
+  assert.equal(await svc.admin.getDocumentUrl('doc-1', 'view'), 'https://signed.example/x');
+  assert.equal(services.createServices({ returns: {}, questions: {}, account: {} }).sellerDocuments, null);
+  assert.equal(services.createServices({ returns: {}, questions: {}, account: {}, sellerDocuments: { list: async () => [] } }).sellerDocuments !== null, true);
+  assert.equal(services.MIN_REJECTION_REASON, 5);
+  assert.match(sql('0007_seller_documents.sql'), /char_length\(v_reason\) < 5/);
+});
+
+test('Yönetim arayüzü kaynağı: listede "Başvuruyu İncele" var, doğrudan Onayla/Reddet yok; karar bölümü sayfanın en sonunda; belgeler için herkese açık URL kullanılmaz', () => {
+  const list = read('components/admin/AdminClient.tsx');
+  const applications = list.slice(list.indexOf('function Applications('), list.indexOf('function Payouts('));
+  assert.match(applications, /Başvuruyu İncele/);
+  assert.match(applications, /\/yonetim\/basvuru\/\$\{item\.accountId\}/);
+  for (const banned of ['Onayla', 'Reddet', 'Askıya al', 'admin.approve', 'admin.reject']) assert.equal(applications.includes(banned), false, `listede "${banned}" kalmış`);
+  const review = read('components/admin/ApplicationReviewClient.tsx');
+  assert.ok(review.indexOf('id="documents-title"') > 0 && review.indexOf('id="decision-title"') > review.indexOf('id="documents-title"'), 'karar bölümü belgelerden sonra gelmeli');
+  assert.ok(review.indexOf('id="decision-title"') > review.indexOf('content.sections.map'), 'karar bölümü form bilgilerinden sonra gelmeli');
+  const afterDecision = review.slice(review.indexOf('id="decision-title"'));
+  assert.equal(afterDecision.includes('id="documents-title"') || afterDecision.includes('content.sections'), false, 'karar bölümünden sonra inceleme içeriği olmamalı');
+  assert.match(review, /disabled=\{!reasonValid\}/, 'ret nedeni yokken Reddet düğmesi kapalı olmalı');
+  assert.match(review, /admin\.rejectApplication\(app\.accountId, reason\)/);
+  assert.match(review, /ALREADY_REVIEWED/);
+  for (const file of ['lib/repositories/supabase/seller-documents.ts', 'lib/repositories/supabase/admin.ts', 'components/seller-application/DocumentChecklistList.tsx', 'components/seller-application/SellerDocumentsPanel.tsx', 'components/admin/ApplicationReviewClient.tsx']) {
+    assert.equal(/getPublicUrl|\/object\/public\//.test(read(file)), false, `${file} herkese açık belge URL'si üretmemeli`);
+  }
+  assert.match(read('lib/repositories/supabase/seller-documents.ts'), /createSignedUrl\(row\.storage_path, SELLER_DOCUMENT_URL_TTL_SECONDS/);
+  assert.ok(sellerDocs.SELLER_DOCUMENT_URL_TTL_SECONDS <= 120, 'imzalı adres kısa ömürlü olmalı');
+  // Liste, hassas başvuru içeriğini (application jsonb) istemciye çekmez; yalnızca detay ekranı çeker.
+  const adminRepo = read('lib/repositories/supabase/admin.ts');
+  const listColumns = adminRepo.match(/const LIST_COLUMNS = "([^"]+)"/)[1];
+  assert.equal(/\bapplication\b|\*/.test(listColumns), false, 'liste sütunları application jsonb / * içermemeli');
+  assert.match(adminRepo, /const DETAIL_COLUMNS = "\*/);
+  // Rota yalnızca yöneticiye açık (proxy.ts /yonetim önekini korur).
+  assert.equal(paths.canAccessRoute('seller', '/yonetim/basvuru/abc'), false);
+  assert.equal(paths.canAccessRoute('customer', '/yonetim/basvuru/abc'), false);
+  assert.equal(paths.canAccessRoute('admin', '/yonetim/basvuru/abc'), true);
+  assert.equal(paths.redirectTargetFor(null, false, '/yonetim/basvuru/abc'), '/giris?next=%2Fyonetim%2Fbasvuru%2Fabc');
+});
+
+test('Başvuru formu: gerçek modda belge dosyaları özel depolamaya gider; dosya içeriği taslağa/localStorage\'a yazılmaz; satıcı durum sayfası ret nedenini gösterir', () => {
+  const wizard = read('components/seller-application/SellerApplicationWizard.tsx');
+  assert.match(wizard, /documents: live \? filesForSubmit\(\) : undefined/);
+  assert.equal(/localStorage\.setItem\([^)]*files/.test(wizard), false);
+  const provider = read('components/marketplace/SupabaseMarketplaceProvider.tsx');
+  const submit = provider.slice(provider.indexOf('const submitSellerApplication'), provider.indexOf('const changePlan'));
+  assert.ok(submit.indexOf('uploadSellerDocumentFiles') < submit.indexOf('submitApplication('), 'dosyalar başvurudan önce yüklenip doğrulanmalı');
+  assert.ok(submit.indexOf('submitApplication(') < submit.indexOf('registerSellerDocuments'), 'belge kaydı başvurudan sonra yapılmalı');
+  assert.match(submit, /discardSellerDocumentUploads/);
+  const status = read('components/seller-application/ApplicationStatusClient.tsx');
+  assert.match(status, /sellerAccount\.rejectionReason/);
+  assert.match(status, /Red nedeni/);
+  assert.match(status, /SellerDocumentsPanel/);
+  // Demo modunda gerçek yükleme uyarısı korunur (dosyalar sunucuya gitmez); gerçek modda özel depolama bilgisi verilir.
+  const step = read('components/seller-application/steps/SellerDocumentsStep.tsx');
+  assert.match(step, /gerçek\s+bir sunucuya yüklenmez/);
+  assert.match(step, /herkese açık değildir/);
+});
+
+// ─── Belge deposu: sahte Supabase istemcisiyle yükleme / kayıt / imzalı adres akışı ─────────────
+const docRepo = load('lib/repositories/supabase/seller-documents.ts');
+
+function fakeStorageClient({ failUploadAt = null, rows = {}, signError = false } = {}) {
+  const log = { uploads: [], removes: [], rpcs: [], signs: [], selects: [] };
+  let n = 0;
+  const client = {
+    storage: {
+      from: bucket => ({
+        upload: async (pathName, file, options) => { n += 1; log.uploads.push({ bucket, path: pathName, type: options.contentType, upsert: options.upsert }); return failUploadAt === n ? { error: { message: 'boom' } } : { error: null }; },
+        remove: async paths => { log.removes.push({ bucket, paths }); return { error: null }; },
+        createSignedUrl: async (pathName, ttl, options) => { log.signs.push({ bucket, path: pathName, ttl, options }); return signError ? { data: null, error: { message: 'nope' } } : { data: { signedUrl: `https://signed.example/${pathName}?t=${ttl}` }, error: null }; },
+      }),
+    },
+    rpc: async (fn, args) => { log.rpcs.push({ fn, args }); return { data: { registered: args.p_documents?.length ?? 0, replaced_paths: ['old/path.pdf'] }, error: null }; },
+    from: table => ({ select: columns => ({ eq: (column, value) => ({ maybeSingle: async () => { log.selects.push({ table, columns, column, value }); return { data: rows[value] ?? null, error: null }; } }) }) }),
+  };
+  return { client, log };
+}
+const pdfFile = (name = 'a.pdf') => new File([new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34, 0x0a])], name, { type: 'application/pdf' });
+const pngFile = (name = 'b.png') => new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0])], name, { type: 'image/png' });
+
+test('Belge yükleme: özel kovaya, kullanıcı klasörü altına, upsert olmadan yüklenir; geçersiz içerikte önceki dosyalar temizlenir', async () => {
+  const { client, log } = fakeStorageClient();
+  const uploads = await docRepo.uploadSellerDocumentFiles(client, UID, { kimlik: pdfFile('kimlik.pdf'), vergiLevhasi: pngFile('vergi.png') });
+  assert.equal(uploads.length, 2);
+  for (const upload of log.uploads) {
+    assert.equal(upload.bucket, 'seller-documents');
+    assert.equal(sellerDocs.isSellerDocumentPath(upload.path), true, upload.path);
+    assert.ok(upload.path.startsWith(`${UID}/`));
+    assert.equal(upload.upsert, false);
+  }
+  same(uploads.map(upload => [upload.docType, upload.name, upload.mime]), [['kimlik', 'kimlik.pdf', 'application/pdf'], ['vergiLevhasi', 'vergi.png', 'image/png']]);
+  // İçeriği türle uyuşmayan (ör. PDF diye adlandırılmış HTML) dosya reddedilir; daha önce yüklenen dosya geri silinir.
+  const fake = fakeStorageClient();
+  const html = new File([new TextEncoder().encode('<html><script>alert(1)</script></html>')], 'x.pdf', { type: 'application/pdf' });
+  await assert.rejects(docRepo.uploadSellerDocumentFiles(fake.client, UID, { kimlik: pdfFile(), vergiLevhasi: html }), (e) => e.code === 'INVALID_DOCUMENT_TYPE' && /Vergi Levhası/.test(e.message));
+  assert.equal(fake.log.uploads.length, 1, 'geçersiz dosya depolamaya hiç gönderilmemeli');
+  same(fake.log.removes.map(remove => remove.paths.length), [1]);
+  assert.equal(fake.log.removes[0].paths[0], fake.log.uploads[0].path);
+  // Depolama hatası: kullanıcıya güvenli mesaj + temizlik.
+  const failing = fakeStorageClient({ failUploadAt: 2 });
+  await assert.rejects(docRepo.uploadSellerDocumentFiles(failing.client, UID, { kimlik: pdfFile(), vergiLevhasi: pngFile() }), (e) => e.code === 'UPLOAD_FAILED' && !/boom/.test(e.message));
+  assert.equal(failing.log.removes.length, 1);
+  // Yanlış tür / aşırı boyut yüklemeden önce durdurulur.
+  const tooBig = new File([new Uint8Array(10)], 'b.pdf', { type: 'application/pdf' });
+  Object.defineProperty(tooBig, 'size', { value: 10_485_761 });
+  await assert.rejects(docRepo.uploadSellerDocumentFiles(fakeStorageClient().client, UID, { kimlik: tooBig }), (e) => e.code === 'DOCUMENT_TOO_LARGE');
+  await assert.rejects(docRepo.uploadSellerDocumentFiles(fakeStorageClient().client, UID, { kimlik: new File(['x'], 'a.svg', { type: 'image/svg+xml' }) }), (e) => e.code === 'INVALID_DOCUMENT_TYPE');
+  // Boş seçim: hiçbir şey yüklenmez.
+  const empty = fakeStorageClient();
+  same(await docRepo.uploadSellerDocumentFiles(empty.client, UID, {}), []);
+  assert.equal(empty.log.uploads.length, 0);
+});
+
+test('Belge kaydı ve imzalı adres: RPC ile kayıt, değiştirilen eski dosya silinir; adres 60 sn ömürlü; yetki/hata durumunda güvenli mesaj', async () => {
+  const { client, log } = fakeStorageClient({ rows: { 'doc-1': { storage_path: `${UID}/kimlik/${FID}.pdf`, doc_type: 'kimlik', mime_type: 'application/pdf' }, 'doc-2': { storage_path: `${UID}/vergiLevhasi/${FID}.png`, doc_type: 'vergiLevhasi', mime_type: 'image/png' } } });
+  await docRepo.registerSellerDocuments(client, [{ docType: 'kimlik', path: `${UID}/kimlik/${FID}.pdf`, name: 'k.pdf', mime: 'application/pdf', size: 9 }]);
+  assert.equal(log.rpcs[0].fn, 'register_seller_documents');
+  same(log.rpcs[0].args.p_documents, [{ doc_type: 'kimlik', path: `${UID}/kimlik/${FID}.pdf`, name: 'k.pdf', mime: 'application/pdf', size: 9 }]);
+  same(log.removes, [{ bucket: 'seller-documents', paths: ['old/path.pdf'] }]);
+  await docRepo.registerSellerDocuments(client, []);
+  assert.equal(log.rpcs.length, 1, 'boş listede RPC çağrılmaz');
+  const view = await docRepo.signDocumentUrl(client, 'doc-1', 'view');
+  assert.equal(view, `https://signed.example/${UID}/kimlik/${FID}.pdf?t=60`);
+  assert.equal(log.signs[0].bucket, 'seller-documents');
+  assert.equal(log.signs[0].ttl, 60);
+  assert.equal(log.signs[0].options, undefined, 'görüntülemede indirme başlığı yok');
+  await docRepo.signDocumentUrl(client, 'doc-2', 'download');
+  assert.deepStrictEqual({ ...log.signs[1].options }, { download: 'vergi-levhasi.png' });
+  assert.equal(log.selects.every(select => select.table === 'seller_documents' && select.column === 'id'), true);
+  await assert.rejects(docRepo.signDocumentUrl(client, 'yok', 'view'), (e) => e.code === 'NOT_FOUND');
+  const denied = fakeStorageClient({ signError: true, rows: { d: { storage_path: `${UID}/kimlik/${FID}.pdf`, doc_type: 'kimlik', mime_type: 'application/pdf' } } });
+  await assert.rejects(docRepo.signDocumentUrl(denied.client, 'd', 'view'), (e) => e.code === 'DOCUMENT_UNAVAILABLE' && !/nope/.test(e.message));
+  // Satıcı deposu: yalnızca kendi kimliğiyle listeler; yükleme boş seçimde hata verir.
+  const repo = docRepo.createSellerDocumentsRepository(client, { userId: UID });
+  await assert.rejects(repo.upload({}), (e) => e.code === 'NO_FILES');
 });

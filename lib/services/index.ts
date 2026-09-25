@@ -10,7 +10,7 @@ import { MarketplaceError, errorCode, friendlyError } from "@/lib/domain/errors"
 import { validateAnswerText, validateQuestionText } from "@/lib/domain/questions";
 import { RETURN_REASONS } from "@/lib/domain/returns";
 import type {
-  AccountRepository, AddressInput, AddressView, AdminRepository, CreateReturnInput, FinanceRepository, ProfilePatch, QuestionsRepository, ReturnsRepository, StockRepository,
+  AccountRepository, AddressInput, AddressView, AdminRepository, CreateReturnInput, FinanceRepository, ProfilePatch, QuestionsRepository, ReturnsRepository, SellerDocumentFiles, SellerDocumentsRepository, StockRepository,
 } from "@/lib/repositories/types";
 import type { DbReturnStatus } from "@/types/database";
 
@@ -108,15 +108,24 @@ export function createStockService(repo: StockRepository) {
 }
 export type StockService = ReturnType<typeof createStockService>;
 
+/** Veritabanı (0007) ile aynı alt sınır. */
+export const MIN_REJECTION_REASON = 5;
+
 export function createAdminService(repo: AdminRepository) {
   return {
     listApplications: (status?: Parameters<AdminRepository["listApplications"]>[0]) => guarded(() => repo.listApplications(status)),
-    approve: (accountId: string) => guarded(() => repo.setApplicationStatus(accountId, "approved")),
-    reject: (accountId: string, reason: string) =>
+    getApplicationDetail: (accountId: string) => guarded(() => repo.getApplicationDetail(accountId)),
+    /** Bekleyen başvuruyu onaylar (mağaza aktifleşir, hesap satıcı olur). Zaten sonuçlanmış başvuruda veritabanı reddeder. */
+    approveApplication: (accountId: string) => guarded(() => repo.reviewApplication(accountId, "approve")),
+    /** Bekleyen başvuruyu reddeder; ret nedeni zorunludur, kaydedilir ve satıcıya gösterilir. */
+    rejectApplication: (accountId: string, reason: string) =>
       guarded(async () => {
-        if (reason.trim().length < 3) throw new MarketplaceError("REASON_REQUIRED", "Ret gerekçesini yaz (en az 3 karakter).");
-        await repo.setApplicationStatus(accountId, "rejected", reason.trim());
+        if (reason.trim().length < MIN_REJECTION_REASON) throw new MarketplaceError("REASON_REQUIRED", `Red nedenini yaz (en az ${MIN_REJECTION_REASON} karakter).`);
+        await repo.reviewApplication(accountId, "reject", reason.trim());
       }),
+    /** Askıdaki mağazayı yeniden etkinleştirir (bekleyen başvuru kararı değildir). */
+    reactivate: (accountId: string) => guarded(() => repo.setApplicationStatus(accountId, "approved")),
+    getDocumentUrl: (documentId: string, mode: "view" | "download") => guarded(() => repo.getDocumentUrl(documentId, mode)),
     suspend: (accountId: string, reason: string) =>
       guarded(async () => {
         if (reason.trim().length < 3) throw new MarketplaceError("REASON_REQUIRED", "Gerekçeyi yaz (en az 3 karakter).");
@@ -130,6 +139,15 @@ export function createAdminService(repo: AdminRepository) {
 }
 export type AdminService = ReturnType<typeof createAdminService>;
 
+export function createSellerDocumentsService(repo: SellerDocumentsRepository) {
+  return {
+    list: () => guarded(() => repo.list()),
+    upload: (files: SellerDocumentFiles) => guarded(() => repo.upload(files)),
+    getUrl: (documentId: string, mode: "view" | "download") => guarded(() => repo.getUrl(documentId, mode)),
+  };
+}
+export type SellerDocumentsService = ReturnType<typeof createSellerDocumentsService>;
+
 /** Modlara göre değişen servis kümesi. `null` = bu modda yok (ör. demo modunda gerçek finans defteri yoktur). */
 export type Services = {
   returns: ReturnsService;
@@ -138,6 +156,8 @@ export type Services = {
   finance: FinanceService | null;
   stock: StockService | null;
   admin: AdminService | null;
+  /** Satıcı belgeleri (özel depolama). Yalnızca giriş yapmış Supabase kullanıcısında; demo modunda `null`. */
+  sellerDocuments: SellerDocumentsService | null;
 };
 
 export type Repositories = {
@@ -147,6 +167,7 @@ export type Repositories = {
   finance?: FinanceRepository;
   stock?: StockRepository;
   admin?: AdminRepository;
+  sellerDocuments?: SellerDocumentsRepository;
 };
 
 export function createServices(repos: Repositories): Services {
@@ -157,5 +178,6 @@ export function createServices(repos: Repositories): Services {
     finance: repos.finance ? createFinanceService(repos.finance) : null,
     stock: repos.stock ? createStockService(repos.stock) : null,
     admin: repos.admin ? createAdminService(repos.admin) : null,
+    sellerDocuments: repos.sellerDocuments ? createSellerDocumentsService(repos.sellerDocuments) : null,
   };
 }

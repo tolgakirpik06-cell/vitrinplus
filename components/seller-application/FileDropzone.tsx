@@ -21,26 +21,43 @@ export function FileDropzone({
   onChange,
   error,
   required,
+  validateFile,
+  selectedLabel = "yüklendi",
 }: {
   id: string;
   label: string;
   description?: string;
   value: UploadedDocMeta | null | undefined;
-  onChange: (meta: UploadedDocMeta | null) => void;
+  /** Seçilen dosya (meta + dosyanın kendisi) ya da kaldırıldığında `null, null`. Dosya içeriği hiçbir yerde saklanmaz; gönderimde özel depolamaya yüklenir. */
+  onChange: (meta: UploadedDocMeta | null, file: File | null) => void;
   error?: string;
   required?: boolean;
+  /** Gerçek yükleme modunda tür/boyut kontrolü: hata metni döndürürse dosya kabul edilmez. */
+  validateFile?: (file: File) => string | null;
+  /** Dosya seçildikten sonra gösterilen durum metni. */
+  selectedLabel?: string;
 }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [localError, setLocalError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleFile(file: File | undefined) {
     if (!file) return;
-    onChange({
-      name: file.name,
-      size: file.size,
-      type: file.type || "bilinmiyor",
-      uploadedAt: new Date().toISOString(),
-    });
+    const problem = validateFile?.(file) ?? null;
+    if (problem) {
+      setLocalError(problem);
+      return;
+    }
+    setLocalError("");
+    onChange(
+      {
+        name: file.name,
+        size: file.size,
+        type: file.type || "bilinmiyor",
+        uploadedAt: new Date().toISOString(),
+      },
+      file
+    );
   }
 
   function handleDrop(e: DragEvent<HTMLDivElement>) {
@@ -69,11 +86,14 @@ export function FileDropzone({
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-navy-800">{value.name}</p>
-            <p className="text-xs text-navy-400">{formatSize(value.size)} — yüklendi</p>
+            <p className="text-xs text-navy-400">{formatSize(value.size)} — {selectedLabel}</p>
           </div>
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => {
+              setLocalError("");
+              onChange(null, null);
+            }}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-navy-400 transition-colors hover:bg-white hover:text-rose-500"
             aria-label={`${label} dosyasını kaldır`}
           >
@@ -121,7 +141,7 @@ export function FileDropzone({
           />
         </div>
       )}
-      {error ? <p className="text-xs font-medium text-rose-600">{error}</p> : null}
+      {localError || error ? <p role="alert" className="text-xs font-medium text-rose-600">{localError || error}</p> : null}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Heart, ShoppingBag, ShieldCheck, Truck } from "lucide-react";
 import { navCategories } from "@/data/categories";
+import { FooterAccountLinks } from "./FooterAccountLinks";
 
 const corporateLinks = [
   { label: "Satıcı Ol", href: "/satici" },
@@ -8,13 +9,6 @@ const corporateLinks = [
   { label: "Kampanyalar", href: "/kampanyalar" },
   { label: "Mağazalar", href: "/magazalar" },
   { label: "Tüm Kategoriler", href: "/kategoriler" },
-];
-
-const helpLinks = [
-  { label: "Favorilerim", href: "/favoriler" },
-  { label: "Sepetim", href: "/sepet" },
-  { label: "Giriş Yap", href: "/giris" },
-  { label: "Üye Ol", href: "/uye-ol" },
 ];
 
 const trustBadges = [
@@ -82,15 +76,7 @@ export function Footer() {
 
         <div>
           <p className="mb-3 text-sm font-semibold text-navy-800">Hesabım</p>
-          <ul className="flex flex-col gap-2 text-sm text-navy-400">
-            {helpLinks.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="hover:text-brand-600">
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <FooterAccountLinks />
 
           <p className="mt-5 text-sm font-semibold text-navy-800">Satıcılar için</p>
           <p className="mt-1 text-sm text-navy-400">%0 komisyon, sadece aylık üyelik.</p>

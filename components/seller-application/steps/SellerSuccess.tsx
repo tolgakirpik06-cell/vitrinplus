@@ -37,7 +37,7 @@ export function SellerSuccess({
 
       <p className="max-w-md text-xs leading-relaxed text-navy-400">
         {live
-          ? "Başvurun kaydedildi ve yönetici incelemesini bekliyor. Onaylanana kadar mağazan kapalıdır; durumu başvuru durumu sayfasından takip edebilirsin."
+          ? "Başvurun kaydedildi ve yönetici incelemesini bekliyor. Onaylanana kadar mağazan kapalıdır. Belgelerinin durumunu ve varsa eksik belgeleri başvuru durumu sayfasından görebilir, oradan yükleyebilirsin."
           : "Bu bir demo başvurusudur. Demo rehberindeki yönetici simülasyonundan başvuruna onay verip mağazanı kullanabilirsin. Gerçek belge incelemesi veya e-posta gönderimi yapılmaz."}
       </p>
 

@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Package } from "lucide-react";
 import { useDemo } from "./DemoProvider";
 import { orderLabels, shopProduct, isSellable, type DemoOrderStatus } from "@/lib/demo-marketplace";
@@ -13,22 +13,15 @@ import { useAsync } from "@/lib/use-async";
 const button = "inline-flex items-center justify-center rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40";
 const card = "rounded-2xl border border-navy-100 bg-white p-5 sm:p-6";
 export function DemoBar() {
-  const { user, storageError, mode, role, sellerAccount, configProblem, refresh, logout } = useDemo();
+  const { ready, signedIn, storageError, mode, role, sellerAccount, configProblem, refresh } = useDemo();
   const pathname = usePathname();
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [signOutError, setSignOutError] = useState("");
   // Satıcı paneli kendi başlığında demo bilgisini gösterir; ek şerit tam yükseklikli yan menüyü bozar.
   if (pathname?.startsWith("/satici-panel")) return null;
+  // Ad-soyad, Siparişlerim ve Çıkış Yap artık yalnızca header'daki kullanıcı menüsünde durur (tekrar yok).
   if (mode === "supabase") {
-    const signOut = async () => {
-      setBusy(true);
-      setSignOutError("");
-      try { await logout(); router.push("/"); router.refresh(); } catch (e) { setSignOutError((e as Error).message); } finally { setBusy(false); }
-    };
-    return <div className="border-b border-brand-100 bg-brand-50 text-xs text-brand-800"><div className="section-container flex flex-wrap items-center justify-between gap-2 py-2"><span>Canlı hesap modu · Ödeme sağlayıcısı henüz bağlı değil, gerçek ödeme alınmaz</span><div className="flex flex-wrap gap-4"><Link href="/hesabim">{user?.name ?? "Hesabım"}</Link>{user && <Link href="/siparislerim">Siparişlerim</Link>}{(role === "seller" || role === "admin" || sellerAccount) && <Link href="/satici-panel">Satıcı paneli</Link>}{role === "admin" && <Link href="/yonetim">Yönetim</Link>}{user ? <button type="button" disabled={busy} onClick={signOut} className="font-semibold">Çıkış yap</button> : <Link href="/giris" className="font-semibold">Giriş yap</Link>}</div>{signOutError && <p role="alert" className="w-full text-rose-700">{signOutError}</p>}{storageError && <p role="alert" className="w-full text-rose-700">{storageError} <button type="button" className="font-bold underline" onClick={() => { void refresh(); }}>Yeniden dene</button></p>}</div></div>;
+    return <div className="border-b border-brand-100 bg-brand-50 text-xs text-brand-800"><div className="section-container flex flex-wrap items-center justify-between gap-2 py-2"><span>Canlı hesap modu · Ödeme sağlayıcısı henüz bağlı değil, gerçek ödeme alınmaz</span><div className="flex flex-wrap gap-4">{(role === "seller" || role === "admin" || sellerAccount) && <Link href="/satici-panel">Satıcı paneli</Link>}{role === "admin" && <Link href="/yonetim">Yönetim</Link>}{ready && !signedIn && <Link href="/giris" className="font-semibold">Giriş yap</Link>}</div>{storageError && <p role="alert" className="w-full text-rose-700">{storageError} <button type="button" className="font-bold underline" onClick={() => { void refresh(); }}>Yeniden dene</button></p>}</div></div>;
   }
-  return <div className="border-b border-brand-100 bg-brand-50 text-xs text-brand-800"><div className="section-container flex flex-wrap items-center justify-between gap-2 py-2"><span>Demo · Gerçek ödeme alınmaz · Veriler bu tarayıcıda saklanır</span><div className="flex flex-wrap gap-4"><Link href="/demo" className="font-bold">Demo rehberi</Link><Link href="/hesabim">{user?.name ?? "Demo hesabım"}</Link><Link href="/siparislerim">Siparişlerim</Link><Link href="/satici-panel">Satıcı paneli</Link></div>{storageError && <p role="alert" className="w-full text-rose-700">{storageError}</p>}{configProblem && <p role="alert" className="w-full text-amber-800">{configProblem}</p>}</div></div>;
+  return <div className="border-b border-brand-100 bg-brand-50 text-xs text-brand-800"><div className="section-container flex flex-wrap items-center justify-between gap-2 py-2"><span>Demo · Gerçek ödeme alınmaz · Veriler bu tarayıcıda saklanır</span><div className="flex flex-wrap gap-4"><Link href="/demo" className="font-bold">Demo rehberi</Link><Link href="/satici-panel">Satıcı paneli</Link></div>{storageError && <p role="alert" className="w-full text-rose-700">{storageError}</p>}{configProblem && <p role="alert" className="w-full text-amber-800">{configProblem}</p>}</div></div>;
 }
 export function DemoCatalog({ compact = false, initialQuery = "" }: { compact?: boolean; initialQuery?: string }) {
   const { mode } = useDemo();

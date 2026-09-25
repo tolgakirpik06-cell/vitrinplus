@@ -5,7 +5,7 @@ modunda (tarayıcı `localStorage`) çalışmaya devam eder; bu klasörü kullan
 
 ```
 supabase/
-  migrations/   0001 … 0006  → sırayla çalıştırılacak SQL dosyaları
+  migrations/   0001 … 0007  → sırayla çalıştırılacak SQL dosyaları
   tests/        yerel PostgreSQL üzerinde kural + eşzamanlılık testleri (Supabase'e dokunmaz)
 ```
 
@@ -31,9 +31,10 @@ Her biri hatasız bitmeden sonrakine geçme.
 | 4 | `0004_functions.sql` | `place_order`, `transition_order`, `adjust_stock`, `create_return`, `ask_question`, `plan_payout` vb. RPC'ler |
 | 5 | `0005_rls_and_grants.sql` | Row Level Security politikaları ve sütun bazlı yetkiler |
 | 6 | `0006_storage.sql` | `product-images`, `store-assets`, `avatars` kovaları ve politikaları |
+| 7 | `0007_seller_documents.sql` | ÖZEL `seller-documents` kovası, `seller_documents` tablosu, belge kayıt RPC'si, yönetici başvuru kararı (`admin_review_seller_application`) |
 
 Doğrulama: **Table Editor**'de tabloların geldiğini, **Authentication → Policies** altında
-her tabloda RLS'nin açık olduğunu, **Storage** altında üç kovanın oluştuğunu kontrol et.
+her tabloda RLS'nin açık olduğunu, **Storage** altında dört kovanın oluştuğunu kontrol et (`seller-documents` kovası **Private** olmalı; yanında “Public” etiketi görünmemeli).
 
 ## 3. Kimlik doğrulama (Authentication)
 
@@ -80,6 +81,13 @@ update public.profiles set role = 'admin' where email = 'senin-epostan@ornek.com
 
 Ardından çıkış yapıp yeniden giriş yap. `/yonetim` ekranı satıcı başvurularını ve ödeme planlarını gösterir.
 
+### Satıcı başvurusu inceleme akışı ve belgeler (0007)
+
+- `/yonetim` listesindeki **Başvuruyu İncele** düğmesi `/yonetim/basvuru/<id>` ekranını açar: formda kaydedilen tüm bilgiler, yüklenen belgeler ve — sayfanın en altında — **Onayla / Reddet** kararı. Red için neden zorunludur; neden veritabanına yazılır ve satıcı `/satici-basvuru/durum` sayfasında görür.
+- Karar yalnızca **bekleyen** başvuruya verilebilir; aynı başvuruya ikinci karar veritabanında reddedilir (`ALREADY_REVIEWED`).
+- Belge dosyaları **özel** `seller-documents` kovasında `{kullanıcı_id}/{belge_türü}/{uuid}.{pdf|jpg|png}` yolunda durur. Herkese açık URL yoktur; yönetici ve satıcı belgeyi yalnızca **60 saniyelik imzalı adresle** açar. Satıcı yalnızca kendi klasörünü, yönetici tüm kovayı okur; yazma/silme yalnızca sahibine ve yalnızca bekleyen/reddedilmiş başvuruda açıktır.
+- 0007'den **önce** gönderilmiş başvurularda dosya yoktur (form yalnızca dosya adı kaydediyordu). Yönetici bu belgeleri “Yüklenmedi” görür; satıcı `/satici-basvuru/durum` sayfasından yükleyebilir.
+
 ## 6. Uçtan uca deneme
 
 1. İkinci bir hesapla kayıt ol → `/satici-basvuru` ile mağaza başvurusu yap → `/satici-basvuru/durum` "İnceleniyor" der.
@@ -98,7 +106,7 @@ dokunmadan**, boş bir yerel PostgreSQL üzerinde çalışır:
 PGHOST=localhost PGUSER=postgres bash supabase/tests/run-local.sh
 ```
 
-Bu testler Supabase'in `auth` / `storage` şemalarını taklit eden bir katman (`00_supabase_shim.sql`) kullanır; gerçek
+`run-local.sh` sırasıyla `10_rules.test.sql` (kurallar), `30_seller_documents.test.sql` (özel kova, belge politikaları, başvuru kararı) ve `20_concurrency.sh` dosyalarını çalıştırır. Bu testler Supabase'in `auth` / `storage` şemalarını taklit eden bir katman (`00_supabase_shim.sql`) kullanır; gerçek
 Supabase'in yerine geçmez. Kendi projende 6. bölümdeki denemeyi yapmak asıl doğrulamadır.
 
 ## Bilinen sınırlar
@@ -108,5 +116,6 @@ Supabase'in yerine geçmez. Kendi projende 6. bölümdeki denemeyi yapmak asıl 
 - Sipariş **mağaza başına** oluşur; kupon ve hızlı kargo her mağaza siparişine ayrı uygulanır.
 - Aktif mağazaların iletişim e-postası / telefonu herkese açık okunur (mağaza sayfası için). Kişisel bilgi girme.
 - Şifre sıfırlama akışı henüz yoktur (Supabase panelinden kullanıcıya gönderilebilir).
-- TC kimlik / kimlik belgesi bilgileri veritabanına yazılmaz.
+- T.C. kimlik no, doğum tarihi, tam IBAN ve şifre veritabanına yazılmaz (yalnızca maskeli IBAN). Belgelerin (kimlik, vergi levhası vb.) DOSYALARI ise yalnızca özel `seller-documents` kovasında tutulur; tabloda yalnızca dosya adı, tür ve boyut meta bilgisi vardır.
+- Belge dosyasının gerçek türü yüklemeden önce tarayıcıda (ilk baytlar) denetlenir; sunucu tarafında kova MIME ve 10 MB sınırını zorlar, ancak dosya içeriği virüs taramasından geçirilmez.
 - Örnek katalog (Aşama 1 vitrin ürünleri) gerçek modda görüntülenir ama sipariş edilemez.

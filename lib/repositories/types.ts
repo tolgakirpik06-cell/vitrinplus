@@ -8,6 +8,7 @@
  */
 import type { AppRole } from "@/lib/auth/paths";
 import type { FinanceSummary, FeeRule } from "@/lib/domain/ledger";
+import type { SellerDocumentKey, UploadedDocumentInfo } from "@/lib/domain/seller-documents";
 import type { DbLedgerStatus, DbLedgerType, DbPayoutStatus, DbQuestionStatus, DbReturnReason, DbReturnStatus, DbSellerStatus, DbStockMovementType, LedgerDeduction, NotificationPrefs } from "@/types/database";
 
 export type Page<T> = { items: T[]; total: number };
@@ -91,15 +92,42 @@ export interface StockRepository {
 
 // ─── Yönetici (asgari) ──────────────────────────────────────────────────────
 export type ApplicationReviewView = { accountId: string; storeId: string | null; reference: string; storeName: string; ownerName: string; ownerEmail: string; plan: string; status: DbSellerStatus; submittedAt: string; rejectionReason: string | null };
+/** Başvuru detayı: liste alanları + başvuru formunun kaydedilen içeriği + yüklenen belgelerin meta bilgisi. Belge içeriği burada YOKTUR. */
+export type ApplicationDetailView = ApplicationReviewView & {
+  ownerPhone: string | null;
+  storeDescription: string;
+  reviewedAt: string | null;
+  reviewerName: string | null;
+  /** `seller_accounts.application` (KVKK için arındırılmış jsonb). Ham hâli; okunabilir bölümlere `parseApplicationDetail` çevirir. */
+  application: unknown;
+  documents: UploadedDocumentInfo[];
+};
 export type PayoutCandidateView = { storeId: string; storeName: string; availableBalance: number };
 
 export interface AdminRepository {
   listApplications(status?: DbSellerStatus): Promise<ApplicationReviewView[]>;
+  getApplicationDetail(accountId: string): Promise<ApplicationDetailView>;
+  /** Yalnızca BEKLEYEN başvuru için karar (onay/ret). Ret nedeni zorunludur. İkinci karar veritabanında reddedilir. */
+  reviewApplication(accountId: string, decision: "approve" | "reject", reason?: string): Promise<void>;
+  /** Askıya alma / askıdan çıkarma (bekleyen başvuru kararından ayrı bir yönetim işlemi). */
   setApplicationStatus(accountId: string, status: "approved" | "rejected" | "suspended", reason?: string): Promise<void>;
+  /** Kısa ömürlü imzalı adres. Yetki depolama politikasında (yönetici) denetlenir. */
+  getDocumentUrl(documentId: string, mode: "view" | "download"): Promise<string>;
   listPayoutCandidates(): Promise<PayoutCandidateView[]>;
   planPayout(storeId: string): Promise<void>;
   listPayouts(): Promise<PayoutView[]>;
   setPayoutStatus(payoutId: string, status: "processing" | "paid" | "failed" | "cancelled", reference?: string): Promise<void>;
+}
+
+// ─── Satıcı belgeleri (özel depolama) ───────────────────────────────────────
+export type SellerDocumentFiles = Partial<Record<SellerDocumentKey, File>>;
+
+export interface SellerDocumentsRepository {
+  /** Çağıranın kendi başvurusundaki belgeler (RLS). */
+  list(): Promise<UploadedDocumentInfo[]>;
+  /** Dosyaları özel kovaya yükler ve belge kaydını oluşturur (yalnızca bekleyen başvuru). */
+  upload(files: SellerDocumentFiles): Promise<void>;
+  getUrl(documentId: string, mode: "view" | "download"): Promise<string>;
 }
 
 // ─── Görsel yükleme ─────────────────────────────────────────────────────────

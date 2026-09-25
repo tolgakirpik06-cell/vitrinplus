@@ -15,4 +15,6 @@ for f in "${ROOT}"/migrations/*.sql; do
 done
 ${PSQL} -o /dev/null -d "${DB}" -f "${HERE}/10_rules.test.sql" 2>&1 | tee /tmp/vp-rules.out
 echo "PASS sayısı: $(grep -c 'PASS:' /tmp/vp-rules.out || true)"
+${PSQL} -o /dev/null -d "${DB}" -f "${HERE}/30_seller_documents.test.sql" 2>&1 | tee /tmp/vp-docs.out
+echo "Belge testleri PASS sayısı: $(grep -c 'PASS:' /tmp/vp-docs.out || true)"
 bash "${HERE}/20_concurrency.sh" "${DB}"

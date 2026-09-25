@@ -16,6 +16,7 @@ import { friendlyAuthError, validateSignIn, validateSignUp } from "@/lib/auth/cr
 import { safeNextPath } from "@/lib/auth/paths";
 import { transitionOrder as transitionDemoOrder, type DemoOrderStatus, type DemoShop, type DemoState } from "@/lib/demo-marketplace";
 import { sanitizeApplication } from "@/lib/domain/application";
+import { sellerTypeOf } from "@/lib/domain/application-detail";
 import { MarketplaceError, friendlyError } from "@/lib/domain/errors";
 import { demoToDbStatus } from "@/lib/domain/order-engine";
 import { DEFAULT_PLAN_KEY, isPlanKey, type PlanKey } from "@/lib/plans";
@@ -28,6 +29,7 @@ import { idFromProductSlug } from "@/lib/repositories/supabase/mappers";
 import { placeOrder as placeServerOrder, transitionOrder as transitionServerOrder, updateOrderDetails } from "@/lib/repositories/supabase/orders";
 import { createQuestionsRepository } from "@/lib/repositories/supabase/questions";
 import { createReturnsRepository } from "@/lib/repositories/supabase/returns";
+import { createSellerDocumentsRepository, discardSellerDocumentUploads, registerSellerDocuments, uploadSellerDocumentFiles } from "@/lib/repositories/supabase/seller-documents";
 import { pushShopPlan } from "@/lib/repositories/supabase/seller";
 import { changeSellerPlan, loadSessionData, submitApplication, type SessionData } from "@/lib/repositories/supabase/session";
 import { createStockRepository } from "@/lib/repositories/supabase/stock";
@@ -284,6 +286,7 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
       finance: storeId ? createFinanceRepository(client, { storeId, storeName }) : undefined,
       stock: storeId ? createStockRepository(client, { storeId }) : undefined,
       admin: role === "admin" ? createAdminRepository(client) : undefined,
+      sellerDocuments: userId ? createSellerDocumentsRepository(client, { userId }) : undefined,
     });
   }, [client, userId, storeId, storeName, role]);
 
@@ -331,8 +334,26 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
   // ── Satıcı başvurusu / paket ──────────────────────────────────────────────
   const submitSellerApplication = useCallback<MarketplaceValue["submitSellerApplication"]>(
     async (input) => {
-      if (!client || !dataRef.current) throw new MarketplaceError("AUTH_REQUIRED", "Başvuru için giriş yapmalısın.");
-      const reference = await submitApplication(client, { storeName: input.storeName.trim(), description: input.description, plan: input.plan, application: sanitizeApplication(input.application) });
+      const current = dataRef.current;
+      if (!client || !current) throw new MarketplaceError("AUTH_REQUIRED", "Başvuru için giriş yapmalısın.");
+      // 1) Belge dosyaları özel depolamaya yüklenir (geçersiz dosya varsa başvuru hiç gönderilmez).
+      const uploads = await uploadSellerDocumentFiles(client, current.userId, input.documents ?? {});
+      let reference: string;
+      try {
+        reference = await submitApplication(client, { storeName: input.storeName.trim(), description: input.description, plan: input.plan, application: sanitizeApplication(input.application) });
+      } catch (error) {
+        await discardSellerDocumentUploads(client, uploads);
+        throw error;
+      }
+      // 2) Başvuru kaydedildi; belge kaydı bundan sonra yapılır. Bu adım başarısız olursa başvuru geçerli kalır ve satıcı
+      //    eksik belgeleri başvuru durumu sayfasından yeniden yükleyebilir (orada "Yüklenmedi" olarak görünür).
+      if (uploads.length) {
+        try {
+          await registerSellerDocuments(client, uploads);
+        } catch {
+          await discardSellerDocumentUploads(client, uploads);
+        }
+      }
       await refreshRef.current();
       return reference;
     },
@@ -453,7 +474,7 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
   const sellerAccount = useMemo<SellerAccountInfo | null>(
     () =>
       identity
-        ? { accountId: identity.account.id, storeId: identity.store.id, status: identity.account.status, reference: identity.account.reference, rejectionReason: identity.account.rejection_reason, plan: isPlanKey(identity.account.selected_plan) ? identity.account.selected_plan : DEFAULT_PLAN_KEY, storeName: identity.store.name }
+        ? { accountId: identity.account.id, storeId: identity.store.id, status: identity.account.status, reference: identity.account.reference, rejectionReason: identity.account.rejection_reason, reviewedAt: identity.account.reviewed_at, sellerType: sellerTypeOf(identity.account.application), plan: isPlanKey(identity.account.selected_plan) ? identity.account.selected_plan : DEFAULT_PLAN_KEY, storeName: identity.store.name }
         : null,
     [identity],
   );
@@ -467,6 +488,7 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
       ready,
       storageError: loadError,
       user,
+      signedIn: userId !== null,
       shop,
       role,
       sellerAccount,
@@ -497,7 +519,7 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
       injectOrders: unsupported,
       removeOrders: unsupported,
     }),
-    [state, ready, loadError, user, shop, role, sellerAccount, client, sync, retrySync, discardUnsynced, catalog, orders, services, auth, refresh, resolveProduct, ensureProducts, searchCatalog, unsupported, submitSellerApplication, changePlan, updateShop, placeOrder, logout, changeOrder, markReadyToShip, saveOrderDetails],
+    [state, ready, loadError, user, userId, shop, role, sellerAccount, client, sync, retrySync, discardUnsynced, catalog, orders, services, auth, refresh, resolveProduct, ensureProducts, searchCatalog, unsupported, submitSellerApplication, changePlan, updateShop, placeOrder, logout, changeOrder, markReadyToShip, saveOrderDetails],
   );
 
   return <MarketplaceContext.Provider value={value}>{children}</MarketplaceContext.Provider>;

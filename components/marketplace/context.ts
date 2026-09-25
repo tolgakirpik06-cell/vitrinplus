@@ -13,7 +13,7 @@ import type { AppRole } from "@/lib/auth/paths";
 import type { DemoOrderStatus, DemoOrder, DemoShop, DemoState, DemoUser } from "@/lib/demo-marketplace";
 import type { PlanKey } from "@/lib/plans";
 import type { Services } from "@/lib/services";
-import type { Page } from "@/lib/repositories/types";
+import type { Page, SellerDocumentFiles } from "@/lib/repositories/types";
 import type { SellerApplicationData } from "@/types/seller-application";
 import type { OrderMeta } from "@/lib/seller-ops";
 import type { CartLine, Product } from "@/types";
@@ -27,7 +27,7 @@ export type SyncState = { status: "idle" | "syncing" | "error"; pending: number;
 export type OrderExtra = { carrier?: string; tracking?: string };
 export type OrderDetailsPatch = { carrier?: string; tracking?: string; notes?: string };
 
-export type SellerAccountInfo = { accountId: string; storeId: string; status: DbSellerStatus; reference: string; rejectionReason: string | null; plan: PlanKey; storeName: string };
+export type SellerAccountInfo = { accountId: string; storeId: string; status: DbSellerStatus; reference: string; rejectionReason: string | null; reviewedAt: string | null; /** Başvuru formundaki satıcı tipi (zorunlu belge listesi için). */ sellerType: "sahis" | "limited-as" | null; plan: PlanKey; storeName: string };
 
 /** E-posta + şifre ve OAuth. Gerçek oturum yalnızca Supabase'in yanıtıyla açılır; sahte başarı yoktur. */
 export type AuthApi = {
@@ -46,6 +46,8 @@ export type MarketplaceValue = {
   ready: boolean;
   storageError: string;
   user: DemoUser | null;
+  /** Oturum açık mı? Profil verisi (`user`) yüklenmemiş ya da yüklenememiş olsa bile oturum varsa true. */
+  signedIn: boolean;
   shop: DemoShop | undefined;
   /** Yalnızca Supabase modunda dolu. Demo modunda `null`. */
   role: AppRole | null;
@@ -71,7 +73,8 @@ export type MarketplaceValue = {
   login: (email: string, name?: string) => void;
   apply: (storeName: string, description?: string) => string;
   /** Supabase modunda başvuruyu kalıcı olarak kaydeder (hassas alanlar ayıklanır). */
-  submitSellerApplication: (input: { storeName: string; description: string; plan: PlanKey; application: SellerApplicationData }) => Promise<string>;
+  /** `documents`: yalnızca Supabase modunda özel depolamaya yüklenen dosyalar; demo modunda yok sayılır. */
+  submitSellerApplication: (input: { storeName: string; description: string; plan: PlanKey; application: SellerApplicationData; documents?: SellerDocumentFiles }) => Promise<string>;
   changePlan: (plan: PlanKey) => Promise<void>;
   updateShop: (change: (store: DemoShop) => DemoShop) => void;
   checkout: (lines: CartLine[], details: { address: string; billingAddress: string; coupon: string | null; express: boolean }) => string;

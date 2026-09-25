@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import { useMarketplace } from "@/components/marketplace/context";
-import { ActionButton, Field, SelectInput, TextArea, TextInput } from "@/components/dashboard/form";
+import { ActionButton, SelectInput, TextInput, linkButtonClass } from "@/components/dashboard/form";
 import { EmptyState, LoadingState } from "@/components/dashboard/EmptyState";
 import { Modal } from "@/components/dashboard/Modal";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -14,7 +14,7 @@ import { friendlyError } from "@/lib/domain/errors";
 import { useAsync } from "@/lib/use-async";
 import { formatPrice } from "@/lib/utils";
 import type { AdminService } from "@/lib/services";
-import type { ApplicationReviewView, PayoutView } from "@/lib/repositories/types";
+import type { PayoutView } from "@/lib/repositories/types";
 import type { DbPayoutStatus, DbSellerStatus } from "@/types/database";
 
 const SELLER_STATUS: Record<DbSellerStatus, { label: string; tone: BadgeTone }> = {
@@ -32,28 +32,35 @@ const PAYOUT_STATUS: Record<DbPayoutStatus, { label: string; tone: BadgeTone }> 
   cancelled: { label: "İptal", tone: "neutral" },
 };
 
-type Decision = { kind: "reject" | "suspend"; application: ApplicationReviewView };
-
 /**
- * Asgari yönetim ekranı: satıcı başvuru incelemesi ve ödeme planı.
- * NOT: Bu ekranın rol kontrolü yalnızca kullanıcı deneyimi içindir. Asıl yetki `proxy.ts` (rota),
- * RLS politikaları ve SECURITY DEFINER fonksiyonlarındaki `is_admin()` kontrolündedir.
+ * Yönetim ekranı erişim kapısı (oturum + rol). Başvuru listesi ve başvuru detay ekranı aynı kapıyı kullanır.
+ * NOT: Bu kontrol yalnızca kullanıcı deneyimi içindir. Asıl yetki `proxy.ts` (rota), RLS politikaları,
+ * depolama politikaları ve SECURITY DEFINER fonksiyonlarındaki `is_admin()` kontrolündedir.
  */
-export function AdminClient() {
+export function AdminGate({ children, next = "/yonetim" }: { children: (admin: AdminService) => ReactNode; next?: string }) {
   const { ready, mode, user, role, services } = useMarketplace();
   const admin = services.admin;
-  const [tab, setTab] = useState<"applications" | "payouts">("applications");
 
   if (!ready) return <LoadingState label="Yönetim ekranı yükleniyor…" />;
   if (mode !== "supabase") {
     return <EmptyState icon={ShieldAlert} title="Yönetim ekranı gerçek hesap modunda çalışır" description="Supabase yapılandırılmadığı için bu ortam tarayıcı içi demo modunda. Demo başvuruları /demo sayfasından onaylanır." action={<Link href="/demo" className="font-semibold text-royal-600">Demo rehberi →</Link>} />;
   }
   if (!user) {
-    return <EmptyState icon={ShieldAlert} title="Giriş yapmalısın" action={<Link href="/giris?next=%2Fyonetim" className="font-semibold text-royal-600">Giriş yap →</Link>} />;
+    return <EmptyState icon={ShieldAlert} title="Giriş yapmalısın" action={<Link href={`/giris?next=${encodeURIComponent(next)}`} className="font-semibold text-royal-600">Giriş yap →</Link>} />;
   }
   if (role !== "admin" || !admin) {
     return <EmptyState icon={ShieldAlert} title="Bu ekran için yetkin yok" description="Yönetim ekranı yalnızca yönetici hesaplarına açıktır." action={<Link href="/" className="font-semibold text-royal-600">Ana sayfa →</Link>} />;
   }
+  return <>{children(admin)}</>;
+}
+
+/** Asgari yönetim ekranı: satıcı başvuru listesi (karar başvuru detay ekranında verilir) ve ödeme planı. */
+export function AdminClient() {
+  return <AdminGate>{(admin) => <AdminTabs admin={admin} />}</AdminGate>;
+}
+
+function AdminTabs({ admin }: { admin: AdminService }) {
+  const [tab, setTab] = useState<"applications" | "payouts">("applications");
 
   return (
     <>
@@ -79,26 +86,6 @@ function Applications({ admin }: { admin: AdminService }) {
   const [filter, setFilter] = useState<DbSellerStatus | "all">("pending");
   const load = useCallback(() => admin.listApplications(filter === "all" ? undefined : filter), [admin, filter]);
   const list = useAsync(load);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
-  const [decision, setDecision] = useState<Decision | null>(null);
-  const [reason, setReason] = useState("");
-
-  async function run(id: string, action: () => Promise<void>, done: string) {
-    setBusyId(id);
-    setMessage(null);
-    try {
-      await action();
-      setMessage({ tone: "ok", text: done });
-      setDecision(null);
-      setReason("");
-      list.reload();
-    } catch (error) {
-      setMessage({ tone: "error", text: friendlyError(error) });
-    } finally {
-      setBusyId(null);
-    }
-  }
 
   return (
     <Panel>
@@ -115,7 +102,6 @@ function Applications({ admin }: { admin: AdminService }) {
           </SelectInput>
         </label>
       </div>
-      {message && <p role={message.tone === "error" ? "alert" : "status"} className={`mb-3 text-sm ${message.tone === "error" ? "text-rose-600" : "text-emerald-700"}`}>{message.text}</p>}
       {list.error ? (
         <EmptyState title="Başvurular yüklenemedi" description={list.error} action={<ActionButton onClick={list.reload}>Tekrar dene</ActionButton>} />
       ) : list.loading && !list.data ? (
@@ -126,8 +112,6 @@ function Applications({ admin }: { admin: AdminService }) {
         <ul className={`divide-y divide-line transition-opacity ${list.loading ? "opacity-60" : ""}`} aria-busy={list.loading}>
           {list.data.map((item) => {
             const badge = SELLER_STATUS[item.status];
-            const busy = busyId === item.accountId;
-            const locked = busyId !== null;
             return (
               <li key={item.accountId} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
@@ -135,46 +119,13 @@ function Applications({ admin }: { admin: AdminService }) {
                   <p className="text-xs text-muted">{item.ownerName} · {item.ownerEmail} · Paket: {item.plan} · {item.reference} · {new Date(item.submittedAt).toLocaleDateString("tr-TR")}</p>
                   {item.rejectionReason && <p className="mt-1 text-xs text-rose-600">Gerekçe: {item.rejectionReason}</p>}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {(item.status === "pending" || item.status === "rejected" || item.status === "suspended") && (
-                    <ActionButton size="sm" variant="primary" loading={busy} disabled={locked} onClick={() => run(item.accountId, () => admin.approve(item.accountId), `${item.storeName} onaylandı; mağaza artık satışa açık.`)}>Onayla</ActionButton>
-                  )}
-                  {item.status === "pending" && <ActionButton size="sm" variant="danger" disabled={locked} onClick={() => setDecision({ kind: "reject", application: item })}>Reddet</ActionButton>}
-                  {item.status === "approved" && <ActionButton size="sm" variant="danger" disabled={locked} onClick={() => setDecision({ kind: "suspend", application: item })}>Askıya al</ActionButton>}
-                </div>
+                {/* Karar (onay / ret) listede verilmez: yönetici önce başvuruyu ve belgeleri inceler. */}
+                <Link href={`/yonetim/basvuru/${item.accountId}`} className={linkButtonClass("primary", "md")}>Başvuruyu İncele</Link>
               </li>
             );
           })}
         </ul>
       )}
-      <Modal
-        open={decision !== null}
-        onClose={() => { setDecision(null); setReason(""); }}
-        size="sm"
-        title={decision?.kind === "reject" ? "Başvuruyu reddet" : "Mağazayı askıya al"}
-        description={decision?.application.storeName}
-        footer={
-          <>
-            <ActionButton variant="secondary" onClick={() => { setDecision(null); setReason(""); }}>Vazgeç</ActionButton>
-            <ActionButton
-              variant="dangerSolid"
-              disabled={reason.trim().length < 3}
-              loading={decision !== null && busyId === decision.application.accountId}
-              onClick={() => {
-                if (!decision) return;
-                const target = decision.application;
-                void run(target.accountId, () => (decision.kind === "reject" ? admin.reject(target.accountId, reason) : admin.suspend(target.accountId, reason)), decision.kind === "reject" ? "Başvuru reddedildi." : "Mağaza askıya alındı.");
-              }}
-            >
-              {decision?.kind === "reject" ? "Reddet" : "Askıya al"}
-            </ActionButton>
-          </>
-        }
-      >
-        <Field label="Gerekçe (satıcıya gösterilir)" htmlFor="admin-reason" hint={`${reason.length}/300`}>
-          <TextArea id="admin-reason" value={reason} maxLength={300} onChange={(event) => setReason(event.target.value)} />
-        </Field>
-      </Modal>
     </Panel>
   );
 }

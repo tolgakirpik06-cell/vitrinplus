@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Stepper } from "@/components/seller-application/Stepper";
@@ -38,7 +38,9 @@ import {
 import { useDemo } from "@/components/demo/DemoProvider";
 import Link from "next/link";
 import { initialSellerApplicationData } from "@/types/seller-application";
-import type { SellerApplicationData } from "@/types/seller-application";
+import type { SellerApplicationData, SellerDocumentKey } from "@/types/seller-application";
+import type { SellerDocumentFiles } from "@/lib/repositories/types";
+import { requiredDocumentKeys } from "@/lib/domain/seller-documents";
 
 type StepConfig = {
   id: string;
@@ -51,6 +53,8 @@ type StepConfig = {
     /** Gerçek hesap modu: şifre alınmaz, e-posta oturumdaki hesaptan gelir. */
     live: boolean;
     accountEmail?: string;
+    /** Gerçek modda seçilen belge dosyasını (yalnızca bellekte) saklar; gönderimde özel depolamaya yüklenir. */
+    setFile: (key: SellerDocumentKey, file: File | null) => void;
   }) => ReactNode;
 };
 
@@ -119,6 +123,16 @@ export function SellerApplicationWizard() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [hydrated, setHydrated] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Seçilen dosyaların kendisi yalnızca bellekte tutulur (taslağa/localStorage'a yazılmaz).
+  const [files, setFiles] = useState<SellerDocumentFiles>({});
+  const setFile = useCallback((key: SellerDocumentKey, file: File | null) => {
+    setFiles((previous) => {
+      const next = { ...previous };
+      if (file) next[key] = file;
+      else delete next[key];
+      return next;
+    });
+  }, []);
 
   // Taslağı localStorage'dan yükle (sadece ilk render'da, tarayıcıda).
   useEffect(() => {
@@ -129,8 +143,10 @@ export function SellerApplicationWizard() {
         const parsed = JSON.parse(raw) as SellerApplicationData;
         if (parsed && typeof parsed === "object" && parsed.status === "taslak") {
           // Taslak sadece hydration tamamlandıktan sonra uygulanabilir.
+          const restored = normalizeApplicationData({ ...initialSellerApplicationData, ...parsed });
+          // Gerçek modda dosyanın kendisi taslakta yoktur: belgeler yeniden seçilir (yalnızca eski dosya bilgisi kalmasın).
           // eslint-disable-next-line react-hooks/set-state-in-effect
-          setData(normalizeApplicationData({ ...initialSellerApplicationData, ...parsed }));
+          setData(live ? { ...restored, documents: {} } : restored);
         }
       }
     } catch {
@@ -138,7 +154,7 @@ export function SellerApplicationWizard() {
     } finally {
       setHydrated(true);
     }
-  }, []);
+  }, [live]);
 
   // Taslağı her değişiklikte kaydet — sadece henüz gönderilmemişse.
   useEffect(() => {
@@ -161,11 +177,27 @@ export function SellerApplicationWizard() {
   /** Gerçek modda e-posta oturumdaki hesaptır; şifre bu forma ait değildir (kimlik sağlayıcıda tutulur). */
   const effective: SellerApplicationData = live && demo.user ? { ...data, account: { ...data.account, email: demo.user.email } } : data;
 
+  /** Yalnızca seçilen satıcı tipinin istediği belgeler yüklenir (tip değişince kalan eski seçimler gönderilmez). */
+  function filesForSubmit(): SellerDocumentFiles {
+    const picked: SellerDocumentFiles = {};
+    for (const key of requiredDocumentKeys(effective.sellerType)) {
+      const file = files[key];
+      if (file) picked[key] = file;
+    }
+    return picked;
+  }
+
   function handleNext() {
     const stepErrors = { ...currentStep.validate(effective) };
     if (live) {
       delete stepErrors.sifre;
       delete stepErrors.sifreTekrar;
+      // Gerçek modda belge, dosyanın kendisiyle birlikte seçilmiş olmalı (yalnızca dosya bilgisi yetmez).
+      if (currentStep.id === "belgeler") {
+        for (const key of requiredDocumentKeys(effective.sellerType)) {
+          if (effective.documents[key] && !files[key]) stepErrors[key] = "Dosya bu oturumda bulunamadı. Lütfen belgeyi yeniden seçin.";
+        }
+      }
     }
     setErrors(stepErrors);
     if (Object.keys(stepErrors).length > 0) return;
@@ -181,7 +213,7 @@ export function SellerApplicationWizard() {
     setSubmitting(true);
     const plan = isPlanKey(data.planId) ? data.planId : DEFAULT_PLAN_KEY;
     void demo
-      .submitSellerApplication({ storeName: data.store.magazaAdi, description: data.store.aciklama, plan, application: effective })
+      .submitSellerApplication({ storeName: data.store.magazaAdi, description: data.store.aciklama, plan, application: effective, documents: live ? filesForSubmit() : undefined })
       .then((applicationId) => {
         setData((prev) => ({ ...prev, status: "bekliyor", applicationId }));
         try {
@@ -240,7 +272,7 @@ export function SellerApplicationWizard() {
     <div className="mx-auto max-w-3xl">
       <div className="rounded-3xl border border-navy-100/80 bg-white p-5 shadow-card sm:p-8">
         {live ? (
-          <div className="mb-6 rounded-xl bg-brand-50 p-4 text-sm">Başvurun hesabına kaydedilir ve yönetici tarafından incelenir. Şifre, TC kimlik no, doğum tarihi ve tam IBAN sunucuya gönderilmez; belgeler için yalnızca dosya adı ve boyutu kaydedilir.</div>
+          <div className="mb-6 rounded-xl bg-brand-50 p-4 text-sm">Başvurun hesabına kaydedilir ve yönetici tarafından incelenir. Şifre, TC kimlik no, doğum tarihi ve tam IBAN sunucuya gönderilmez. Belgelerin özel bir depolama alanına yüklenir; herkese açık bağlantısı yoktur, yalnızca sen ve yetkili yönetici görüntüleyebilir.</div>
         ) : (
           <div className="mb-6 rounded-xl bg-brand-50 p-4 text-sm">Bu ayrıntılı form demo önizlemesidir. Gerçek belge veya kişisel bilgi girme. <Link href="/demo" className="font-bold text-brand-600 underline">Hızlı demo başvurusu yap</Link></div>
         )}
@@ -248,7 +280,7 @@ export function SellerApplicationWizard() {
         <Stepper steps={stepperItems} currentIndex={currentIndex} />
 
         <div className="mt-7 sm:mt-8">
-          {currentStep.render({ data: effective, errors, setData, live, accountEmail: demo.user?.email })}
+          {currentStep.render({ data: effective, errors, setData, live, accountEmail: demo.user?.email, setFile })}
         </div>
 
         <div className="mt-8 flex items-center justify-between gap-3 border-t border-navy-100 pt-6">
