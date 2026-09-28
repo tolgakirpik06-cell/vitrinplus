@@ -136,7 +136,7 @@ export function toPublicProduct(row: PublicProductSource, imageUrls: readonly st
 export const PRIVATE_PRODUCT_FIELDS = ["cost", "extra_cost", "shipping_cost", "packaging_cost", "payment_cost", "other_cost", "seller_id", "deleted_at"] as const;
 
 /** Müşteri ürün sorgusunun sütun listesi (allow-list). */
-export const PUBLIC_PRODUCT_COLUMNS = "id, store_id, name, sku, brand, model, category, short_description, description, price, discount_price, discount_start, discount_end, stock, status" as const;
+export const PUBLIC_PRODUCT_COLUMNS = "id, store_id, name, sku, brand, model, category, short_description, description, price, discount_price, discount_start, discount_end, stock" as const;
 
 // ─── Satılabilirlik ve yetki ────────────────────────────────────────────────
 
