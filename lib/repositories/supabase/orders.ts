@@ -32,7 +32,7 @@ export async function placeOrder(client: Client, lines: readonly OrderLineInput[
   if (idempotencyKey.length < 8) throw new MarketplaceError("INVALID_KEY", "Sipariş anahtarı geçersiz.");
   const data = await callRpc(client, "place_order", {
     p_items: lines.map((line) => ({ product_id: line.productId, variant_id: line.variantId ?? null, variant_label: line.variantLabel ?? null, quantity: line.quantity })),
-    p_details: { ship_to: details.shipTo, billing_address: details.billingAddress, coupon: details.coupon, express: details.express, note: details.note ?? "" },
+    p_details: { ship_to: details.shipTo, billing_address: details.billingAddress, coupon: null, express: details.express, note: details.note ?? "" },
     p_idempotency_key: idempotencyKey,
   });
   return parsePlaced(data);

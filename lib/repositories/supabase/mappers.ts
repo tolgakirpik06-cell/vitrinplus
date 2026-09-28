@@ -15,6 +15,7 @@ import type {
 } from "@/types/database";
 import type { AddressView, LedgerEntryView, PayoutView, ProfileView, ReturnEventView, ReturnView, StockMovementView } from "@/lib/repositories/types";
 import { num } from "./common";
+import { productIdFromReference } from "@/lib/product-reference";
 
 export function mapProfile(row: ProfileRow): ProfileView {
   return {
@@ -44,13 +45,11 @@ export function toDayInput(iso: string | null): string | undefined {
 }
 
 export function productSlugFor(id: string): string {
-  return `demo-${id}`;
+  return `urun-${id}`;
 }
 
 export function idFromProductSlug(slug: string): string | null {
-  if (!slug.startsWith("demo-")) return null;
-  const id = slug.slice(5);
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id : null;
+  return productIdFromReference(slug);
 }
 
 export function mapSellerProduct(row: ProductRow, cost: ProductCostRow | undefined, images: readonly ProductImageRow[], variants: readonly ProductVariantRow[]): SellerProduct {

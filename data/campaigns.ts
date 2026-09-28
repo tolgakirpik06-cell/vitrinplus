@@ -3,20 +3,20 @@ import type { Campaign } from "@/types";
 export const campaigns: Campaign[] = [
   {
     id: "super-firsatlar",
-    title: "Süper Fırsatlar Başladı",
-    subtitle: "Elektronik ve modada %70'e varan indirim",
-    badge: "Sınırlı Süre",
+    title: "Vitrini Keşfet",
+    subtitle: "Mağazaların güncel ürünlerini incele",
+    badge: "Keşfet",
     ctaLabel: "Fırsatları Keşfet",
     // Kampanya listesine değil, doğrudan ana sayfadaki "Süper Fırsatlar"
     // ürün satırına yönlendirir — tıklanan kampanya ile gösterilen ürünler
     // artık gerçekten eşleşiyor (madde 12).
-    href: "/#super-firsatlar",
+    href: "/kampanyalar",
     tone: "brand",
   },
   {
     id: "satici-ol",
     title: "%0 Komisyonla Mağazanı Aç",
-    subtitle: "Kurucu 500 kampanyası sürüyor",
+    subtitle: "VitrinPlus satıcı planlarını incele",
     badge: "Satıcılara Özel",
     ctaLabel: "Hemen Başvur",
     href: "/satici-basvuru",
@@ -33,9 +33,9 @@ export const campaigns: Campaign[] = [
   },
   {
     id: "hizli-teslimat",
-    title: "Aynı Gün Kargoda",
-    subtitle: "Seçili ürünlerde hızlı teslimat avantajı",
-    badge: "Hızlı",
+    title: "Elektronik Vitrini",
+    subtitle: "Elektronik kategorisini keşfet",
+    badge: "Teknoloji",
     ctaLabel: "İncele",
     href: "/kategori/elektronik",
     tone: "navy",
@@ -43,7 +43,7 @@ export const campaigns: Campaign[] = [
   {
     id: "supermarket-firsat",
     title: "Markette Bu Hafta",
-    subtitle: "150 TL üzeri alışverişte kargo bedava",
+    subtitle: "Market ürünlerini keşfet",
     badge: "Market",
     ctaLabel: "Markete Git",
     href: "/kategori/supermarket",
@@ -52,7 +52,7 @@ export const campaigns: Campaign[] = [
   {
     id: "kozmetik-firsat",
     title: "Cilt Bakımı Günleri",
-    subtitle: "Seçili kozmetik ürünlerinde 2. ürün %50",
+    subtitle: "Güzellik ve bakım ürünlerini keşfet",
     badge: "Bakım",
     ctaLabel: "Alışverişe Başla",
     href: "/kategori/kozmetik",

@@ -131,7 +131,7 @@ export function CampaignsPage() {
         </ul>
 
         <p role="note" className="rounded-xl border border-line bg-white px-4 py-3 text-xs leading-relaxed text-muted shadow-panel">
-          Kampanyalar taslak olarak saklanır ve ürün fiyatlarına otomatik uygulanmaz. Ürün bazlı indirim için ürünü düzenlerken “İndirimli fiyat” alanını kullan. Alışveriş demosunda <strong className="text-navy-700">VITRINPLUS10</strong> kuponu kullanılabilir.
+          Kampanyalar taslak olarak saklanır ve ürün fiyatlarına otomatik uygulanmaz. Ürün bazlı indirim için ürünü düzenlerken “İndirimli fiyat” alanını kullan.
         </p>
 
         <Panel aria-label="Kampanya listesi">

@@ -111,8 +111,7 @@ export function checkPurchase(input: { buyerId: string | null; product: Purchasa
 
 // ─── Fiyatlandırma (SQL place_order aynası) ─────────────────────────────────
 
-export const COUPON_CODE = "VITRINPLUS10";
-export const COUPON_RATE = 0.1;
+
 export const EXPRESS_SHIPPING_FEE = 29.9;
 
 export type StoreShipping = { shippingFee: number; freeShippingThreshold: number };
@@ -121,7 +120,7 @@ export type OrderQuote = { subtotal: number; discount: number; shipping: number;
 
 /** Mağaza başına sipariş toplamı. Kupon platform kuponudur (satıcı hakedişinden düşülmez). */
 export function quoteStoreOrder(subtotal: number, shipping: StoreShipping, options: { coupon?: string | null; express?: boolean } = {}): OrderQuote {
-  const discount = options.coupon && options.coupon.trim().toUpperCase() === COUPON_CODE ? round2(subtotal * COUPON_RATE) : 0;
+  const discount = 0;
   const base = subtotal - discount >= shipping.freeShippingThreshold ? 0 : shipping.shippingFee;
   const shippingTotal = round2(base + (options.express ? EXPRESS_SHIPPING_FEE : 0));
   return { subtotal: round2(subtotal), discount, shipping: shippingTotal, total: round2(subtotal - discount + shippingTotal) };

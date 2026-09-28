@@ -59,3 +59,33 @@ DUP=$(cat /tmp/vp-dup-a.txt /tmp/vp-dup-b.txt | grep -c 'SONUC:OK:true')
 NEW=$(cat /tmp/vp-dup-a.txt /tmp/vp-dup-b.txt | grep -c 'SONUC:OK:false')
 echo "yeni_sipariş=$((AFTER-BEFORE)) tekrar_yanıtı=${DUP} yeni_yanıtı=${NEW} kalan_stok=${STOCK2}"
 if [ "$((AFTER-BEFORE))" = "1" ] && [ "${DUP}" = "1" ] && [ "${NEW}" = "1" ] && [ "${STOCK2}" = "49" ]; then echo "PASS: eşzamanlılık: aynı anahtarla çift istek tek sipariş üretir"; else echo "FAIL: idempotency yarışı"; exit 1; fi
+
+# Senaryo 3: sipariş ürün kilidini tutarken satıcı eski stok sayımını gönderir.
+# Kilit açıldığında sayım güncel stoğu tekrar kontrol etmeli; satışı ezmemeli.
+echo "── Senaryo 3: satış ile eski stok sayımı yarışı"
+${PSQL} -c "update public.products set stock = 10 where id = 'b0000000-0000-0000-0000-000000000021'" >/dev/null
+order_sql "$CUST1" b0000000-0000-0000-0000-000000000021 stock-race-${RUN} 2 | ${PSQL} 2>&1 | grep SONUC > /tmp/vp-stock-order.txt &
+sleep 0.6
+cat <<SQL | ${PSQL} 2>&1 | grep SONUC > /tmp/vp-stock-count.txt
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'a0000000-0000-0000-0000-000000000001', true);
+do \$\$
+declare v_hint text;
+begin
+  perform public.adjust_stock('b0000000-0000-0000-0000-000000000021', null, 'set', 15, 'Stale count', 10);
+  raise notice 'SONUC:COUNT_OVERWROTE_STOCK';
+exception when others then
+  get stacked diagnostics v_hint = pg_exception_hint;
+  raise notice 'SONUC:HATA:%', coalesce(v_hint, sqlstate);
+end \$\$;
+commit;
+SQL
+wait
+STOCK3=$(${PSQL} -c "select stock from public.products where id = 'b0000000-0000-0000-0000-000000000021'")
+if grep -q 'SONUC:OK' /tmp/vp-stock-order.txt && grep -q 'SONUC:HATA:STOCK_CONFLICT' /tmp/vp-stock-count.txt && [ "${STOCK3}" = "9" ]; then
+  echo "PASS: eşzamanlılık: eski sayım satışı ezmez, stok 9 kalır"
+else
+  echo "FAIL: satış/sayım yarışı"
+  exit 1
+fi

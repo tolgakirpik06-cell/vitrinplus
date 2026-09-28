@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Percent, Sparkles, Tag, Megaphone, Wand2, Star, Package } from "lucide-react";
+import { ArrowRight, Percent, Sparkles, Tag, Megaphone, Wand2, Package } from "lucide-react";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
-import { products } from "@/data/products";
-import { stores } from "@/data/stores";
+import type { Product, Store } from "@/types";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { formatPrice, cn } from "@/lib/utils";
 import { resolveIcon } from "@/lib/icon-map";
 
@@ -15,7 +15,7 @@ const HERO_LIFESTYLE_PHOTO = unsplash("photo-1758520387283-303b0b332e89", 900, 9
 const SELLER_PHOTO = unsplash("photo-1594392175511-30eca83d51c8", 700, 500);
 const TRY_ON_PHOTO = unsplash("photo-1576193929684-06c6c6a8b582", 700, 500);
 
-const storeToneClasses: Record<(typeof stores)[number]["tone"], string> = {
+const storeToneClasses: Record<Store["tone"], string> = {
   brand: "from-brand-500 to-brand-600",
   navy: "from-navy-700 to-navy-900",
   violet: "from-violet-500 to-violet-600",
@@ -43,11 +43,11 @@ function storeInitials(name: string): string {
  * ASLA gösterilmez; bunun yerine dürüst, jenerik bir "Senin İçin Seçtik"
  * ifadesiyle etiketlenir.
  */
-function pickHeroShowcase() {
+function pickHeroShowcase(products: Product[], stores: Store[]) {
   const discountPick = products.find((product) => Boolean(product.oldPrice)) ?? products[0];
   const sponsoredStore = stores.find((store) => store.badge === "verified") ?? stores[0];
   const personalPick =
-    products.find((product) => product.tags.includes("sana-ozel") && product.slug !== discountPick.slug) ??
+    products.find((product) => product.tags.includes("sana-ozel") && product.slug !== discountPick?.slug) ??
     products.find((product) => product.slug !== discountPick.slug) ??
     discountPick;
 
@@ -58,9 +58,9 @@ function pickHeroShowcase() {
  * Ana sayfanın hero'su — referanstaki gibi solda büyük, açık/premium bir
  * lifestyle kompozisyonu (%68), sağda iki dar kampanya kartı (%32).
  */
-export function HeroSection() {
-  const { discountPick, sponsoredStore, personalPick } = pickHeroShowcase();
-  const discountPercent = discountPick.oldPrice
+export function HeroSection({ products, stores }: { products: Product[]; stores: Store[] }) {
+  const { discountPick, sponsoredStore, personalPick } = pickHeroShowcase(products, stores);
+  const discountPercent = discountPick?.oldPrice
     ? Math.round((1 - discountPick.price / discountPick.oldPrice) * 100)
     : null;
 
@@ -135,12 +135,12 @@ export function HeroSection() {
         {/* Klasik, tek düze "gözat" şeridi yerine 3 yönlü dinamik vitrin —
             her kart farklı bir amaca hizmet eder ve gerçek veriye dayanır. */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Link
+          {discountPick ? <Link
             href={`/urun/${discountPick.slug}`}
             className="group flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50/40 p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover sm:p-3.5"
           >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 sm:h-14 sm:w-14">
-              {discountPick.visual === "generic" ? (
+            <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 sm:h-14 sm:w-14">
+              {discountPick.imageUrls?.[0] ? <ProductImage src={discountPick.imageUrls[0]} alt={discountPick.name} sizes="56px" /> : discountPick.visual === "generic" ? (
                 <GenericCategoryVisual icon={resolveIcon(discountPick.icon, Package)} className="h-full w-full" />
               ) : (
                 <ProductVisual visual={discountPick.visual} className="h-full w-full" />
@@ -148,7 +148,7 @@ export function HeroSection() {
             </span>
             <span className="min-w-0">
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-600">
-                <Tag size={10} /> İndirimde{discountPercent ? ` · %${discountPercent}` : ""}
+                <Tag size={10} /> {discountPercent ? "İndirimde" : "Vitrinde"}{discountPercent ? ` · %${discountPercent}` : ""}
               </span>
               <span className="mt-0.5 block truncate text-xs font-semibold text-navy-800 sm:text-[13px]">
                 {discountPick.name}
@@ -162,9 +162,9 @@ export function HeroSection() {
                 ) : null}
               </span>
             </span>
-          </Link>
+          </Link> : <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4 text-sm text-navy-500">Yeni ürünler yakında vitrinde.</div>}
 
-          <Link
+          {sponsoredStore ? <Link
             href={`/magaza/${sponsoredStore.slug}`}
             className="group flex items-center gap-3 rounded-2xl border border-navy-100/70 bg-white p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover sm:p-3.5"
           >
@@ -178,24 +178,23 @@ export function HeroSection() {
             </span>
             <span className="min-w-0">
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-navy-400">
-                <Megaphone size={10} /> Sponsorlu Mağaza
+                <Megaphone size={10} /> Mağazayı Keşfet
               </span>
               <span className="mt-0.5 block truncate text-xs font-semibold text-navy-800 sm:text-[13px]">
                 {sponsoredStore.name}
               </span>
               <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-navy-500">
-                <Star size={11} className="fill-amber-400 text-amber-400" />
-                {sponsoredStore.rating.toFixed(1)} · {sponsoredStore.categoryLabel}
+                {sponsoredStore.productCount} ürün
               </span>
             </span>
-          </Link>
+          </Link> : <div className="rounded-2xl border border-navy-100 bg-white p-4 text-sm text-navy-500">Mağazalar hazırlanıyor.</div>}
 
-          <Link
+          {personalPick ? <Link
             href={`/urun/${personalPick.slug}`}
             className="group flex items-center gap-3 rounded-2xl border border-violet-100 bg-violet-50/40 p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover sm:p-3.5"
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 sm:h-14 sm:w-14">
-              {personalPick.visual === "generic" ? (
+              {personalPick.imageUrls?.[0] ? <ProductImage src={personalPick.imageUrls[0]} alt={personalPick.name} sizes="56px" /> : personalPick.visual === "generic" ? (
                 <GenericCategoryVisual icon={resolveIcon(personalPick.icon, Package)} className="h-full w-full" />
               ) : (
                 <ProductVisual visual={personalPick.visual} className="h-full w-full" />
@@ -212,7 +211,7 @@ export function HeroSection() {
                 {formatPrice(personalPick.price)}
               </span>
             </span>
-          </Link>
+          </Link> : <Link href="/kategoriler" className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4 text-sm text-violet-600">Kategorileri keşfet</Link>}
         </div>
       </div>
 

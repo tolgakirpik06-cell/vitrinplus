@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Star, BadgeCheck, Crown, Package, Users } from "lucide-react";
+import { BadgeCheck, Crown, Package } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { ProductCard } from "@/components/home/ProductCard";
-import { stores } from "@/data/stores";
-import { products as curatedProducts } from "@/data/products";
-import { generateCategoryProducts } from "@/lib/mock-catalog";
+import { catalogStore, catalogProducts } from "@/lib/catalog-server";
+import { pageNumber } from "@/lib/catalog-normalize";
+import { CatalogPagination } from "@/components/ui/CatalogPagination";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { cn } from "@/lib/utils";
 import type { Store } from "@/types";
 
@@ -20,14 +21,6 @@ const toneClasses: Record<Store["tone"], string> = {
   rose: "from-rose-500 to-rose-600",
 };
 
-// Bazı mağazaların (Koton Resmi Mağaza, Bosch Yetkili Satıcı) elle hazırlanmış
-// (curated) hiç ürünü yok — bu mağazalar için en yakın kategoriden örnek ürün
-// listesi getirilir ki mağaza sayfası boş görünmesin.
-const STORE_CATEGORY_FALLBACK: Record<string, string> = {
-  "koton-resmi-magaza": "kadin",
-  "bosch-yetkili-satici": "yapi-market",
-};
-
 function initials(name: string): string {
   return name
     .split(" ")
@@ -38,33 +31,19 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function getStoreProducts(store: Store) {
-  const owned = curatedProducts.filter((product) => product.seller === store.name);
-  if (owned.length >= 4) return owned;
-
-  const fallbackSlug = STORE_CATEGORY_FALLBACK[store.slug];
-  if (!fallbackSlug) return owned;
-
-  const generated = generateCategoryProducts(fallbackSlug, 8).map((product) => ({
-    ...product,
-    seller: store.name,
-  }));
-  return [...owned, ...generated];
-}
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const store = stores.find((s) => s.slug === slug);
+  const store = await catalogStore(slug);
   return { title: store ? `${store.name} | VitrinPlus` : "Mağaza | VitrinPlus" };
 }
 
-export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function StorePage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ sayfa?: string }> }) {
   const { slug } = await params;
-  const store = stores.find((s) => s.slug === slug);
+  const store = await catalogStore(slug);
 
   if (!store) {
     return (
@@ -79,7 +58,8 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
     );
   }
 
-  const storeProducts = getStoreProducts(store);
+  const page = pageNumber((await searchParams).sayfa);
+  const { items: storeProducts, total } = await catalogProducts({ storeSlug: slug, page: page - 1, pageSize: 24 });
 
   return (
     <>
@@ -94,14 +74,15 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
           ]}
         />
 
+        {store.bannerUrl && <div className="relative h-48 overflow-hidden rounded-2xl"><ProductImage src={store.bannerUrl} alt={store.name} sizes="100vw" className="object-cover" /></div>}
         <div className="flex flex-col gap-4 rounded-2xl border border-navy-100/80 bg-white p-5 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
           <span
             className={cn(
-              "flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-xl font-extrabold text-white shadow-sm",
+              "relative overflow-hidden flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-xl font-extrabold text-white shadow-sm",
               toneClasses[store.tone]
             )}
           >
-            {initials(store.name)}
+            {store.logoUrl ? <ProductImage src={store.logoUrl} alt={store.name} sizes="64px" /> : initials(store.name)}
           </span>
 
           <div className="min-w-0 flex-1">
@@ -117,20 +98,14 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                 </span>
               ) : null}
             </div>
-            <p className="mt-1 text-sm text-navy-400">{store.categoryLabel}</p>
+            <p className="mt-1 text-sm text-navy-400">{store.description || store.categoryLabel}</p>
+            {store.contactEmail && <p className="mt-2 text-xs text-navy-500">{store.contactEmail}</p>}
+            {store.contactPhone && <p className="mt-1 text-xs text-navy-500">{store.contactPhone}</p>}
 
             <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-navy-500">
-              <span className="inline-flex items-center gap-1.5 font-semibold text-navy-700">
-                <Star size={14} className="fill-amber-400 text-amber-400" />
-                {store.rating.toFixed(1)}
-              </span>
               <span className="inline-flex items-center gap-1.5">
                 <Package size={14} className="text-navy-400" />
                 {store.productCount.toLocaleString("tr-TR")} ürün
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Users size={14} className="text-navy-400" />
-                {store.followerCount} takipçi
               </span>
             </div>
           </div>
@@ -139,7 +114,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         <div>
           <h2 className="mb-4 text-lg font-bold text-navy-900 sm:text-xl">
             {store.name} Ürünleri{" "}
-            <span className="font-normal text-navy-400">({storeProducts.length})</span>
+            <span className="font-normal text-navy-400">({total})</span>
           </h2>
 
           {storeProducts.length > 0 ? (
@@ -154,6 +129,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
             </div>
           )}
         </div>
+        <CatalogPagination page={page} total={total} size={24} path={`/magaza/${slug}`} />
       </main>
 
       <Footer />

@@ -1,14 +1,15 @@
 import { campaigns } from "@/data/campaigns";
 import { CampaignCard } from "@/components/ui/CampaignCard";
 import { HeroBanner } from "@/components/home/HeroBanner";
+import type { Product } from "@/types";
 
-export function PromoBanners() {
+export function PromoBanners({ products }: { products: Product[] }) {
   const [main, second, third] = campaigns;
 
   return (
     <section aria-label="Kampanya bannerları" className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="lg:col-span-2">
-        <HeroBanner campaign={main} />
+        <HeroBanner campaign={main} products={products} />
       </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
         <CampaignCard campaign={second} size="sm" />

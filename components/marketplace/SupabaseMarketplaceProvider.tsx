@@ -36,7 +36,6 @@ import { createStockRepository } from "@/lib/repositories/supabase/stock";
 import { createStorageRepository } from "@/lib/repositories/supabase/storage";
 import { isEmptyPlan, planShopChanges, replaceImageUrls } from "@/lib/repositories/shop-diff";
 import type { AccountRepository, ReturnsRepository } from "@/lib/repositories/types";
-import { getProductBySlug } from "@/lib/mock-catalog";
 import { createServices, type Services } from "@/lib/services";
 import { SyncQueue } from "@/lib/sync-queue";
 import { getBrowserClient } from "@/lib/supabase/browser";
@@ -229,9 +228,7 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
     (slug: string): Product | undefined => {
       const live = products[slug];
       if (live) return live;
-      // Gerçek mağaza ürünü (demo-<uuid>) katalogda yoksa satışta değildir; statik örnek katalog yalnızca gösterim içindir.
-      if (idFromProductSlug(slug) !== null || slug.startsWith("demo-")) return undefined;
-      return getProductBySlug(slug) ?? undefined;
+      return Object.values(products).find((product) => product.id === idFromProductSlug(slug));
     },
     [products],
   );
@@ -244,13 +241,16 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
       if (!missing.length) return;
       try {
         const fetched = await getPublicProducts(client, missing);
-        const found = new Set(fetched.map((product) => product.slug));
+        const found = new Set(missing.filter((slug) => fetched.some((product) => product.id === idFromProductSlug(slug))));
         for (const slug of missing) if (!found.has(slug)) unavailableRef.current.add(slug);
         for (const slug of found) unavailableRef.current.delete(slug);
         setProducts((previous) => {
           const next = { ...previous };
           // Satıştan kalkan ürün önbellekte kalmasın.
-          for (const slug of missing) if (!found.has(slug)) delete next[slug];
+          for (const slug of missing) if (!found.has(slug)) {
+            const id = idFromProductSlug(slug);
+            for (const [key, product] of Object.entries(next)) if (key === slug || product.id === id) delete next[key];
+          }
           for (const product of fetched) next[product.slug] = product;
           return next;
         });

@@ -1,5 +1,10 @@
 import { PackageCheck } from "lucide-react";
-import { stats } from "@/data/stats";
+const stats = [
+  { icon: PackageCheck, value: "Keşfet", label: "Güncel ürünler" },
+  { icon: PackageCheck, value: "Mağazalar", label: "Satıcılarla doğrudan iletişim" },
+  { icon: PackageCheck, value: "Hesabın", label: "Siparişlerini takip et" },
+  { icon: PackageCheck, value: "Vitrinin", label: "Favorilerini kaydet" },
+];
 
 export function StatsBar() {
   return (

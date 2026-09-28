@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ChevronRight, Store as StoreIcon } from "lucide-react";
-import { stores } from "@/data/stores";
+import type { Store } from "@/types";
+import { CatalogEmpty } from "@/components/ui/CatalogEmpty";
 import { StoreCard } from "@/components/ui/StoreCard";
 
-export function PopularStores() {
-  const items = stores.slice(0, 8);
+export function PopularStores({ items }: { items: Store[] }) {
 
   return (
     <section aria-labelledby="populer-magazalar-baslik">
@@ -13,7 +13,7 @@ export function PopularStores() {
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-50 text-navy-600">
             <StoreIcon size={16} />
           </span>
-          Popüler Mağazalar
+          Mağazaları Keşfet
         </h2>
         <Link
           href="/magazalar"
@@ -24,6 +24,7 @@ export function PopularStores() {
         </Link>
       </div>
 
+      {items.length === 0 && <CatalogEmpty message="Henüz yayında mağaza yok." />}
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {items.map((store) => (
           <StoreCard key={store.id} store={store} />

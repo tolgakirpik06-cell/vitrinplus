@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { ProductVisual } from "@/components/ui/product-visuals";
+import { ChevronLeft, ChevronRight, Package } from "lucide-react";
+import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { formatPrice, cn } from "@/lib/utils";
 import type { Product } from "@/types";
 
@@ -16,9 +17,8 @@ import type { Product } from "@/types";
 export function HeroProductShowcase({ products }: { products: Product[] }) {
   const [index, setIndex] = useState(0);
 
-  if (products.length === 0) return null;
-  const product = products[index];
-  const visualKey = product.visual === "generic" ? "phone" : product.visual;
+  if (products.length === 0) return <p className="rounded-2xl border border-white/10 p-6 text-sm text-white/60">Yeni ürünler eklendiğinde burada görünecek.</p>;
+  const product = products[index % products.length];
 
   function go(delta: number) {
     setIndex((current) => (current + delta + products.length) % products.length);
@@ -55,7 +55,7 @@ export function HeroProductShowcase({ products }: { products: Product[] }) {
           </span>
 
           <div className="relative mx-auto mt-3 aspect-square w-[72%] drop-shadow-[0_20px_24px_rgba(5,7,16,0.5)] transition-transform duration-300 group-hover:-translate-y-1">
-            <ProductVisual visual={visualKey} className="h-full w-full" />
+            {product.imageUrls?.[0] ? <ProductImage src={product.imageUrls[0]} alt={product.name} sizes="200px" /> : product.visual === "generic" ? <GenericCategoryVisual icon={Package} className="h-full w-full" /> : <ProductVisual visual={product.visual} className="h-full w-full" />}
           </div>
 
           <p className="mt-3 line-clamp-1 text-xs font-semibold text-white/90">{product.name}</p>

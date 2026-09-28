@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { DemoCatalog } from "@/components/demo/DemoScreens";
+import { catalogProducts, catalogStores } from "@/lib/catalog-server";
+import { pageNumber, normalizeSearch } from "@/lib/catalog-normalize";
+import { mainCategories, extraCategories } from "@/data/categories";
+import { CatalogPagination } from "@/components/ui/CatalogPagination";
 import Link from "next/link";
 import { SearchX, Store as StoreIcon, LayoutGrid } from "lucide-react";
 import { Header } from "@/components/layout/Header";
@@ -7,10 +10,10 @@ import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ProductCard } from "@/components/home/ProductCard";
 import { StoreCard } from "@/components/ui/StoreCard";
-import { searchCatalog } from "@/lib/search";
+
 import { categoryHref } from "@/data/categories";
 
-type SearchParamsShape = { q?: string | string[] };
+type SearchParamsShape = { q?: string | string[]; sayfa?: string | string[] };
 
 function firstValue(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value) ?? "";
@@ -34,7 +37,12 @@ export default async function SearchPage({
   const sp = await searchParams;
   const q = firstValue(sp.q).trim();
 
-  const { categories: matchedCategories, stores: matchedStores, products: matchedProducts } = searchCatalog(q);
+  const page = pageNumber(firstValue(sp.sayfa));
+  const [productPage, storePage] = q ? await Promise.all([catalogProducts({ query: q, page: page - 1, pageSize: 24 }), catalogStores({ query: q, page: page - 1, pageSize: 24 })]) : [{ items: [], total: 0 }, { items: [], total: 0 }];
+  const matchedProducts = productPage.items;
+  const matchedStores = storePage.items;
+  const tokens = normalizeSearch(q).split(" ").filter(Boolean);
+  const matchedCategories = [...mainCategories, ...extraCategories].filter(c => tokens.length > 0 && tokens.every(t => normalizeSearch(c.name).includes(t)));
   const hasAnyResult = matchedCategories.length > 0 || matchedStores.length > 0 || matchedProducts.length > 0;
 
   return (
@@ -43,7 +51,7 @@ export default async function SearchPage({
 
       <main className="section-container flex flex-col gap-6 py-5 sm:py-6">
         <Breadcrumb items={[{ label: "Ana Sayfa", href: "/" }, { label: "Arama Sonuçları" }]} />
-        {q && <DemoCatalog key={q} initialQuery={q} />}
+
 
         {!q ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-navy-100 py-20 text-center">
@@ -60,7 +68,7 @@ export default async function SearchPage({
                 &quot;{q}&quot; için sonuçlar
               </h1>
               <p className="mt-1 text-sm text-navy-400">
-                {matchedProducts.length} ürün · {matchedStores.length} mağaza · {matchedCategories.length} kategori
+                {productPage.total} ürün · {storePage.total} mağaza · {matchedCategories.length} kategori
               </p>
             </div>
 
@@ -68,7 +76,7 @@ export default async function SearchPage({
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-navy-100 py-20 text-center">
                 <SearchX size={32} className="text-navy-300" />
                 <p className="mt-3 text-sm font-semibold text-navy-700">
-                  Hazır katalogda &quot;{q}&quot; için sonuç bulunamadı
+                  Katalogda &quot;{q}&quot; için sonuç bulunamadı
                 </p>
                 <p className="mt-1 max-w-sm text-xs text-navy-400">
                   Farklı bir anahtar kelime deneyebilir veya{" "}
@@ -130,6 +138,7 @@ export default async function SearchPage({
             )}
           </>
         )}
+        <CatalogPagination page={page} total={Math.max(productPage.total, storePage.total)} size={24} path="/arama" params={{ q }} />
       </main>
 
       <Footer />

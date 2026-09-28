@@ -108,9 +108,9 @@ async function updateProduct(client: Client, ctx: PushContext, update: ShopPlan[
     unwrap(await client.from("product_variants").update(patch).eq("id", id).eq("product_id", update.id));
   }
   for (const stock of update.variantStock) {
-    await callRpc(client, "adjust_stock", { p_product_id: update.id, p_variant_id: stock.variantId, p_mode: "set", p_quantity: stock.to, p_note: ctx.note ?? STOCK_NOTE });
+    await callRpc(client, "adjust_stock", { p_product_id: update.id, p_variant_id: stock.variantId, p_mode: "set", p_quantity: stock.to, p_expected_stock: stock.from, p_note: ctx.note ?? STOCK_NOTE });
   }
-  if (update.stock) await callRpc(client, "adjust_stock", { p_product_id: update.id, p_variant_id: null, p_mode: "set", p_quantity: update.stock.to, p_note: ctx.note ?? STOCK_NOTE });
+  if (update.stock) await callRpc(client, "adjust_stock", { p_product_id: update.id, p_variant_id: null, p_mode: "set", p_quantity: update.stock.to, p_expected_stock: update.stock.from, p_note: ctx.note ?? STOCK_NOTE });
 
   // Görseller: kaldır → yükle → sırala
   if (update.imagesRemoved.length || update.imagesAdded.length || update.imageOrder) {

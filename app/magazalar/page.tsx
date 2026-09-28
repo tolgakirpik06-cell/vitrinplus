@@ -4,11 +4,16 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { StoreCard } from "@/components/ui/StoreCard";
-import { stores } from "@/data/stores";
+import { catalogStores } from "@/lib/catalog-server";
+import { pageNumber } from "@/lib/catalog-normalize";
+import { CatalogPagination } from "@/components/ui/CatalogPagination";
+import { CatalogEmpty } from "@/components/ui/CatalogEmpty";
 
 export const metadata: Metadata = { title: "Mağazalar | VitrinPlus" };
 
-export default function MagazalarPage() {
+export default async function MagazalarPage({ searchParams }: { searchParams: Promise<{ sayfa?: string }> }) {
+  const page = pageNumber((await searchParams).sayfa);
+  const { items: stores, total } = await catalogStores({ page: page - 1, pageSize: 24 });
   return (
     <>
       <Header />
@@ -22,15 +27,17 @@ export default function MagazalarPage() {
           </span>
           <div>
             <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Mağazalar</h1>
-            <p className="mt-1 text-sm text-navy-400">{stores.length} satıcı mağazası VitrinPlus&apos;ta</p>
+            <p className="mt-1 text-sm text-navy-400">{total} satıcı mağazası VitrinPlus&apos;ta</p>
           </div>
         </div>
 
+        {stores.length === 0 && <CatalogEmpty message="Henüz yayında mağaza yok." />}
         <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
           {stores.map((store) => (
             <StoreCard key={store.id} store={store} id={store.slug} />
           ))}
         </div>
+        <CatalogPagination page={page} total={total} size={24} path="/magazalar" />
       </main>
 
       <Footer />

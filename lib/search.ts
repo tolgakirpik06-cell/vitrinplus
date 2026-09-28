@@ -3,11 +3,8 @@ import { mainCategories, extraCategories } from "@/data/categories";
 import { stores } from "@/data/stores";
 import { generateCategoryProducts } from "@/lib/mock-catalog";
 
-export function normalizeSearch(value: string): string {
-  return value.toLocaleLowerCase("tr-TR").normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i")
-    .replace(/[^a-z0-9]+/g, " ").trim();
-}
+export { normalizeSearch } from "@/lib/catalog-normalize";
+import { normalizeSearch } from "@/lib/catalog-normalize";
 
 const categories = [...mainCategories, ...extraCategories];
 // Use the same catalog and slugs as category and product detail pages.

@@ -1,4 +1,5 @@
-import { DemoCatalog } from "@/components/demo/DemoScreens";
+import { catalogProducts, catalogStores } from "@/lib/catalog-server";
+import { CatalogEmpty } from "@/components/ui/CatalogEmpty";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CategoryStrip } from "@/components/layout/CategoryStrip";
@@ -16,10 +17,11 @@ import { SellerCta } from "@/components/home/SellerCta";
 import { PricingSection } from "@/components/home/PricingSection";
 import { PerksSection } from "@/components/home/PerksSection";
 import { productRows } from "@/data/product-sections";
-import { products } from "@/data/products";
-import { selectRowProducts } from "@/lib/product-rows";
 
-export default function HomePage() {
+
+
+export default async function HomePage() {
+  const [{ items: products }, { items: stores }] = await Promise.all([catalogProducts({ pageSize: 48, inStock: true }), catalogStores({ pageSize: 8 })]);
   const featuredRow = productRows.find((row) => row.id === "ai-onerileri");
   const personalRow = productRows.find((row) => row.id === "sana-ozel");
   const otherRows = productRows.filter(
@@ -31,7 +33,8 @@ export default function HomePage() {
   // gelen bölümler mümkün olduğunca aynı ürünleri tekrar etmez (madde 11).
   const shownIds = new Set<string>();
   function pickRowItems(row: (typeof productRows)[number]) {
-    const items = selectRowProducts(products, row, shownIds);
+    const candidates = row.id === "super-firsatlar" ? products.filter(p => p.discount) : products;
+    const items = candidates.filter(p => !shownIds.has(p.id)).slice(0, row.id === "ai-onerileri" ? 8 : 4);
     items.forEach((product) => shownIds.add(product.id));
     return items;
   }
@@ -47,26 +50,26 @@ export default function HomePage() {
       <main className="section-container flex flex-col gap-7 py-5 sm:gap-9 sm:py-6">
         <CategoryStrip />
 
-        <HeroSection />
+        <HeroSection products={products} stores={stores} />
 
         <CategoryChips />
-        <DemoCatalog compact />
+        {products.length === 0 && <CatalogEmpty />}
 
-        {featuredRow ? <FeaturedCarousel config={featuredRow} items={featuredItems} /> : null}
+        {featuredRow && featuredItems.length ? <FeaturedCarousel config={featuredRow} items={featuredItems} /> : null}
 
         <div className="flex flex-col gap-7 sm:gap-8">
-          {otherRowsWithItems.map(({ row, items }) => (
+          {otherRowsWithItems.filter(({ items }) => items.length > 0).map(({ row, items }) => (
             <ProductRow key={row.id} config={row} items={items} />
           ))}
         </div>
 
-        <PromoBanners />
+        <PromoBanners products={products} />
 
         <DiscoverStyle />
 
-        {personalRow ? <ProductRow config={personalRow} items={personalItems} /> : null}
+        {personalRow && personalItems.length ? <ProductRow config={personalRow} items={personalItems} /> : null}
 
-        <PopularStores />
+        <PopularStores items={stores} />
         <CampaignsSection />
 
         <TryOnBanner />

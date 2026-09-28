@@ -43,9 +43,9 @@ test('Hazırlama, kargo, teslim sıralı ilerler; teslim edilmiş sipariş iptal
   assert.equal(current.orders[0].status, 'teslim-edildi');
   assert.throws(() => transitionOrder(current, 'VP-TEST', 'iptal-edildi', true));
 });
-test('Kupon sonrası kargo eşiği ve hızlı kargo aynı hesaplanır', () => {
-  assert.equal(totals(250, 'VITRINPLUS10').total, 274.9);
-  assert.equal(totals(300, 'VITRINPLUS10', true).total, 299.9);
+test('Eski kupon indirim sağlamaz; kargo eşiği ve hızlı kargo korunur', () => {
+  assert.equal(totals(250, 'VITRINPLUS10').total, 250);
+  assert.equal(totals(300, 'VITRINPLUS10', true).total, 329.9);
   assert.equal(totals(0, null).total, 0);
 });
 test('Satıcı ürünü stoku düşer, iptalde geri gelir; silinen ürün satılamaz', () => {

@@ -7,33 +7,26 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { ProductCard } from "@/components/home/ProductCard";
 import { findCategoryBySlug, categoryHref } from "@/data/categories";
-import { generateCategoryProducts, getCategoryCatalog } from "@/lib/mock-catalog";
+import { catalogProducts } from "@/lib/catalog-server";
+import { pageNumber } from "@/lib/catalog-normalize";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/types";
+
 
 const PAGE_SIZE = 12;
 
-type SortKey = "onerilen" | "fiyat-artan" | "fiyat-azalan" | "puan";
+type SortKey = "onerilen" | "fiyat-artan" | "fiyat-azalan";
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "onerilen", label: "Önerilen" },
   { key: "fiyat-artan", label: "Fiyat: Düşükten Yükseğe" },
   { key: "fiyat-azalan", label: "Fiyat: Yüksekten Düşüğe" },
-  { key: "puan", label: "En Çok Değerlendirilen" },
+
 ];
 
 type SearchParamsShape = Record<string, string | string[] | undefined>;
 
 function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function subcategoryKeywords(sub: string): string[] {
-  return sub
-    .toLowerCase()
-    .split(/[&/]/)
-    .map((part) => part.trim())
-    .filter(Boolean);
 }
 
 function buildQuery(current: SearchParamsShape, overrides: Record<string, string | undefined>): string {
@@ -51,57 +44,6 @@ function buildQuery(current: SearchParamsShape, overrides: Record<string, string
   }
   const query = params.toString();
   return query ? `?${query}` : "";
-}
-
-function priceBuckets(min: number, max: number): { label: string; value: string }[] {
-  const span = max - min;
-  const step = Math.max(Math.round(span / 4 / 10) * 10, 10);
-  const b1 = min + step;
-  const b2 = min + step * 2;
-  const b3 = min + step * 3;
-  const fmt = (n: number) => `${Math.round(n).toLocaleString("tr-TR")} TL`;
-  return [
-    { label: `${fmt(min)} - ${fmt(b1)}`, value: `${min}-${b1}` },
-    { label: `${fmt(b1)} - ${fmt(b2)}`, value: `${b1}-${b2}` },
-    { label: `${fmt(b2)} - ${fmt(b3)}`, value: `${b2}-${b3}` },
-    { label: `${fmt(b3)} ve üzeri`, value: `${b3}-` },
-  ];
-}
-
-function applyFilters(
-  products: Product[],
-  filters: { alt?: string; marka?: string; fiyat?: string }
-): Product[] {
-  let result = products;
-
-  if (filters.marka) {
-    const needle = filters.marka.toLowerCase();
-    result = result.filter((p) => p.seller.toLowerCase().includes(needle));
-  }
-
-  if (filters.alt) {
-    const keywords = subcategoryKeywords(filters.alt);
-    const matched = result.filter((p) => keywords.some((k) => p.name.toLowerCase().includes(k)));
-    if (matched.length > 0) result = matched;
-  }
-
-  if (filters.fiyat) {
-    const [minRaw, maxRaw] = filters.fiyat.split("-");
-    const min = Number(minRaw) || 0;
-    const max = maxRaw ? Number(maxRaw) : Infinity;
-    const matched = result.filter((p) => p.price >= min && p.price <= max);
-    if (matched.length > 0) result = matched;
-  }
-
-  return result;
-}
-
-function sortProducts(products: Product[], sort: SortKey): Product[] {
-  const copy = [...products];
-  if (sort === "fiyat-artan") return copy.sort((a, b) => a.price - b.price);
-  if (sort === "fiyat-azalan") return copy.sort((a, b) => b.price - a.price);
-  if (sort === "puan") return copy.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
-  return copy;
 }
 
 export async function generateMetadata({
@@ -139,23 +81,25 @@ export default async function CategoryPage({
   }
 
   const { category } = found;
-  const catalog = getCategoryCatalog(slug);
-  const allProducts = generateCategoryProducts(slug);
+
 
   const alt = firstValue(sp.alt);
   const marka = firstValue(sp.marka);
   const fiyat = firstValue(sp.fiyat);
   const sirala = (firstValue(sp.sirala) as SortKey | undefined) ?? "onerilen";
-  const page = Math.max(1, Number(firstValue(sp.sayfa)) || 1);
-
-  const filtered = sortProducts(applyFilters(allProducts, { alt, marka, fiyat }), sirala);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const page = pageNumber(firstValue(sp.sayfa));
 
   const subcategories = "subcategories" in category ? category.subcategories : [];
-  const brands = catalog?.brands ?? [];
-  const buckets = catalog ? priceBuckets(catalog.priceRange[0], catalog.priceRange[1]) : [];
+  const [minRaw, maxRaw] = (fiyat ?? "").split("-");
+  const { items: pageItems, total } = await catalogProducts({
+    categories: [category.name, category.slug], query: alt, brand: marka,
+    minPrice: minRaw ? Number(minRaw) : undefined, maxPrice: maxRaw ? Number(maxRaw) : undefined,
+    sort: sirala, page: page - 1, pageSize: PAGE_SIZE,
+  });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = page;
+  const brands: string[] = "brands" in category ? category.brands : [];
+  const buckets = [{ label: "0 – 500 TL", value: "0-500" }, { label: "500 – 2.000 TL", value: "500-2000" }, { label: "2.000 TL ve üzeri", value: "2000-" }];
 
   return (
     <>
@@ -166,7 +110,7 @@ export default async function CategoryPage({
 
         <div>
           <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">{category.name}</h1>
-          <p className="mt-1.5 text-sm text-navy-400">{filtered.length} ürün bulundu</p>
+          <p className="mt-1.5 text-sm text-navy-400">{total} ürün bulundu</p>
         </div>
 
         {subcategories.length > 0 ? (
@@ -257,7 +201,7 @@ export default async function CategoryPage({
 
           <div className="min-w-0 flex-1">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-navy-400 lg:hidden">{filtered.length} ürün</p>
+              <p className="text-xs text-navy-400 lg:hidden">{total} ürün</p>
               <div className="ml-auto flex items-center gap-1 overflow-x-auto">
                 <ArrowUpDown size={13} className="mr-1 hidden shrink-0 text-navy-300 sm:block" />
                 {SORT_OPTIONS.map((option) => (
@@ -305,7 +249,7 @@ export default async function CategoryPage({
                 >
                   <ChevronLeft size={16} />
                 </Link>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => Math.max(1, Math.min(currentPage - 3, totalPages - 6)) + i).map((p) => (
                   <Link
                     key={p}
                     href={`${categoryHref(slug)}${buildQuery(sp, { sayfa: String(p) })}`}

@@ -63,6 +63,7 @@ export type Product = {
   rating: number;
   reviewCount: number;
   seller: string;
+  storeSlug?: string;
   stock: number;
   shipping: ShippingInfo;
   aiTag: AiTag;
@@ -177,6 +178,12 @@ export type BreadcrumbItem = {
 };
 
 export type Store = {
+  live?: boolean;
+  description?: string;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
+  contactEmail?: string;
+  contactPhone?: string;
   id: string;
   slug: string;
   name: string;

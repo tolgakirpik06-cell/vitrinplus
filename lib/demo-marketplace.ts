@@ -37,8 +37,8 @@ export type DemoOrder = {
 export type DemoState = { version: 1; users: DemoUser[]; currentUserId: string | null; shops: DemoShop[]; orders: DemoOrder[]; sold: Record<string, number> };
 export const emptyDemo: DemoState = { version: 1, users: [], currentUserId: null, shops: [], orders: [], sold: {} };
 export const orderLabels: Record<DemoOrderStatus, string> = { alindi: "Alındı", hazirlaniyor: "Hazırlanıyor", kargoda: "Kargoda", "teslim-edildi": "Teslim edildi", "iptal-edildi": "İptal edildi" };
-export function totals(subtotal: number, coupon: string | null, express = false) {
-  const discount = coupon === "VITRINPLUS10" ? Math.round(subtotal * 10) / 100 : 0;
+export function totals(subtotal: number, _coupon: string | null, express = false) {
+  const discount = 0;
   const shipping = subtotal === 0 ? 0 : (subtotal - discount >= 250 ? 0 : 49.9) + (express ? 29.9 : 0);
   return { subtotal, discount, shipping, total: Math.round((subtotal - discount + shipping) * 100) / 100 };
 }

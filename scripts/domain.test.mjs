@@ -60,6 +60,9 @@ const movementUi = load('lib/stock-movement-ui.ts');
 const headerAccount = load('lib/header-account.ts');
 const sql = name => fs.readFileSync(path.join(root, 'supabase/migrations', name), 'utf8');
 const functions = sql('0004_functions.sql');
+const catalogRepository = load('lib/repositories/supabase/catalog.ts');
+const sellerRepository = load('lib/repositories/supabase/seller.ts');
+const productReferences = load('lib/product-reference.ts');
 const foundation = sql('0001_foundation.sql');
 
 /** vm bağlamında üretilen nesnelerin prototipi farklıdır; karşılaştırmadan önce düz JSON'a çevrilir. */
@@ -390,7 +393,7 @@ test('Sipariş toplamı: kupon, ücretsiz kargo eşiği ve hızlı kargo SQL ile
   const shipping = { shippingFee: 49.9, freeShippingThreshold: 250 };
   same(orders.quoteStoreOrder(100, shipping), { subtotal: 100, discount: 0, shipping: 49.9, total: 149.9 });
   same(orders.quoteStoreOrder(250, shipping), { subtotal: 250, discount: 0, shipping: 0, total: 250 });
-  same(orders.quoteStoreOrder(260, shipping, { coupon: 'vitrinplus10' }), { subtotal: 260, discount: 26, shipping: 49.9, total: 283.9 });
+  same(orders.quoteStoreOrder(260, shipping, { coupon: 'vitrinplus10' }), { subtotal: 260, discount: 0, shipping: 0, total: 260 });
   assert.equal(orders.quoteStoreOrder(100, shipping, { express: true }).shipping, 79.8);
   assert.equal(orders.quoteStoreOrder(100, shipping, { coupon: 'YANLIS' }).discount, 0);
 });
@@ -591,15 +594,15 @@ test('Değişiklik planı: varyant stoku ve indirim tarihi doğru üretilir', ()
 // ─── Veritabanı satırı → arayüz modeli ──────────────────────────────────────
 test('Eşleyiciler: ürün slug\'ı, mağaza durumu, sipariş kimliği ve müşteri ürününde maliyet yok', () => {
   const id = '123e4567-e89b-42d3-a456-426614174000';
-  assert.equal(mappers.productSlugFor(id), `demo-${id}`);
+  assert.equal(mappers.productSlugFor(id), `urun-${id}`);
   assert.equal(mappers.idFromProductSlug(`demo-${id}`), id);
-  for (const bad of ['demo-1', 'urun-x', `x-${id}`, '', 'demo-']) assert.equal(mappers.idFromProductSlug(bad), null);
+  for (const bad of ['demo-1', 'urun-x', `x-${id}-extra`, '', 'demo-']) assert.equal(mappers.idFromProductSlug(bad), null);
   assert.equal(mappers.sellerStatusToShopStatus('approved'), 'onaylandi');
   assert.equal(mappers.sellerStatusToShopStatus('pending'), 'bekliyor');
   assert.equal(mappers.sellerStatusToShopStatus('suspended'), 'reddedildi');
 
   const customerView = mappers.mapPublicProduct({ id, name: 'Kulaklık', sku: 'K1', brand: null, model: null, category: 'Ses', shortDescription: '', description: 'Güzel', price: 150, oldPrice: 200, stock: 3, images: ['https://cdn/a.jpg'] }, { name: 'Mağaza', description: '' });
-  assert.equal(customerView.slug, `demo-${id}`);
+  assert.equal(customerView.slug, `urun-${id}`);
   assert.equal(customerView.discount, 25);
   assert.equal(customerView.seller, 'Mağaza');
   assert.equal(/cost|maliyet/i.test(JSON.stringify(customerView)), false);
@@ -611,7 +614,7 @@ test('Eşleyiciler: ürün slug\'ı, mağaza durumu, sipariş kimliği ve müşt
   assert.equal(mapped.status, 'teslim-edildi');
   assert.equal(mapped.deliveredAt, '2026-01-05T00:00:00Z');
   assert.equal(mapped.total, 249.9);
-  assert.equal(mapped.items[0].slug, `demo-${id}`);
+  assert.equal(mapped.items[0].slug, `urun-${id}`);
 });
 
 // ─── Servis katmanı ─────────────────────────────────────────────────────────
@@ -784,16 +787,16 @@ test('Sepet özeti: sipariş mağaza başına oluşur; kargo ve ücretsiz kargo 
   assert.equal(quote.shipping, 49.9);
 });
 
-test('Sepet özeti: kupon her mağaza siparişine %10 uygulanır; hızlı kargo her mağaza siparişine eklenir', () => {
+test('Sepet özeti: eski kupon hiçbir mağaza siparişine uygulanmaz; hızlı kargo her mağaza siparişine eklenir', () => {
   const entries = [
     { line: cartLine('a1', 2), product: liveProduct('a1', 'Mağaza A', 100) },
     { line: cartLine('b1', 1), product: liveProduct('b1', 'Mağaza B', 100) },
   ];
   const quote = cartQuote.quoteCart(entries, { coupon: 'vitrinplus10', express: true });
-  assert.equal(quote.discount, 30); // 20 + 10
+  assert.equal(quote.discount, 0); // platform coupon disabled
   assert.equal(quote.shipping, round(49.9 * 2 + 29.9 * 2));
   assert.equal(quote.subtotal, 300);
-  assert.equal(quote.total, round(300 - 30 + quote.shipping));
+  assert.equal(quote.total, round(300 + quote.shipping));
   assert.equal(cartQuote.quoteCart(entries, { coupon: 'YANLIS' }).discount, 0);
 });
 function round(value) { return Math.round((value + Number.EPSILON) * 100) / 100; }
@@ -1233,4 +1236,78 @@ test('Belge kaydı ve imzalı adres: RPC ile kayıt, değiştirilen eski dosya s
   // Satıcı deposu: yalnızca kendi kimliğiyle listeler; yükleme boş seçimde hata verir.
   const repo = docRepo.createSellerDocumentsRepository(client, { userId: UID });
   await assert.rejects(repo.upload({}), (e) => e.code === 'NO_FILES');
+});
+
+test('Production config: every invalid configuration fails closed; development remains available', () => {
+  for (const reason of ['missing', 'invalid-url', 'secret-key', 'invalid-key']) {
+    assert.throws(() => env.assertProductionConfig({ ok: false, reason }, 'production'), /SUPABASE_CONFIGURATION_ERROR/);
+    assert.doesNotThrow(() => env.assertProductionConfig({ ok: false, reason }, 'development'));
+  }
+  assert.doesNotThrow(() => env.assertProductionConfig({ ok: true, config: { url: 'https://example.supabase.co', anonKey: 'sb_publishable_test' } }, 'production'));
+});
+
+test('Product identity: old cart/favorite references and canonical slug refer to the same product', () => {
+  const id = '123e4567-e89b-42d3-a456-426614174000';
+  assert.equal(productReferences.sameProductReference(`demo-${id}`, `sik-kulaklik-${id}`), true);
+  assert.equal(productReferences.sameProductReference(`urun-${id}`, `sik-kulaklik-${id}`), true);
+  assert.equal(productReferences.sameProductReference('mock-a', 'mock-b'), false);
+  assert.equal(productReferences.productIdFromReference(`sik-${id}-extra`), null);
+});
+
+function fakeCatalogClient(data = [], count = data.length, error = null) {
+  const calls = [];
+  const builder = new Proxy({}, { get: (_, key) => key === 'then'
+    ? (resolve, reject) => Promise.resolve({ data, count, error }).then(resolve, reject)
+    : (...args) => { calls.push([key, ...args]); return builder; } });
+  return { calls, client: { from: name => { calls.push(['from', name]); return builder; } } };
+}
+
+test('Catalog query: normalized AND search, server filters, bounded pagination and public projection', async () => {
+  const { calls, client } = fakeCatalogClient([], 123);
+  const result = await catalogRepository.searchPublicProducts(client, { query: 'ŞIK İyi, %(kulaklık)', page: 2, pageSize: 1000, categories: ['Kadın & Erkek'], storeSlug: 'store', sort: 'fiyat-artan', minPrice: 100, maxPrice: 500, inStock: true });
+  assert.equal(result.total, 123);
+  same(calls.find(c => c[0] === 'from'), ['from', 'public_catalog']);
+  same(calls.find(c => c[0] === 'range'), ['range', 200, 299]);
+  same(calls.filter(c => c[0] === 'like'), [['like','search_text','%sik%'], ['like','search_text','%iyi%'], ['like','search_text','%kulaklik%']]);
+  same(calls.find(c => c[0] === 'in'), ['in','category_key',['kadin erkek']]);
+  assert.ok(calls.some(c => c[0] === 'eq' && c[1] === 'store_slug' && c[2] === 'store'));
+  assert.ok(calls.some(c => c[0] === 'gte' && c[1] === 'effective_price' && c[2] === 100));
+  assert.ok(calls.some(c => c[0] === 'order' && c[1] === 'effective_price' && c[2].ascending));
+  assert.doesNotMatch(calls.find(c => c[0] === 'select')[1], /seller_id|owner_id|cost|\*/);
+  const empty = fakeCatalogClient([], 0, { message: 'unavailable', code: 'TEST' });
+  await assert.rejects(catalogRepository.searchPublicProducts(empty.client), e => e.code === 'TEST');
+});
+
+test('Catalog DTO: real images/variant stocks/prices; no fabricated review or ownership data', () => {
+  const row = { id: 'p', slug: 'urun-p', store_id: 's', name: 'Ürün', sku: 'SKU', brand: null, model: null, category: 'Elektronik', short_description: '', description: 'Açıklama', price: 200, discount_price: 150, discount_start: null, discount_end: null, stock: 3,
+    seller_id: 'PRIVATE', owner_id: 'PRIVATE', stores: { slug: 'real-store', name: 'Mağaza', description: '', shipping_fee: 20, free_shipping_threshold: 500, owner_id: 'PRIVATE' },
+    product_images: [{ url: 'two', sort_order: 2 }, { url: 'one', sort_order: 1 }], product_variants: [{ label: 'Siyah', stock: 3, sort_order: 0, is_active: true }, { label: 'Gizli', stock: 10, sort_order: 1, is_active: false }] };
+  const mapped = catalogRepository.mapCatalogRow(row);
+  assert.equal(mapped.slug, row.slug);
+  assert.equal(mapped.price, 150);
+  assert.equal(mapped.oldPrice, 200);
+  assert.equal(mapped.rating, 0);
+  assert.equal(mapped.reviewCount, 0);
+  assert.equal(mapped.storeSlug, 'real-store');
+  same(mapped.imageUrls, ['one','two']);
+  same(mapped.variantOptions, [{ label: 'Siyah', stock: 3 }]);
+  assert.doesNotMatch(JSON.stringify(mapped), /PRIVATE|owner_id|seller_id/);
+});
+
+test('Seller repository: count writes include expected stock for products and variants; conflicts propagate', async () => {
+  const old = shopOf([baseProduct]);
+  const plan = shopDiff.planShopChanges(old, shopOf([{ ...baseProduct, stock: 15 }]));
+  const calls = [];
+  const client = { rpc: async (name, args) => { calls.push([name,args]); return { data: {}, error: null }; } };
+  await sellerRepository.pushShopPlan(client, { storeId: 's', note: 'Sayım' }, plan, old);
+  assert.equal(calls[0][0], 'adjust_stock');
+  assert.equal(calls[0][1].p_expected_stock, 10);
+  assert.equal(calls[0][1].p_quantity, 15);
+  const withVariants = { ...baseProduct, stock: 5, variants: [{ id: 'v', label: 'S', stock: 5 }] };
+  const before = shopOf([withVariants]);
+  const variantPlan = shopDiff.planShopChanges(before, shopOf([{ ...withVariants, stock: 7, variants: [{ id: 'v', label: 'S', stock: 7 }] }]));
+  await sellerRepository.pushShopPlan(client, { storeId: 's' }, variantPlan, before);
+  assert.equal(calls[1][1].p_expected_stock, 5);
+  assert.equal(calls[1][1].p_variant_id, 'v');
+  await assert.rejects(sellerRepository.pushShopPlan({ rpc: async () => ({ data: null, error: { code: 'P0001', hint: 'STOCK_CONFLICT', message: 'Stok değişti' } }) }, { storeId: 's' }, plan, old), e => e.hint === 'STOCK_CONFLICT');
 });

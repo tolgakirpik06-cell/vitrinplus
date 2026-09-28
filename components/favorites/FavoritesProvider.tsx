@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useMarketplace } from "@/components/marketplace/context";
 import { friendlyError } from "@/lib/domain/errors";
+import { sameProductReference } from "@/lib/product-reference";
 
 const STORAGE_KEY = "vitrinplus-favorites";
 
@@ -85,7 +86,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const remote = await services.account.listFavorites();
-        const carry = guestRef.current.filter((slug) => !remote.includes(slug)).slice(0, 100);
+        const carry = guestRef.current.filter((slug) => !remote.some(item => sameProductReference(item, slug))).slice(0, 100);
         let merged = remote;
         for (const slug of carry) merged = await services.account.addFavorite(slug);
         if (cancelled) return;
@@ -128,9 +129,12 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     [userId, services],
   );
 
-  const isFavorite = useCallback((slug: string) => slugs.includes(slug), [slugs]);
-  const toggleFavorite = useCallback((slug: string) => setFavorite(slug, !slugsRef.current.includes(slug)), [setFavorite]);
-  const removeFavorite = useCallback((slug: string) => setFavorite(slug, false), [setFavorite]);
+  const isFavorite = useCallback((slug: string) => slugs.some(item => sameProductReference(item, slug)), [slugs]);
+  const toggleFavorite = useCallback((slug: string) => {
+    const existing = slugsRef.current.find(item => sameProductReference(item, slug));
+    setFavorite(existing ?? slug, !existing);
+  }, [setFavorite]);
+  const removeFavorite = useCallback((slug: string) => setFavorite(slugsRef.current.find(item => sameProductReference(item, slug)) ?? slug, false), [setFavorite]);
 
   const count = slugs.length;
   const loaded = userId ? server?.userId === userId || syncError !== null : hydrated;

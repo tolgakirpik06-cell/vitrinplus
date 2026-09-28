@@ -159,6 +159,7 @@ function useDemoState(configProblem: string | null): MarketplaceValue {
   };
 }
 export function DemoProvider({ children, configProblem = null }: { children: ReactNode; configProblem?: string | null }) {
+  if (process.env.NODE_ENV === "production") throw new Error("DEMO_DISABLED_IN_PRODUCTION");
   const value = useDemoState(configProblem);
   return <MarketplaceContext.Provider value={value}>{children}</MarketplaceContext.Provider>;
 }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShieldCheck, Truck, Zap, CreditCard, CheckCircle2 } from "lucide-react";
+import { Minus, Plus, ShieldCheck, Truck, Zap, CheckCircle2 } from "lucide-react";
 import type { ProductVariantGroup, ShippingInfo } from "@/types";
 import { useCart } from "@/components/cart/CartProvider";
 import { FavoriteButton } from "@/components/ui/FavoriteButton";
@@ -22,6 +22,7 @@ type Props = {
   stock: number;
   shipping: ShippingInfo;
   variants?: ProductVariantGroup[];
+  variantOptions?: { label: string; stock: number }[];
 };
 
 export function ProductPurchasePanel({
@@ -33,7 +34,8 @@ export function ProductPurchasePanel({
   discount,
   rating,
   reviewCount,
-  stock,
+  stock: totalStock,
+  variantOptions,
   shipping,
   variants,
 }: Props) {
@@ -51,22 +53,21 @@ export function ProductPurchasePanel({
     return variants.map((group) => selected[group.type]).filter(Boolean).join(" / ");
   }, [variants, selected]);
 
+  const stock = variantOptions?.length ? variantOptions.find(v => v.label === variantLabel)?.stock ?? 0 : totalStock;
   const outOfStock = stock <= 0;
   const lowStock = !outOfStock && stock <= 5;
 
-  const installmentCount = 9;
-  const installmentAmount = Math.ceil(price / installmentCount / 10) * 10;
 
   function handleAddToCart() {
     if (outOfStock) return;
-    addItem({ slug, quantity, variantLabel });
+    addItem({ slug, quantity: Math.min(quantity, stock, 99), variantLabel });
     setFeedback("added");
     window.setTimeout(() => setFeedback("idle"), 2200);
   }
 
   function handleBuyNow() {
     if (outOfStock) return;
-    addItem({ slug, quantity, variantLabel });
+    addItem({ slug, quantity: Math.min(quantity, stock, 99), variantLabel });
     router.push("/sepet");
   }
 
@@ -76,8 +77,8 @@ export function ProductPurchasePanel({
         <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">{brand}</p>
         <h1 className="mt-1 text-xl font-extrabold leading-snug text-navy-900 sm:text-2xl">{name}</h1>
         <div className="mt-2 flex items-center gap-3">
-          <RatingStars rating={rating} />
-          <span className="text-xs text-navy-400">{reviewCount} değerlendirme</span>
+          {reviewCount > 0 && <RatingStars rating={rating} />}
+          <span className="text-xs text-navy-400">{reviewCount > 0 ? `${reviewCount} değerlendirme` : "Henüz değerlendirme yok"}</span>
         </div>
       </div>
 
@@ -93,10 +94,7 @@ export function ProductPurchasePanel({
             </span>
           ) : null}
         </div>
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-navy-400">
-          <CreditCard size={13} />
-          {installmentCount} taksit x {formatPrice(installmentAmount)}&apos;den başlayan seçenekler
-        </p>
+
       </div>
 
       {variants && variants.length > 0 ? (
@@ -109,7 +107,8 @@ export function ProductPurchasePanel({
                   <button
                     key={option}
                     type="button"
-                    onClick={() => setSelected((prev) => ({ ...prev, [group.type]: option }))}
+                    onClick={() => { setSelected((prev) => ({ ...prev, [group.type]: option })); setQuantity(1); }}
+                    disabled={variantOptions?.find(v => v.label === option)?.stock === 0}
                     className={cn(
                       "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors",
                       selected[group.type] === option
@@ -149,7 +148,7 @@ export function ProductPurchasePanel({
           <span className="w-6 text-center text-sm font-bold text-navy-900">{quantity}</span>
           <button
             type="button"
-            onClick={() => setQuantity((q) => Math.min(stock || 1, q + 1))}
+            onClick={() => setQuantity((q) => Math.min(stock || 1, 99, q + 1))}
             disabled={outOfStock}
             aria-label="Adedi artır"
             className="flex h-8 w-8 items-center justify-center rounded-full border border-navy-100 text-navy-600 transition-colors hover:bg-navy-50 disabled:opacity-40"

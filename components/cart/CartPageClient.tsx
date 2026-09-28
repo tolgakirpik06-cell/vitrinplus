@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { ShoppingCart, ShieldCheck, Truck, Package, Minus, Plus, Trash2, Heart, Tag } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, Minus, Plus, Trash2, Heart } from "lucide-react";
 import { useCart } from "@/components/cart/CartProvider";
 import { useFavorites } from "@/components/favorites/FavoritesProvider";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
@@ -15,16 +15,14 @@ import { resolveIcon } from "@/lib/icon-map";
 import type { Product } from "@/types";
 
 const FREE_SHIPPING_THRESHOLD = 250;
-const COUPON_CODE = "VITRINPLUS10";
+
 
 export function CartPageClient() {
-  const { lines, updateQuantity, removeItem, coupon: appliedCoupon, setCoupon: setAppliedCoupon } = useCart();
+  const { lines, updateQuantity, removeItem, coupon: appliedCoupon } = useCart();
   const { resolveProduct, ready, mode } = useDemo();
   const live = mode === "supabase";
   const { loading: refreshing, error: refreshError, retry: retryRefresh } = useEnsureProducts(lines.map((line) => line.slug));
   const { isFavorite, toggleFavorite } = useFavorites();
-  const [couponInput, setCouponInput] = useState("");
-  const [couponError, setCouponError] = useState<string | null>(null);
 
   const resolvedLines = useMemo(() => {
     return lines
@@ -48,17 +46,6 @@ export function CartPageClient() {
   const missing = live && !refreshing && !refreshError ? lines.filter((line) => !resolveProduct(line.slug)) : [];
   const blocked = live && (Boolean(liveQuote?.notOrderable.length) || stockProblems.length > 0 || missing.length > 0 || refreshing || refreshError !== null);
 
-  function handleApplyCoupon() {
-    const code = couponInput.trim().toUpperCase();
-    if (!code) return;
-    if (code === COUPON_CODE) {
-      setAppliedCoupon(code);
-      setCouponError(null);
-    } else {
-      setCouponError("Kupon kodu geçersiz.");
-      setAppliedCoupon(null);
-    }
-  }
 
   if (!ready || (live && refreshing && resolvedLines.length === 0 && lines.length > 0)) return <p role="status">Sepet yükleniyor…</p>;
 
@@ -202,29 +189,7 @@ export function CartPageClient() {
 
         <p className="text-sm font-bold text-navy-900">Sipariş Özeti</p>
 
-        <div className="mt-3">
-          <label htmlFor="cart-coupon" className="mb-1.5 block text-xs font-semibold text-navy-500">Kupon Kodu</label>
-          <div className="flex items-center gap-2">
-            <input
-              id="cart-coupon"
-              value={couponInput}
-              onChange={(event) => setCouponInput(event.target.value)}
-              placeholder="Örn: VITRINPLUS10"
-              className="h-9 min-w-0 flex-1 rounded-lg border border-navy-100 px-3 text-xs text-navy-700 outline-none transition-colors focus:border-brand-400"
-            />
-            <button
-              type="button"
-              onClick={handleApplyCoupon}
-              className="flex h-9 shrink-0 items-center gap-1 rounded-lg bg-navy-900 px-3 text-xs font-semibold text-white transition-colors hover:bg-navy-800"
-            >
-              <Tag size={12} /> Uygula
-            </button>
-          </div>
-          {couponError ? <p className="mt-1.5 text-[11px] text-rose-600">{couponError}</p> : null}
-          {appliedCoupon ? (
-            <p className="mt-1.5 text-[11px] text-emerald-600">&quot;{appliedCoupon}&quot; kuponu uygulandı.</p>
-          ) : null}
-        </div>
+        <p className="mt-3 text-xs text-navy-400">Kupon kullanımı şu anda kapalıdır.</p>
 
         <div className="mt-4 flex flex-col gap-2.5 text-sm">
           <div className="flex items-center justify-between text-navy-500">

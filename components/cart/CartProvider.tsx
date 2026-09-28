@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import type { CartLine } from "@/types";
+import { sameProductReference } from "@/lib/product-reference";
 import { LEGACY_STORAGE_KEYS, STORAGE_KEYS, readWithMigration } from "@/lib/storage-migration";
 
 const STORAGE_KEY = STORAGE_KEYS.cart;
@@ -48,10 +49,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Bu sayede sunucu/istemci arasında hydration uyuşmazlığı oluşmaz.
   useEffect(() => {
     try {
-      const savedCoupon = window.localStorage.getItem(COUPON_KEY);
-      // Restore browser-only coupon after hydration.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (savedCoupon === "VITRINPLUS10") setCoupon(savedCoupon);
+      window.localStorage.removeItem(COUPON_KEY);
       // Eski "pazarbuy-cart" kaydı varsa okunur, yeni anahtara taşınır.
       const raw = readWithMigration(STORAGE_KEY, LEGACY_STORAGE_KEYS.cart);
       if (raw) {
@@ -59,6 +57,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // İlk istemci yüklemesinde localStorage ile senkronize oluyoruz;
         // SSR hydration sonrasında bu state güncellemesi zorunlu.
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (Array.isArray(parsed)) setLines(parsed);
       }
     } catch {
@@ -85,10 +84,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(({ slug, quantity = 1, variantLabel }: AddItemInput) => {
     const lineId = buildLineId(slug, variantLabel);
     setLines((prev) => {
-      const existing = prev.find((line) => line.lineId === lineId);
+      const existing = prev.find((line) => sameProductReference(line.slug, slug) && line.variantLabel === variantLabel);
       if (existing) {
         return prev.map((line) =>
-          line.lineId === lineId ? { ...line, quantity: line.quantity + quantity } : line
+          line.lineId === existing.lineId ? { ...line, quantity: Math.min(99, line.quantity + quantity) } : line
         );
       }
       return [...prev, { lineId, slug, quantity, variantLabel }];

@@ -7,7 +7,7 @@
  *  - SUPABASE_SERVICE_ROLE_KEY yalnızca sunucuda (lib/supabase/admin.ts) okunur, `NEXT_PUBLIC_` öneki ASLA almaz.
  *  - Yanlışlıkla service_role / secret anahtarı NEXT_PUBLIC_ değişkenine yapıştırılırsa yapılandırma REDDEDİLİR;
  *    böylece anahtar tarayıcı paketine sızmaz.
- *  - Değişkenler yoksa uygulama Aşama 1 demo moduna (localStorage) düşer; hiçbir şey kırılmaz.
+ *  - Production ortamında geçersiz/eksik yapılandırma uygulamayı durdurur; demo yalnızca geliştirmede kullanılabilir.
  *
  * Bu dosya bilinçli olarak bağımlılıksızdır (test edilebilir).
  */
@@ -64,7 +64,9 @@ export function validatePublicConfig(rawUrl: string | undefined, rawKey: string 
  * bu biçimde (sabit anahtar adıyla) satır içine yazılır; `process.env[name]` biçimi tarayıcıda çalışmaz.
  */
 export function getPublicConfigResult(): ConfigResult {
-  return validatePublicConfig(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const result = validatePublicConfig(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  assertProductionConfig(result, process.env.NODE_ENV);
+  return result;
 }
 
 export function getPublicConfig(): SupabasePublicConfig | null {
@@ -98,4 +100,9 @@ export type OAuthProviderKey = "google" | "apple";
 export function isOAuthProviderEnabled(provider: OAuthProviderKey): boolean {
   const flag = provider === "google" ? process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED : process.env.NEXT_PUBLIC_AUTH_APPLE_ENABLED;
   return flag === "true";
+}
+
+/** No secret values are included in configuration errors. */
+export function assertProductionConfig(result: ConfigResult, environment: string | undefined): void {
+  if (environment === "production" && !result.ok) throw new Error(`SUPABASE_CONFIGURATION_ERROR: ${result.reason}. Production requires a valid Supabase URL and publishable key.`);
 }

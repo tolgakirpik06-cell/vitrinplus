@@ -16,6 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : process.env.VERCEL_PROJECT_PRODUCTION_URL ? new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`) : undefined,
   title: "VitrinPlus | Vitrin senin. Seçim senin.",
   description:
     "VitrinPlus, moda, teknoloji ve güzellikte editoryal bir alışveriş deneyimi sunan yeni nesil pazaryeri. Binlerce satıcının ürünlerini karşılaştırır, sana en uygun seçimi bulur. Satıcılara %0 komisyon.",
@@ -26,7 +27,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Supabase ortam değişkenleri geçerliyse gerçek hesap modu, yoksa Aşama 1 demo modu (tarayıcıda saklanır).
+  // getPublicConfigResult fails fast in production; development may still use demo.
   const config = getPublicConfigResult();
   const content = (
     <CartProvider>

@@ -18,3 +18,5 @@ echo "PASS sayısı: $(grep -c 'PASS:' /tmp/vp-rules.out || true)"
 ${PSQL} -o /dev/null -d "${DB}" -f "${HERE}/30_seller_documents.test.sql" 2>&1 | tee /tmp/vp-docs.out
 echo "Belge testleri PASS sayısı: $(grep -c 'PASS:' /tmp/vp-docs.out || true)"
 bash "${HERE}/20_concurrency.sh" "${DB}"
+${PSQL} -d "${DB}" -f "${HERE}/40_production_catalog.test.sql"
+${PSQL} -d "${DB}" -f "${HERE}/40_production_catalog.test.sql"

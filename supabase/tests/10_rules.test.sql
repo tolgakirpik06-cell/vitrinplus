@@ -152,9 +152,9 @@ commit;
 -- Yönetici: onay / ret; onaydan sonra mağaza aktif ve rol seller
 begin;
 select test.login(test.uid('admin'));
-select public.admin_set_seller_status((select id from public.seller_accounts where owner_id = test.uid('seller1')), 'approved');
-select public.admin_set_seller_status((select id from public.seller_accounts where owner_id = test.uid('seller2')), 'approved');
-select public.admin_set_seller_status((select id from public.seller_accounts where owner_id = test.uid('seller3')), 'approved');
+select public.admin_review_seller_application((select id from public.seller_accounts where owner_id = test.uid('seller1')), 'approve');
+select public.admin_review_seller_application((select id from public.seller_accounts where owner_id = test.uid('seller2')), 'approve');
+select public.admin_review_seller_application((select id from public.seller_accounts where owner_id = test.uid('seller3')), 'approve');
 select test.throws($$select public.admin_set_seller_status((select id from public.seller_accounts limit 1), 'rejected', '')$$, 'REASON_REQUIRED');
 do $$
 begin
@@ -298,7 +298,7 @@ begin
   assert (r ->> 'stock_after')::int = 15, 'add: 10+5';
   r := public.adjust_stock('b0000000-0000-0000-0000-000000000001', null, 'remove', 3, 'Fire');
   assert (r ->> 'stock_after')::int = 12;
-  r := public.adjust_stock('b0000000-0000-0000-0000-000000000001', null, 'set', 10, 'Sayım');
+  r := public.adjust_stock('b0000000-0000-0000-0000-000000000001', null, 'set', 10, 'Sayım', 12);
   assert (r ->> 'stock_after')::int = 10;
   perform test.throws($q$select public.adjust_stock('b0000000-0000-0000-0000-000000000001', null, 'remove', 11)$q$, 'STOCK_NEGATIVE');
   perform test.throws($q$select public.adjust_stock('b0000000-0000-0000-0000-000000000001', null, 'add', 0)$q$, 'INVALID_QUANTITY');
@@ -431,9 +431,9 @@ begin
   r := public.place_order('[{"product_id":"b0000000-0000-0000-0000-000000000022","quantity":2}]', d, 'key-snap-0001');
   v_o := (r -> 'orders' -> 0 ->> 'id')::uuid;
   assert (r -> 'orders' -> 0 ->> 'subtotal')::numeric = 200, 'ara toplam 200';
-  assert (r -> 'orders' -> 0 ->> 'discount_total')::numeric = 20, 'kupon %10';
+  assert (r -> 'orders' -> 0 ->> 'discount_total')::numeric = 0, 'eski kupon indirim sağlamaz';
   assert (r -> 'orders' -> 0 ->> 'shipping_total')::numeric = 79.80, 'kargo 49.90 + hızlı 29.90';
-  assert (r -> 'orders' -> 0 ->> 'total')::numeric = 259.80, 'toplam 200-20+79.80';
+  assert (r -> 'orders' -> 0 ->> 'total')::numeric = 279.80, 'toplam 200+79.80';
   assert (select stock from public.products where id = 'b0000000-0000-0000-0000-000000000022') = 48;
   -- Tekrarlanan istek: yeni sipariş yok, stok tekrar düşmez
   r2 := public.place_order('[{"product_id":"b0000000-0000-0000-0000-000000000022","quantity":2}]', d, 'key-snap-0001');

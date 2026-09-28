@@ -1,5 +1,4 @@
-import { Star, BadgeCheck, Crown } from "lucide-react";
-import { stores } from "@/data/stores";
+import { BadgeCheck, Crown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AskSellerButton } from "@/components/product/AskSellerButton";
 import { cn } from "@/lib/utils";
@@ -26,26 +25,23 @@ function initials(name: string): string {
 
 export function SellerCard({
   sellerName,
+  storeSlug,
   categoryLabel,
   productSlug,
   productName,
 }: {
   sellerName: string;
+  storeSlug?: string;
   categoryLabel: string;
   productSlug?: string;
   productName?: string;
 }) {
-  const store = stores.find((s) => s.name === sellerName);
-
-  const display = store ?? {
+  const display = {
     name: sellerName,
     categoryLabel,
-    rating: 4.5,
-    productCount: 120,
-    followerCount: "1K",
     tone: "navy" as const,
     badge: undefined,
-    slug: undefined,
+    slug: storeSlug,
   };
 
   return (
@@ -72,18 +68,10 @@ export function SellerCard({
         </span>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-navy-400">
-        <span className="inline-flex items-center gap-1 font-semibold text-navy-700">
-          <Star size={13} className="fill-amber-400 text-amber-400" />
-          {display.rating.toFixed(1)}
-        </span>
-        <span>{display.productCount.toLocaleString("tr-TR")} ürün</span>
-        <span>{display.followerCount} takipçi</span>
-      </div>
 
       <div className="flex items-center gap-2">
         <Button
-          href={store ? `/magaza/${store.slug}` : "/magazalar"}
+          href={storeSlug ? `/magaza/${storeSlug}` : "/magazalar"}
           variant="outline"
           size="sm"
           className="flex-1"

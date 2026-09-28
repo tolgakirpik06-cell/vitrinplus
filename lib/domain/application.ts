@@ -42,7 +42,7 @@ export function sanitizeApplication(data: SellerApplicationData): SanitizedAppli
     business: {
       ticariUnvan: text(data.business.ticariUnvan),
       vergiDairesi: text(data.business.vergiDairesi),
-      vergiNumarasi: text(data.business.vergiNumarasi, 20),
+      vergiNumarasi: /^\d{10}$/.test(data.business.vergiNumarasi ?? "") ? data.business.vergiNumarasi : "",
       isletmeAdresi: text(data.business.isletmeAdresi, 300),
       il: text(data.business.il, 60),
       ilce: text(data.business.ilce, 60),

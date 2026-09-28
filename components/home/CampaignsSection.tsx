@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { ChevronRight, Megaphone } from "lucide-react";
-import { campaigns } from "@/data/campaigns";
+import { catalogCampaigns } from "@/lib/catalog-campaigns";
+import { CatalogEmpty } from "@/components/ui/CatalogEmpty";
 import { CampaignCard } from "@/components/ui/CampaignCard";
 
-export function CampaignsSection() {
-  const items = campaigns.slice(2);
+export async function CampaignsSection() {
+  const items = await catalogCampaigns();
 
   return (
     <section aria-labelledby="kampanyalar-baslik">
@@ -24,6 +25,7 @@ export function CampaignsSection() {
         </Link>
       </div>
 
+      {items.length === 0 && <CatalogEmpty message="Şu anda yayında indirimli ürün yok." />}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((campaign) => (
           <CampaignCard key={campaign.id} campaign={campaign} size="md" />

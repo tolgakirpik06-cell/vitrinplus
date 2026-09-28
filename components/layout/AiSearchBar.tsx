@@ -3,9 +3,10 @@
 import { Sparkles, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { cn, formatPrice } from "@/lib/utils";
-import { searchCatalog } from "@/lib/search";
+import { useMarketplace } from "@/components/marketplace/context";
+import type { Product } from "@/types";
 
 type Size = "md" | "lg";
 
@@ -26,7 +27,21 @@ export function AiSearchBar({
   const [open, setOpen] = useState(false);
   const resultsId = useId();
   const resultsRef = useRef<HTMLDivElement>(null);
-  const results = searchCatalog(query);
+  const { searchCatalog } = useMarketplace();
+  const [suggestions, setSuggestions] = useState<{ query: string; products: Product[]; error?: boolean }>({ query: "", products: [] });
+  useEffect(() => {
+    if (!open || !query.trim()) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      searchCatalog({ query, pageSize: 6 }).then(
+        page => { if (active) setSuggestions({ query, products: page.items }); },
+        () => { if (active) setSuggestions({ query, products: [], error: true }); },
+      );
+    }, 250);
+    return () => { active = false; clearTimeout(timer); };
+  }, [query, open, searchCatalog]);
+  const loading = suggestions.query !== query;
+  const results = { products: loading ? [] : suggestions.products, stores: [] as { slug: string; name: string }[], categories: [] as { slug: string; name: string }[] };
   const visible = open && query.trim().length > 0;
   const total = results.products.length + results.stores.length + results.categories.length;
   const isLg = size === "lg";
@@ -101,7 +116,7 @@ export function AiSearchBar({
                 isLg ? "sm:block text-xs sm:text-sm" : "xl:block text-xs"
               )}
             >
-              Örn: kablosuz kulaklık, TeknoMarket
+              Örn: kablosuz kulaklık
             </span>
           </>
         ) : null}
@@ -126,7 +141,7 @@ export function AiSearchBar({
           className="absolute inset-x-0 top-full z-50 mt-2 max-h-[min(60dvh,28rem)] overflow-y-auto overscroll-contain rounded-2xl border border-navy-100 bg-white p-2 shadow-xl"
         >
           <p role="status" className="px-3 py-2 text-xs text-navy-500">
-            {total ? `${results.products.length} ürün · ${results.stores.length} mağaza · ${results.categories.length} kategori` : "Sonuç bulunamadı. Farklı bir anahtar kelime deneyin."}
+            {loading ? "Aranıyor…" : suggestions.error ? "Arama yüklenemedi. Yeniden deneyin." : total ? `${results.products.length} ürün önerisi` : "Ürün önerisi bulunamadı. Tüm sonuçlarda mağaza ve kategorileri inceleyin."}
           </p>
           {results.products.slice(0, 6).map((product) => (
             <Link key={product.slug} href={`/urun/${product.slug}`} onClick={closeResults}
@@ -146,7 +161,7 @@ export function AiSearchBar({
             <Link key={category.slug} href={`/kategori/${category.slug}`} onClick={closeResults}
               className="block rounded-xl px-3 py-2 text-sm text-navy-700 hover:bg-brand-50 focus:bg-brand-50">Kategori: {category.name}</Link>
           ))}
-          {total > 0 ? (
+          {query.trim() ? (
             <Link href={`/arama?q=${encodeURIComponent(query.trim())}`} onClick={closeResults}
               className="mt-1 block border-t border-navy-100 px-3 py-3 text-sm font-semibold text-brand-600 hover:bg-brand-50 focus:bg-brand-50">Tüm sonuçları gör</Link>
           ) : null}

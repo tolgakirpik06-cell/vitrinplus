@@ -80,10 +80,10 @@ export function ProductCard({ product, rank }: { product: Product; rank?: number
               </span>
             ) : null}
           </span>
-          <RatingStars rating={product.rating} />
+          {product.reviewCount > 0 && <RatingStars rating={product.rating} />}
         </div>
 
-        <p className="text-xs text-navy-400">{product.reviewCount} değerlendirme</p>
+        <p className="text-xs text-navy-400">{product.reviewCount > 0 ? `${product.reviewCount} değerlendirme` : "Henüz değerlendirme yok"}</p>
 
         <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-navy-50 pt-2.5 text-xs">
           <span

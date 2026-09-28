@@ -49,8 +49,8 @@ export function MegaMenuPanel({ category }: { category: MainCategory }) {
           <span className="relative inline-flex rounded-full bg-brand-500/15 px-2.5 py-1 text-[10px] font-bold text-brand-300 ring-1 ring-brand-500/20">
             {category.campaign.badge}
           </span>
-          <p className="relative mt-2.5 text-sm font-bold leading-snug text-white">{category.campaign.title}</p>
-          <p className="relative mt-1 text-xs leading-relaxed text-navy-300">{category.campaign.subtitle}</p>
+          <p className="relative mt-2.5 text-sm font-bold leading-snug text-white">{category.name} Vitrini</p>
+          <p className="relative mt-1 text-xs leading-relaxed text-navy-300">Güncel ürünleri keşfet</p>
           <Link
             href={href}
             className="relative mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-400 transition-colors hover:text-brand-300"

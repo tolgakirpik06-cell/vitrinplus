@@ -59,12 +59,12 @@ export function StoreCard({ store, id }: { store: Store; id?: string }) {
       </div>
 
       <div className="flex items-center justify-between text-xs text-navy-400">
-        <span className="inline-flex items-center gap-1 font-semibold text-navy-700">
+        {!store.live && <span className="inline-flex items-center gap-1 font-semibold text-navy-700">
           <Star size={13} className="fill-amber-400 text-amber-400" />
           {store.rating.toFixed(1)}
-        </span>
+        </span>}
         <span>{store.productCount.toLocaleString("tr-TR")} ürün</span>
-        <span>{store.followerCount} takipçi</span>
+        {!store.live && <span>{store.followerCount} takipçi</span>}
       </div>
     </Link>
   );

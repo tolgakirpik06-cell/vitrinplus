@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
-import type { Campaign } from "@/types";
+import type { Campaign, Product } from "@/types";
 import { HeroProductShowcase } from "./HeroProductShowcase";
-import { heroShowcaseProducts } from "@/data/hero-showcase";
 
 /**
  * Ana sayfanın gerçek "hero" alanı. Sol tarafta kampanya metni + CTA, sağ
@@ -13,7 +12,7 @@ import { heroShowcaseProducts } from "@/data/hero-showcase";
  * korunuyor — ayrı bir arama alanı YOK (header'daki arama ile tekrar
  * etmemesi için).
  */
-export function HeroBanner({ campaign }: { campaign: Campaign }) {
+export function HeroBanner({ campaign, products }: { campaign: Campaign; products: Product[] }) {
   return (
     <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-navy-900 via-navy-800 to-navy-950 shadow-premium sm:flex-row sm:items-center">
       <div
@@ -34,9 +33,9 @@ export function HeroBanner({ campaign }: { campaign: Campaign }) {
           {campaign.badge}
         </span>
 
-        <h1 className="mt-4 max-w-md text-balance text-3xl font-extrabold leading-tight text-white sm:text-4xl">
+        <h2 className="mt-4 max-w-md text-balance text-3xl font-extrabold leading-tight text-white sm:text-4xl">
           {campaign.title}
-        </h1>
+        </h2>
         <p className="mt-3 max-w-sm text-sm text-white/70 sm:text-base">{campaign.subtitle}</p>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -56,7 +55,7 @@ export function HeroBanner({ campaign }: { campaign: Campaign }) {
       </div>
 
       <div className="relative w-full shrink-0 px-6 pb-6 sm:w-[15rem] sm:px-3 sm:pb-0 sm:pr-6 md:w-[18rem] lg:w-[20rem] lg:pr-8">
-        <HeroProductShowcase products={heroShowcaseProducts} />
+        <HeroProductShowcase products={products.slice(0, 5)} />
       </div>
     </div>
   );
