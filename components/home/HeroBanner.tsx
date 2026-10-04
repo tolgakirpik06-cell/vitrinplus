@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import type { Campaign, Product } from "@/types";
 import { HeroProductShowcase } from "./HeroProductShowcase";
+import { selectHeroShowcaseProducts } from "@/data/hero-showcase";
 
 /**
  * Ana sayfanın gerçek "hero" alanı. Sol tarafta kampanya metni + CTA, sağ
@@ -55,7 +56,7 @@ export function HeroBanner({ campaign, products }: { campaign: Campaign; product
       </div>
 
       <div className="relative w-full shrink-0 px-6 pb-6 sm:w-[15rem] sm:px-3 sm:pb-0 sm:pr-6 md:w-[18rem] lg:w-[20rem] lg:pr-8">
-        <HeroProductShowcase products={products.slice(0, 5)} />
+        <HeroProductShowcase products={selectHeroShowcaseProducts(products)} />
       </div>
     </div>
   );

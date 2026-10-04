@@ -8,13 +8,13 @@ import {
   X,
   Heart,
   ShoppingCart,
-  Store,
   LayoutGrid,
 } from "lucide-react";
 import { navCategories } from "@/data/categories";
 import { useCart } from "@/components/cart/CartProvider";
 import { AiSearchBar } from "./AiSearchBar";
 import { MobileAccount } from "./UserMenu";
+import { SellerCta } from "./SellerCta";
 
 export function MobileNav({ searchQuery = "" }: { searchQuery?: string }) {
   const [open, setOpen] = useState(false);
@@ -100,13 +100,7 @@ export function MobileNav({ searchQuery = "" }: { searchQuery?: string }) {
 
         <div className="mt-auto flex flex-col gap-2 pt-2">
           <MobileAccount onNavigate={() => setOpen(false)} />
-          <Link
-            href="/satici-basvuru"
-            onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white"
-          >
-            <Store size={16} /> Mağaza Aç
-          </Link>
+          <SellerCta onNavigate={() => setOpen(false)} className="h-10 w-full" />
         </div>
       </div>
     </div>

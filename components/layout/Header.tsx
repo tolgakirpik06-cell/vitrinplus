@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { Heart, ShoppingCart, Store } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { Logo } from "./Logo";
 import { AiSearchBar } from "./AiSearchBar";
 import { MobileNav } from "./MobileNav";
 import { UserMenu } from "./UserMenu";
 import { CategoryNav } from "./CategoryNav";
-import { Button } from "@/components/ui/Button";
 import { CartBadge } from "@/components/cart/CartBadge";
 import { FavoriteBadge } from "@/components/favorites/FavoriteBadge";
+import { SellerCta } from "./SellerCta";
 
 export function Header({ searchQuery = "" }: { searchQuery?: string }) {
   return (
@@ -44,10 +44,7 @@ export function Header({ searchQuery = "" }: { searchQuery?: string }) {
           <span className="mx-2.5 h-7 w-px bg-navy-100" aria-hidden />
 
           <UserMenu />
-          <Button href="/satici-basvuru" variant="primary" size="sm" className="whitespace-nowrap">
-            <Store size={15} />
-            Mağaza Aç
-          </Button>
+          <SellerCta className="whitespace-nowrap" />
         </div>
 
         <div className="ml-auto flex items-center gap-2 lg:hidden">

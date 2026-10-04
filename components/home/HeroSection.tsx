@@ -48,7 +48,7 @@ function pickHeroShowcase(products: Product[], stores: Store[]) {
   const sponsoredStore = stores.find((store) => store.badge === "verified") ?? stores[0];
   const personalPick =
     products.find((product) => product.tags.includes("sana-ozel") && product.slug !== discountPick?.slug) ??
-    products.find((product) => product.slug !== discountPick.slug) ??
+    products.find((product) => product.slug !== discountPick?.slug) ??
     discountPick;
 
   return { discountPick, sponsoredStore, personalPick };
@@ -193,7 +193,7 @@ export function HeroSection({ products, stores }: { products: Product[]; stores:
             href={`/urun/${personalPick.slug}`}
             className="group flex items-center gap-3 rounded-2xl border border-violet-100 bg-violet-50/40 p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover sm:p-3.5"
           >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 sm:h-14 sm:w-14">
+            <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 sm:h-14 sm:w-14">
               {personalPick.imageUrls?.[0] ? <ProductImage src={personalPick.imageUrls[0]} alt={personalPick.name} sizes="56px" /> : personalPick.visual === "generic" ? (
                 <GenericCategoryVisual icon={resolveIcon(personalPick.icon, Package)} className="h-full w-full" />
               ) : (

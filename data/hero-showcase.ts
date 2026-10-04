@@ -1,20 +1,21 @@
-import { products } from "@/data/products";
 import type { Product } from "@/types";
 
 /**
  * Ana sayfa hero'sunun "Süper Fırsatlar" vitrininde gösterilecek ürünler.
  * Telefon / kulaklık / laptop / akıllı saat / parfüm gibi farklı kategorilerden,
- * indirimli ve tanıdık ürünler seçildi — hepsi gerçek /urun/[slug] sayfasına
- * gider ve gerçek fiyat/indirim bilgisiyle gösterilir.
+ * Yalnızca canlı katalogdaki izin verilen slug'lar seçilir; eksik ürünler
+ * atlanır ve başka satıcı ürünleriyle doldurulmaz.
  */
-const HERO_SHOWCASE_SLUGS = [
+export const HERO_SHOWCASE_SLUGS = [
   "galaxy-s24-ultra",
   "sony-wh1000xm5",
   "macbook-air-m3",
   "apple-watch-s9",
   "loreal-elixir-parfum",
-];
+] as const;
 
-export const heroShowcaseProducts: Product[] = HERO_SHOWCASE_SLUGS.map((slug) =>
-  products.find((product) => product.slug === slug)
-).filter((product): product is Product => Boolean(product));
+export function selectHeroShowcaseProducts(products: readonly Product[]): Product[] {
+  return HERO_SHOWCASE_SLUGS.map((slug) =>
+    products.find((product) => product.slug === slug)
+  ).filter((product): product is Product => Boolean(product));
+}

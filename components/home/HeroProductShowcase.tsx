@@ -17,7 +17,7 @@ import type { Product } from "@/types";
 export function HeroProductShowcase({ products }: { products: Product[] }) {
   const [index, setIndex] = useState(0);
 
-  if (products.length === 0) return <p className="rounded-2xl border border-white/10 p-6 text-sm text-white/60">Yeni ürünler eklendiğinde burada görünecek.</p>;
+  if (products.length === 0) return <p className="rounded-2xl border border-white/10 p-6 text-sm text-white/60">Kampanya ürünleri yakında burada.</p>;
   const product = products[index % products.length];
 
   function go(delta: number) {
