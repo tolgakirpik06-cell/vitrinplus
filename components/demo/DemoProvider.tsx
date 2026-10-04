@@ -20,6 +20,8 @@ const demoAuth: AuthApi = {
   signInWithPassword: async () => { throw new MarketplaceError("UNSUPPORTED", UNSUPPORTED); },
   signUpWithPassword: async () => { throw new MarketplaceError("UNSUPPORTED", UNSUPPORTED); },
   signInWithOAuth: async () => { throw new MarketplaceError("UNSUPPORTED", UNSUPPORTED); },
+  requestPasswordReset: async () => { throw new MarketplaceError("UNSUPPORTED", UNSUPPORTED); },
+  updatePassword: async () => { throw new MarketplaceError("UNSUPPORTED", UNSUPPORTED); },
 };
 /** Kalıcı demo kaydındaki siparişler (iade deposu güncel veriyi doğrudan depolamadan okur). */
 function readPersistedOrders(): readonly DemoOrder[] {

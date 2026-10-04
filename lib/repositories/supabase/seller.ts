@@ -83,7 +83,27 @@ async function createProducts(client: Client, ctx: PushContext, products: readon
       // Varyantlı üründe toplam stok varyant stoklarından türer; çift "ilk stok" kaydı olmasın diye 0 ile başlar.
       stock: product.variants?.length ? 0 : product.stock,
     }));
-    unwrap(await client.from("products").insert(productRows));
+    const productIds = batch.map((product) => product.id);
+    const existingRows = rows<ProductRow>(
+      unwrap(
+        await client
+          .from("products")
+          .select("*")
+          .in("id", productIds)
+      )
+    );
+    const existingIds = new Set(existingRows.map((product) => product.id));
+
+    for (const existing of existingRows) {
+      if (existing.store_id !== ctx.storeId || existing.seller_id !== ctx.userId) {
+        throw new MarketplaceError("FORBIDDEN", "Bu ürün kimliği başka bir mağazaya ait.");
+      }
+    }
+
+    const missingRows = productRows.filter((product) => !existingIds.has(product.id));
+    if (missingRows.length) {
+      unwrap(await client.from("products").insert(missingRows));
+    }
     unwrap(await client.from("product_costs").upsert(batch.map((product) => ({ product_id: product.id, ...toCostColumns(product) })), { onConflict: "product_id" }));
     const variantRows = batch.flatMap((product) =>
       (product.variants ?? []).map((variant, index) => ({ id: variant.id, product_id: product.id, label: variant.label.trim(), sku: variant.sku?.trim() || null, stock: variant.stock ?? 0, sort_order: index, is_active: true }))

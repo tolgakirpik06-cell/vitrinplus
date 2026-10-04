@@ -91,6 +91,13 @@ export function SupabaseAuthForm({ mode }: { mode: "giris" | "kayit" }) {
           <input name="email" required type="email" maxLength={150} placeholder="ornek@eposta.com" autoComplete="email" disabled={submitting} className="mt-1.5 block w-full rounded-xl border border-navy-100 bg-navy-50/40 p-3 text-sm font-normal" />
         </label>
         <PasswordField id="password" name="password" label="Şifre" placeholder={mode === "kayit" ? `En az ${PASSWORD_MIN_LENGTH} karakter, harf ve rakam` : "Şifren"} autoComplete={mode === "kayit" ? "new-password" : "current-password"} required minLength={mode === "kayit" ? PASSWORD_MIN_LENGTH : undefined} maxLength={72} disabled={submitting} />
+        {mode === "giris" && (
+          <div className="text-right">
+            <Link className="text-sm font-semibold text-brand-600 hover:text-brand-700" href="/sifremi-unuttum">
+              Şifremi unuttum?
+            </Link>
+          </div>
+        )}
         {error && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
         <button disabled={!ready || submitting} className="w-full rounded-xl bg-brand-500 p-3 font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50">
           {submitting ? "Lütfen bekle…" : mode === "kayit" ? "Üye ol" : "Giriş yap"}

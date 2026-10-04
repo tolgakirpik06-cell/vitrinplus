@@ -12,7 +12,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { MarketplaceContext, type AuthApi, type MarketplaceValue, type OrderDetailsPatch, type OrderExtra, type PlaceOrderInput, type PlacedOrderSummary, type SellerAccountInfo, type SyncState } from "@/components/marketplace/context";
-import { friendlyAuthError, validateSignIn, validateSignUp } from "@/lib/auth/credentials";
+import { friendlyAuthError, validateEmail, validatePassword, validateSignIn, validateSignUp } from "@/lib/auth/credentials";
 import { safeNextPath } from "@/lib/auth/paths";
 import { transitionOrder as transitionDemoOrder, type DemoOrderStatus, type DemoShop, type DemoState } from "@/lib/demo-marketplace";
 import { sanitizeApplication } from "@/lib/domain/application";
@@ -294,7 +294,7 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
   const auth = useMemo<AuthApi>(() => {
     if (!client) {
       const fail = noSession("Supabase yapılandırması eksik olduğu için giriş yapılamıyor.");
-      return { signInWithPassword: fail, signUpWithPassword: fail, signInWithOAuth: fail };
+      return { signInWithPassword: fail, signUpWithPassword: fail, signInWithOAuth: fail, requestPasswordReset: fail, updatePassword: fail };
     }
     return {
       async signInWithPassword(email, password) {
@@ -315,6 +315,22 @@ export function SupabaseMarketplaceProvider({ children }: { children: ReactNode 
       async signInWithOAuth(provider, next) {
         const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNextPath(next))}`;
         const { error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo } });
+        if (error) throw new MarketplaceError("AUTH", friendlyAuthError(error));
+      },
+      async requestPasswordReset(email) {
+        const problem = validateEmail(email);
+        if (problem) throw new MarketplaceError("INVALID_CREDENTIALS_FORMAT", problem);
+
+        const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent("/sifre-yenile")}`;
+        const { error } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+
+        if (error) throw new MarketplaceError("AUTH", friendlyAuthError(error));
+      },
+      async updatePassword(password) {
+        const problem = validatePassword(password);
+        if (problem) throw new MarketplaceError("INVALID_CREDENTIALS_FORMAT", problem);
+
+        const { error } = await client.auth.updateUser({ password });
         if (error) throw new MarketplaceError("AUTH", friendlyAuthError(error));
       },
     };

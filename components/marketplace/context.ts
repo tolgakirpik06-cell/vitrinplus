@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * Pazaryeri bağlamı (context) sözleşmesi.
@@ -35,6 +35,8 @@ export type AuthApi = {
   /** `needsEmailConfirmation`: hesap oluşturuldu ama giriş için e-posta doğrulaması gerekiyor. */
   signUpWithPassword: (input: { name: string; email: string; password: string; next?: string }) => Promise<{ needsEmailConfirmation: boolean }>;
   signInWithOAuth: (provider: "google" | "apple", next?: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
 };
 
 export type PlaceOrderInput = { lines: CartLine[]; shipTo: ShipTo; billingAddress: string; coupon: string | null; express: boolean; idempotencyKey: string; note?: string };
@@ -96,3 +98,4 @@ export function useMarketplace(): MarketplaceValue {
   if (!value) throw new Error("DemoProvider veya SupabaseMarketplaceProvider gerekli");
   return value;
 }
+
