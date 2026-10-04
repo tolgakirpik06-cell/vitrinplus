@@ -6,6 +6,7 @@ import { ShoppingCart, ShieldCheck, Truck, Package, Minus, Plus, Trash2, Heart }
 import { useCart } from "@/components/cart/CartProvider";
 import { useFavorites } from "@/components/favorites/FavoritesProvider";
 import { ProductVisual, GenericCategoryVisual } from "@/components/ui/product-visuals";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { useEnsureProducts } from "@/components/marketplace/useEnsureProducts";
 import { totals } from "@/lib/demo-marketplace";
@@ -86,9 +87,11 @@ export function CartPageClient() {
           >
             <Link
               href={`/urun/${product.slug}`}
-              className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-50 p-2"
+              className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-50 p-2"
             >
-              {product.visual === "generic" ? (
+              {product.imageUrls?.[0] ? (
+                <ProductImage src={product.imageUrls[0]} alt={product.name} sizes="80px" />
+              ) : product.visual === "generic" ? (
                 <GenericCategoryVisual icon={resolveIcon(product.icon, Package)} className="h-full w-full" />
               ) : (
                 <ProductVisual visual={product.visual} className="h-full w-full" />
@@ -244,7 +247,7 @@ export function CartPageClient() {
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Truck size={13} className="text-brand-500" />
-            {formatPrice(FREE_SHIPPING_THRESHOLD)} üzeri siparişlerde ücretsiz kargo
+            {live ? "Ücretsiz kargo koşulları mağazaya göre değişir." : `${formatPrice(FREE_SHIPPING_THRESHOLD)} üzeri siparişlerde ücretsiz kargo`}
           </span>
         </div>
       </div>

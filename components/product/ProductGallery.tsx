@@ -19,14 +19,14 @@ export function ProductGallery({
   const current = images[active] ?? images[0];
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3">
       <div className="relative aspect-square overflow-hidden rounded-3xl border border-navy-100/80 bg-gradient-to-b from-neutral-50 to-white">
         {badge ? <div className="absolute left-4 top-4 z-10">{badge}</div> : null}
         <div className="flex h-full w-full items-center justify-center p-10">{current?.node}</div>
       </div>
 
       {images.length > 1 ? (
-        <div className="flex gap-2.5">
+        <div className="flex max-w-full gap-2.5 overflow-x-auto p-1">
           {images.map((image, index) => (
             <button
               key={`${image.label}-${index}`}

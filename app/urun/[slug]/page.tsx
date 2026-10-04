@@ -13,6 +13,7 @@ import { ProductGallery, type GalleryImage } from "@/components/product/ProductG
 import { ProductPurchasePanel } from "@/components/product/ProductPurchasePanel";
 import { SellerCard } from "@/components/product/SellerCard";
 import { resolveIcon } from "@/lib/icon-map";
+import { RETURN_WINDOW_DAYS } from "@/lib/domain/returns";
 
 
 export async function generateMetadata({
@@ -115,7 +116,7 @@ export default async function ProductPage({
                 </p>
                 <p className="flex items-start gap-2.5">
                   <RotateCcw size={16} className="mt-0.5 shrink-0 text-navy-500" />
-                  Ürünü teslim aldıktan sonra 15 gün içinde ücretsiz iade edebilirsiniz.
+                  Teslimattan sonra {RETURN_WINDOW_DAYS} gün içinde iade talebi oluşturabilirsin.
                 </p>
                 <p className="flex items-start gap-2.5">
                   <ShieldCheck size={16} className="mt-0.5 shrink-0 text-emerald-600" />
